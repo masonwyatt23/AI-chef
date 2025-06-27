@@ -15,6 +15,8 @@ import {
   type Recommendation,
   type InsertRecommendation
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -37,149 +39,108 @@ export interface IStorage {
   updateRecommendation(id: number, recommendation: Partial<InsertRecommendation>): Promise<Recommendation | undefined>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private restaurants: Map<number, Restaurant>;
-  private conversations: Map<number, Conversation>;
-  private messages: Map<number, Message>;
-  private recommendations: Map<number, Recommendation>;
-  private currentUserId: number;
-  private currentRestaurantId: number;
-  private currentConversationId: number;
-  private currentMessageId: number;
-  private currentRecommendationId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.restaurants = new Map();
-    this.conversations = new Map();
-    this.messages = new Map();
-    this.recommendations = new Map();
-    this.currentUserId = 1;
-    this.currentRestaurantId = 1;
-    this.currentConversationId = 1;
-    this.currentMessageId = 1;
-    this.currentRecommendationId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async createRestaurant(insertRestaurant: InsertRestaurant): Promise<Restaurant> {
-    const id = this.currentRestaurantId++;
-    const restaurant: Restaurant = { 
-      id,
-      name: insertRestaurant.name,
-      theme: insertRestaurant.theme,
-      categories: insertRestaurant.categories || [],
-      kitchenCapability: insertRestaurant.kitchenCapability || "intermediate",
-      staffSize: insertRestaurant.staffSize || 5,
-      additionalContext: insertRestaurant.additionalContext || null,
-      createdAt: new Date() 
-    };
-    this.restaurants.set(id, restaurant);
+    const [restaurant] = await db
+      .insert(restaurants)
+      .values(insertRestaurant)
+      .returning();
     return restaurant;
   }
 
   async getRestaurant(id: number): Promise<Restaurant | undefined> {
-    return this.restaurants.get(id);
+    const [restaurant] = await db.select().from(restaurants).where(eq(restaurants.id, id));
+    return restaurant || undefined;
   }
 
   async updateRestaurant(id: number, updateData: Partial<InsertRestaurant>): Promise<Restaurant | undefined> {
-    const restaurant = this.restaurants.get(id);
-    if (!restaurant) return undefined;
-    
-    const updated = { ...restaurant, ...updateData };
-    this.restaurants.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(restaurants)
+      .set(updateData)
+      .where(eq(restaurants.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
-    const id = this.currentConversationId++;
-    const conversation: Conversation = { 
-      ...insertConversation, 
-      id, 
-      createdAt: new Date() 
-    };
-    this.conversations.set(id, conversation);
+    const [conversation] = await db
+      .insert(conversations)
+      .values(insertConversation)
+      .returning();
     return conversation;
   }
 
   async getConversationsByRestaurant(restaurantId: number): Promise<Conversation[]> {
-    return Array.from(this.conversations.values()).filter(
-      (conv) => conv.restaurantId === restaurantId
-    );
+    return await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.restaurantId, restaurantId))
+      .orderBy(conversations.createdAt);
   }
 
   async getConversation(id: number): Promise<Conversation | undefined> {
-    return this.conversations.get(id);
+    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conversation || undefined;
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const id = this.currentMessageId++;
-    const message: Message = { 
-      id,
-      conversationId: insertMessage.conversationId,
-      role: insertMessage.role,
-      content: insertMessage.content,
-      category: insertMessage.category || null,
-      createdAt: new Date() 
-    };
-    this.messages.set(id, message);
+    const [message] = await db
+      .insert(messages)
+      .values(insertMessage)
+      .returning();
     return message;
   }
 
   async getMessagesByConversation(conversationId: number): Promise<Message[]> {
-    return Array.from(this.messages.values())
-      .filter((msg) => msg.conversationId === conversationId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    return await db
+      .select()
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(messages.createdAt);
   }
 
   async createRecommendation(insertRecommendation: InsertRecommendation): Promise<Recommendation> {
-    const id = this.currentRecommendationId++;
-    const recommendation: Recommendation = { 
-      id,
-      restaurantId: insertRecommendation.restaurantId,
-      messageId: insertRecommendation.messageId || null,
-      title: insertRecommendation.title,
-      description: insertRecommendation.description,
-      category: insertRecommendation.category,
-      recipe: insertRecommendation.recipe || null,
-      implemented: insertRecommendation.implemented || false,
-      createdAt: new Date() 
-    };
-    this.recommendations.set(id, recommendation);
+    const [recommendation] = await db
+      .insert(recommendations)
+      .values(insertRecommendation)
+      .returning();
     return recommendation;
   }
 
   async getRecommendationsByRestaurant(restaurantId: number): Promise<Recommendation[]> {
-    return Array.from(this.recommendations.values())
-      .filter((rec) => rec.restaurantId === restaurantId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return await db
+      .select()
+      .from(recommendations)
+      .where(eq(recommendations.restaurantId, restaurantId))
+      .orderBy(recommendations.createdAt);
   }
 
   async updateRecommendation(id: number, updateData: Partial<InsertRecommendation>): Promise<Recommendation | undefined> {
-    const recommendation = this.recommendations.get(id);
-    if (!recommendation) return undefined;
-    
-    const updated = { ...recommendation, ...updateData };
-    this.recommendations.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(recommendations)
+      .set(updateData)
+      .where(eq(recommendations.id, id))
+      .returning();
+    return updated || undefined;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
