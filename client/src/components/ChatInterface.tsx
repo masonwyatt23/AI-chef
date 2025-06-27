@@ -91,25 +91,52 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
   };
 
   const formatMessageContent = (content: string) => {
-    // Simple formatting for better readability
+    // Enhanced formatting for better readability
     return content
       .split('\n')
       .map((line, index) => {
-        if (line.startsWith('**') && line.endsWith('**')) {
-          return <div key={index} className="font-semibold mt-2 mb-1">{line.slice(2, -2)}</div>;
+        const trimmed = line.trim();
+        
+        // Bold headings
+        if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+          return <div key={index} className="font-bold text-base mt-3 mb-2">{trimmed.slice(2, -2)}</div>;
         }
-        if (line.startsWith('- ') || line.startsWith('• ')) {
-          return <div key={index} className="ml-4 text-sm">{line}</div>;
+        
+        // Bullet points with better styling
+        if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+          return (
+            <div key={index} className="flex items-start mt-1 mb-1">
+              <span className="text-primary mr-2 mt-1">•</span>
+              <span className="flex-1">{trimmed.replace(/^[-•]\s*/, '')}</span>
+            </div>
+          );
         }
-        if (line.trim() === '') {
+        
+        // Numbered lists
+        if (/^\d+\./.test(trimmed)) {
+          const match = trimmed.match(/^(\d+\.)\s*(.*)$/);
+          if (match) {
+            return (
+              <div key={index} className="flex items-start mt-1 mb-1">
+                <span className="text-primary mr-2 mt-1 font-medium">{match[1]}</span>
+                <span className="flex-1">{match[2]}</span>
+              </div>
+            );
+          }
+        }
+        
+        // Empty lines for spacing
+        if (trimmed === '') {
           return <div key={index} className="h-2"></div>;
         }
-        return <div key={index} className="text-sm">{line}</div>;
+        
+        // Regular text with better spacing
+        return <div key={index} className="leading-relaxed mb-1">{trimmed}</div>;
       });
   };
 
   return (
-    <Card className="h-96 flex flex-col">
+    <Card className="h-full flex flex-col min-h-[600px]">
       <CardHeader className="flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">AI Chef Conversation</CardTitle>
@@ -163,7 +190,7 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              <div className="bg-slate-50 rounded-lg p-3 max-w-lg">
+              <div className="bg-slate-50 rounded-lg p-4 mr-12 border border-slate-200">
                 <p className="text-sm text-slate-800">
                   Hello! I'm your AI Chef Assistant. I'm here to help you develop amazing menu items, 
                   optimize your kitchen operations, and create signature dishes that will delight your customers. 

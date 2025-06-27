@@ -122,66 +122,67 @@ export default function ChefAssistant() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Sidebar - Restaurant Context */}
-          <div className="lg:col-span-1">
+      <div className="h-[calc(100vh-80px)] flex">
+        {/* Left Sidebar - Restaurant Context & Actions */}
+        <div className="w-80 border-r border-slate-200 flex flex-col">
+          <div className="p-4">
             <RestaurantContext 
               restaurant={restaurant} 
               restaurantId={restaurantId}
             />
           </div>
+          
+          {/* Analytics Dashboard */}
+          <div className="p-4 border-t border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Performance Overview</h3>
+            <div className="space-y-3">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-green-700">Implemented</span>
+                  <span className="text-green-600">📊</span>
+                </div>
+                <div className="text-lg font-bold text-green-900">{stats.recommendationsUsed}</div>
+                <div className="text-xs text-green-600">Recommendations used</div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-blue-700">Menu Items</span>
+                  <span className="text-blue-600">🍽️</span>
+                </div>
+                <div className="text-lg font-bold text-blue-900">{stats.menuItemsCreated}</div>
+                <div className="text-xs text-blue-600">New additions</div>
+              </div>
+              
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-purple-700">Efficiency</span>
+                  <span className="text-purple-600">⏱️</span>
+                </div>
+                <div className="text-lg font-bold text-purple-900">{stats.efficiencyGains}%</div>
+                <div className="text-xs text-purple-600">Operations focus</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          {/* Right Content Area */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Chat Interface */}
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Chat Interface */}
+          <div className="flex-1 p-4">
             <ChatInterface 
               restaurantId={restaurantId}
               conversationId={activeConversationId}
               onConversationChange={setActiveConversationId}
             />
+          </div>
 
-            {/* Recent Recommendations */}
+          {/* Recent Recommendations - Bottom Panel */}
+          <div className="border-t border-slate-200 max-h-80 overflow-y-auto">
             <RecommendationsList 
               recommendations={recommendations}
               restaurantId={restaurantId}
             />
-
-            {/* Analytics Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium text-slate-500">Recommendations Used</h4>
-                    <div className="text-green-600">📊</div>
-                  </div>
-                  <div className="text-2xl font-bold text-slate-900">{stats.recommendationsUsed}</div>
-                  <div className="text-sm text-green-600">Total implemented</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium text-slate-500">Menu Items Created</h4>
-                    <div className="text-blue-600">🍽️</div>
-                  </div>
-                  <div className="text-2xl font-bold text-slate-900">{stats.menuItemsCreated}</div>
-                  <div className="text-sm text-blue-600">New menu additions</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium text-slate-500">Efficiency Focus</h4>
-                    <div className="text-purple-600">⏱️</div>
-                  </div>
-                  <div className="text-2xl font-bold text-slate-900">{stats.efficiencyGains}%</div>
-                  <div className="text-sm text-purple-600">Operations focus</div>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </div>
