@@ -1,0 +1,1083 @@
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useForm } from "react-hook-form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { apiRequest } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { Edit, Building, MapPin, ChefHat, Users, Target, AlertCircle, Utensils, Palette, TrendingUp, Wine } from "lucide-react";
+import type { Restaurant, InsertRestaurant } from "@shared/schema";
+
+interface ComprehensiveRestaurantContextProps {
+  restaurant: Restaurant;
+  restaurantId: number;
+}
+
+// Helper function to create array field handler
+const createArrayFieldHandler = (field: any, currentValues: string[]) => ({
+  addValue: (value: string) => {
+    if (!currentValues.includes(value)) {
+      field.onChange([...currentValues, value]);
+    }
+  },
+  removeValue: (value: string) => {
+    field.onChange(currentValues.filter(v => v !== value));
+  },
+  toggleValue: (value: string) => {
+    if (currentValues.includes(value)) {
+      field.onChange(currentValues.filter(v => v !== value));
+    } else {
+      field.onChange([...currentValues, value]);
+    }
+  }
+});
+
+// Multi-select field component
+const MultiSelectField = ({ field, options, placeholder }: { field: any, options: { value: string, label: string }[], placeholder: string }) => {
+  const currentValues = field.value || [];
+  const handler = createArrayFieldHandler(field, currentValues);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {currentValues.map((value: string) => (
+          <Badge key={value} variant="secondary" className="cursor-pointer" onClick={() => handler.removeValue(value)}>
+            {options.find(opt => opt.value === value)?.label || value} ×
+          </Badge>
+        ))}
+      </div>
+      <Select onValueChange={handler.addValue}>
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.filter(opt => !currentValues.includes(opt.value)).map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: ComprehensiveRestaurantContextProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const form = useForm<InsertRestaurant>({
+    defaultValues: {
+      name: restaurant.name || "",
+      theme: restaurant.theme || "",
+      categories: restaurant.categories || [],
+      kitchenCapability: restaurant.kitchenCapability || "intermediate",
+      staffSize: restaurant.staffSize || 5,
+      additionalContext: restaurant.additionalContext || "",
+      
+      // Business Context
+      establishmentType: restaurant.establishmentType || "",
+      serviceStyle: restaurant.serviceStyle || "",
+      targetDemographic: restaurant.targetDemographic || "",
+      averageTicketPrice: restaurant.averageTicketPrice || 0,
+      diningCapacity: restaurant.diningCapacity || 0,
+      operatingHours: restaurant.operatingHours || "",
+      
+      // Location & Market
+      location: restaurant.location || "",
+      marketType: restaurant.marketType || "",
+      localIngredients: restaurant.localIngredients || [],
+      culturalInfluences: restaurant.culturalInfluences || [],
+      
+      // Kitchen & Operations
+      kitchenSize: restaurant.kitchenSize || "",
+      kitchenEquipment: restaurant.kitchenEquipment || [],
+      prepSpace: restaurant.prepSpace || "",
+      storageCapacity: restaurant.storageCapacity || "",
+      deliveryCapability: restaurant.deliveryCapability || false,
+      
+      // Staff & Skills
+      chefExperience: restaurant.chefExperience || "",
+      staffSkillLevel: restaurant.staffSkillLevel || "",
+      specializedRoles: restaurant.specializedRoles || [],
+      laborBudget: restaurant.laborBudget || "",
+      
+      // Menu & Business Goals
+      currentMenuSize: restaurant.currentMenuSize || 0,
+      menuChangeFrequency: restaurant.menuChangeFrequency || "",
+      profitMarginGoals: restaurant.profitMarginGoals || 0,
+      foodCostGoals: restaurant.foodCostGoals || 0,
+      specialDietaryNeeds: restaurant.specialDietaryNeeds || [],
+      
+      // Competition & Positioning
+      primaryCompetitors: restaurant.primaryCompetitors || [],
+      uniqueSellingPoints: restaurant.uniqueSellingPoints || [],
+      pricePosition: restaurant.pricePosition || "",
+      
+      // Challenges & Priorities
+      currentChallenges: restaurant.currentChallenges || [],
+      businessPriorities: restaurant.businessPriorities || [],
+      seasonalConsiderations: restaurant.seasonalConsiderations || ""
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: InsertRestaurant) => {
+      const response = await apiRequest(`/api/restaurants/${restaurantId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/restaurants', restaurantId] });
+      toast({ title: "Restaurant context updated successfully" });
+      setIsEditing(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to update restaurant context", variant: "destructive" });
+    }
+  });
+
+  const quickActionMutation = useMutation({
+    mutationFn: async (action: string) => {
+      // Implementation for quick actions
+      return { action };
+    },
+    onSuccess: () => {
+      toast({ title: "Quick action completed" });
+    }
+  });
+
+  const onSubmit = (data: InsertRestaurant) => {
+    updateMutation.mutate(data);
+  };
+
+  const handleQuickAction = (action: string) => {
+    quickActionMutation.mutate(action);
+  };
+
+  // Options for multi-select fields
+  const establishmentTypes = [
+    { value: "restaurant", label: "Restaurant" },
+    { value: "cafe", label: "Cafe" },
+    { value: "bar", label: "Bar" },
+    { value: "food_truck", label: "Food Truck" },
+    { value: "catering", label: "Catering" },
+    { value: "bakery", label: "Bakery" }
+  ];
+
+  const dietaryNeeds = [
+    { value: "vegan", label: "Vegan" },
+    { value: "vegetarian", label: "Vegetarian" },
+    { value: "gluten_free", label: "Gluten-Free" },
+    { value: "keto", label: "Keto" },
+    { value: "dairy_free", label: "Dairy-Free" },
+    { value: "nut_free", label: "Nut-Free" },
+    { value: "halal", label: "Halal" },
+    { value: "kosher", label: "Kosher" }
+  ];
+
+  const kitchenEquipmentOptions = [
+    { value: "wood_fire_oven", label: "Wood Fire Oven" },
+    { value: "grill", label: "Grill" },
+    { value: "fryer", label: "Fryer" },
+    { value: "smoker", label: "Smoker" },
+    { value: "pizza_oven", label: "Pizza Oven" },
+    { value: "sous_vide", label: "Sous Vide" },
+    { value: "steamer", label: "Steamer" },
+    { value: "wok", label: "Wok Station" },
+    { value: "plancha", label: "Plancha" },
+    { value: "rotisserie", label: "Rotisserie" }
+  ];
+
+  const challengesOptions = [
+    { value: "high_food_costs", label: "High Food Costs" },
+    { value: "staff_turnover", label: "Staff Turnover" },
+    { value: "inconsistent_quality", label: "Inconsistent Quality" },
+    { value: "slow_service", label: "Slow Service" },
+    { value: "limited_storage", label: "Limited Storage" },
+    { value: "seasonal_variations", label: "Seasonal Variations" },
+    { value: "competition", label: "Strong Competition" },
+    { value: "customer_acquisition", label: "Customer Acquisition" }
+  ];
+
+  const prioritiesOptions = [
+    { value: "increase_profit", label: "Increase Profit Margins" },
+    { value: "expand_menu", label: "Expand Menu" },
+    { value: "improve_efficiency", label: "Improve Kitchen Efficiency" },
+    { value: "reduce_waste", label: "Reduce Food Waste" },
+    { value: "enhance_quality", label: "Enhance Food Quality" },
+    { value: "build_brand", label: "Build Brand Recognition" },
+    { value: "expand_delivery", label: "Expand Delivery" },
+    { value: "train_staff", label: "Train Staff" }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Restaurant Info Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Comprehensive Restaurant Profile</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isEditing ? (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <Tabs defaultValue="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-6">
+                    <TabsTrigger value="basic" className="flex items-center gap-1">
+                      <Building className="h-3 w-3" />
+                      Basic
+                    </TabsTrigger>
+                    <TabsTrigger value="location" className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      Location
+                    </TabsTrigger>
+                    <TabsTrigger value="kitchen" className="flex items-center gap-1">
+                      <ChefHat className="h-3 w-3" />
+                      Kitchen
+                    </TabsTrigger>
+                    <TabsTrigger value="staff" className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      Staff
+                    </TabsTrigger>
+                    <TabsTrigger value="business" className="flex items-center gap-1">
+                      <Target className="h-3 w-3" />
+                      Business
+                    </TabsTrigger>
+                    <TabsTrigger value="challenges" className="flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Challenges
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="basic" className="space-y-4 mt-6">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Restaurant Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="theme"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Theme & Concept</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={3} placeholder="Describe your restaurant's theme, atmosphere, and culinary concept..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="establishmentType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Establishment Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select type..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {establishmentTypes.map(type => (
+                                  <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="serviceStyle"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Service Style</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select style..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="fine_dining">Fine Dining</SelectItem>
+                                <SelectItem value="casual">Casual Dining</SelectItem>
+                                <SelectItem value="fast_casual">Fast Casual</SelectItem>
+                                <SelectItem value="counter_service">Counter Service</SelectItem>
+                                <SelectItem value="family_style">Family Style</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="averageTicketPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Average Ticket ($)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="diningCapacity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dining Capacity</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="operatingHours"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Operating Hours</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g., 11am-10pm daily" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="location" className="space-y-4 mt-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Location</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="City, neighborhood, or area" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="marketType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Market Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select market..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="urban">Urban</SelectItem>
+                                <SelectItem value="suburban">Suburban</SelectItem>
+                                <SelectItem value="rural">Rural</SelectItem>
+                                <SelectItem value="tourist">Tourist Area</SelectItem>
+                                <SelectItem value="business_district">Business District</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="targetDemographic"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Target Demographic</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="e.g., families with children, young professionals, tourists" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="localIngredients"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Local Ingredients & Specialties</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={2} placeholder="List local ingredients, seasonal specialties, regional products..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="culturalInfluences"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cultural Influences</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={2} placeholder="Cuisine styles, cultural influences, cooking traditions..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="kitchen" className="space-y-4 mt-6">
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="kitchenCapability"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Kitchen Capability Level</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="basic">Basic - Simple prep only</SelectItem>
+                                <SelectItem value="intermediate">Intermediate - Standard equipment</SelectItem>
+                                <SelectItem value="advanced">Advanced - Full culinary equipment</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="kitchenSize"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Kitchen Size</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select size..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="small">Small</SelectItem>
+                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="large">Large</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="prepSpace"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Prep Space</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select space..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="limited">Limited</SelectItem>
+                                <SelectItem value="adequate">Adequate</SelectItem>
+                                <SelectItem value="spacious">Spacious</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="kitchenEquipment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Available Kitchen Equipment</FormLabel>
+                          <FormControl>
+                            <MultiSelectField 
+                              field={field} 
+                              options={kitchenEquipmentOptions} 
+                              placeholder="Select equipment..." 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="storageCapacity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Storage Capacity</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select capacity..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="limited">Limited</SelectItem>
+                                <SelectItem value="reach_in">Reach-in Coolers</SelectItem>
+                                <SelectItem value="walk_in">Walk-in Coolers</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="deliveryCapability"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>
+                                Delivery Capability
+                              </FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="staff" className="space-y-4 mt-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="staffSize"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Staff Size</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="chefExperience"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Chef Experience Level</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select experience..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="entry">Entry Level (0-2 years)</SelectItem>
+                                <SelectItem value="experienced">Experienced (3-7 years)</SelectItem>
+                                <SelectItem value="senior">Senior (8-15 years)</SelectItem>
+                                <SelectItem value="executive">Executive (15+ years)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="staffSkillLevel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Overall Staff Skill Level</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select skill level..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="entry">Entry Level</SelectItem>
+                                <SelectItem value="experienced">Experienced</SelectItem>
+                                <SelectItem value="professional">Professional</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="laborBudget"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Labor Budget</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select budget..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="tight">Tight</SelectItem>
+                                <SelectItem value="moderate">Moderate</SelectItem>
+                                <SelectItem value="flexible">Flexible</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="specializedRoles"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Specialized Staff Roles</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={2} placeholder="e.g., sommelier, pastry chef, bartender, sous chef..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="business" className="space-y-4 mt-6">
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="currentMenuSize"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Current Menu Size</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                placeholder="Number of items"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="profitMarginGoals"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Profit Margin Goal (%)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                placeholder="Target %"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="foodCostGoals"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Food Cost Goal (%)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                placeholder="Target %"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="menuChangeFrequency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Menu Change Frequency</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="How often..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="daily">Daily Specials</SelectItem>
+                                <SelectItem value="weekly">Weekly Changes</SelectItem>
+                                <SelectItem value="seasonal">Seasonal Updates</SelectItem>
+                                <SelectItem value="rarely">Rarely Change</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="pricePosition"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Price Position</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select position..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="budget">Budget-Friendly</SelectItem>
+                                <SelectItem value="mid_range">Mid-Range</SelectItem>
+                                <SelectItem value="premium">Premium</SelectItem>
+                                <SelectItem value="luxury">Luxury</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="specialDietaryNeeds"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Special Dietary Accommodations</FormLabel>
+                          <FormControl>
+                            <MultiSelectField 
+                              field={field} 
+                              options={dietaryNeeds} 
+                              placeholder="Select dietary needs..." 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="uniqueSellingPoints"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Unique Selling Points</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={3} placeholder="What makes your restaurant unique? Special techniques, signature dishes, unique atmosphere..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="challenges" className="space-y-4 mt-6">
+                    <FormField
+                      control={form.control}
+                      name="currentChallenges"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Current Operational Challenges</FormLabel>
+                          <FormControl>
+                            <MultiSelectField 
+                              field={field} 
+                              options={challengesOptions} 
+                              placeholder="Select challenges..." 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="businessPriorities"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Business Priorities</FormLabel>
+                          <FormControl>
+                            <MultiSelectField 
+                              field={field} 
+                              options={prioritiesOptions} 
+                              placeholder="Select priorities..." 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="seasonalConsiderations"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Seasonal Considerations</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={3} placeholder="How do seasons affect your business? Tourist seasons, local events, weather impacts..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="primaryCompetitors"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Primary Competitors</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={2} placeholder="List your main competitors and what they do well..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="additionalContext"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Additional Context</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} rows={3} placeholder="Any other important information about your restaurant, goals, or specific needs..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                </Tabs>
+
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button type="submit" disabled={updateMutation.isPending}>
+                    {updateMutation.isPending ? "Saving..." : "Save Restaurant Profile"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium text-sm text-slate-700 mb-2">Current Menu Categories</h3>
+                <div className="flex flex-wrap gap-2">
+                  {restaurant.categories.map((category) => (
+                    <Badge key={category} variant="secondary">
+                      {category}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-medium text-sm text-slate-700 mb-1">Kitchen Capability</h3>
+                  <p className="text-sm text-slate-600 capitalize">{restaurant.kitchenCapability}</p>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-sm text-slate-700 mb-1">Staff Size</h3>
+                  <p className="text-sm text-slate-600">{restaurant.staffSize} team members</p>
+                </div>
+              </div>
+
+              {restaurant.additionalContext && (
+                <div>
+                  <h3 className="font-medium text-sm text-slate-700 mb-1">Additional Context</h3>
+                  <p className="text-sm text-slate-600">{restaurant.additionalContext}</p>
+                </div>
+              )}
+
+              <div className="text-sm text-slate-500 italic">
+                Click the edit button to access the comprehensive restaurant profile form
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-auto p-4"
+              onClick={() => handleQuickAction('menu-suggestions')}
+              disabled={quickActionMutation.isPending}
+            >
+              <div className="flex items-center space-x-3">
+                <Utensils className="h-5 w-5 text-primary" />
+                <div className="text-left">
+                  <div className="font-medium">Menu Development</div>
+                  <div className="text-sm text-muted-foreground">Generate new menu items</div>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-auto p-4"
+              onClick={() => handleQuickAction('flavor-pairing')}
+              disabled={quickActionMutation.isPending}
+            >
+              <div className="flex items-center space-x-3">
+                <Palette className="h-5 w-5 text-amber-600" />
+                <div className="text-left">
+                  <div className="font-medium">Flavor Pairing</div>
+                  <div className="text-sm text-muted-foreground">Get ingredient combinations</div>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-auto p-4"
+              onClick={() => handleQuickAction('efficiency-analysis')}
+              disabled={quickActionMutation.isPending}
+            >
+              <div className="flex items-center space-x-3">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <div className="text-left">
+                  <div className="font-medium">Efficiency Analysis</div>
+                  <div className="text-sm text-muted-foreground">Optimize operations</div>
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-auto p-4"
+              onClick={() => handleQuickAction('cocktail-creation')}
+              disabled={quickActionMutation.isPending}
+            >
+              <div className="flex items-center space-x-3">
+                <Wine className="h-5 w-5 text-purple-600" />
+                <div className="text-left">
+                  <div className="font-medium">Cocktail & Drinks</div>
+                  <div className="text-sm text-muted-foreground">Create signature drinks</div>
+                </div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

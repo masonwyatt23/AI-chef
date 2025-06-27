@@ -10,7 +10,9 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Utensils, Palette, TrendingUp, Wine } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Edit, Utensils, Palette, TrendingUp, Wine, Building, MapPin, ChefHat, Users, Target, AlertCircle } from "lucide-react";
 import type { Restaurant, InsertRestaurant } from "@shared/schema";
 
 interface RestaurantContextProps {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { RestaurantContext } from "@/components/RestaurantContext";
+import { ComprehensiveRestaurantContext } from "@/components/ComprehensiveRestaurantContext";
 import { ChatInterface } from "@/components/ChatInterface";
 import { RecommendationsList } from "@/components/RecommendationsList";
 import { MenuCocktailGenerator } from "@/components/MenuCocktailGenerator";
