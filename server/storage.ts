@@ -82,8 +82,13 @@ export class MemStorage implements IStorage {
   async createRestaurant(insertRestaurant: InsertRestaurant): Promise<Restaurant> {
     const id = this.currentRestaurantId++;
     const restaurant: Restaurant = { 
-      ...insertRestaurant, 
-      id, 
+      id,
+      name: insertRestaurant.name,
+      theme: insertRestaurant.theme,
+      categories: insertRestaurant.categories || [],
+      kitchenCapability: insertRestaurant.kitchenCapability || "intermediate",
+      staffSize: insertRestaurant.staffSize || 5,
+      additionalContext: insertRestaurant.additionalContext || null,
       createdAt: new Date() 
     };
     this.restaurants.set(id, restaurant);
@@ -127,8 +132,11 @@ export class MemStorage implements IStorage {
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const id = this.currentMessageId++;
     const message: Message = { 
-      ...insertMessage, 
-      id, 
+      id,
+      conversationId: insertMessage.conversationId,
+      role: insertMessage.role,
+      content: insertMessage.content,
+      category: insertMessage.category || null,
       createdAt: new Date() 
     };
     this.messages.set(id, message);
@@ -144,8 +152,14 @@ export class MemStorage implements IStorage {
   async createRecommendation(insertRecommendation: InsertRecommendation): Promise<Recommendation> {
     const id = this.currentRecommendationId++;
     const recommendation: Recommendation = { 
-      ...insertRecommendation, 
-      id, 
+      id,
+      restaurantId: insertRecommendation.restaurantId,
+      messageId: insertRecommendation.messageId || null,
+      title: insertRecommendation.title,
+      description: insertRecommendation.description,
+      category: insertRecommendation.category,
+      recipe: insertRecommendation.recipe || null,
+      implemented: insertRecommendation.implemented || false,
       createdAt: new Date() 
     };
     this.recommendations.set(id, recommendation);

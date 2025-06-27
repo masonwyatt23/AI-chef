@@ -95,19 +95,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Restaurant not found" });
       }
 
-      // Get conversation history if conversationId provided
-      let conversationHistory: Array<{ role: string; content: string }> = [];
-      if (conversationId) {
-        const messages = await storage.getMessagesByConversation(conversationId);
-        conversationHistory = messages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }));
+      // Create or get conversation
+      let activeConversationId = conversationId;
+      if (!activeConversationId) {
+        const conversation = await storage.createConversation({
+          restaurantId,
+          title: message.substring(0, 50) + (message.length > 50 ? "..." : "")
+        });
+        activeConversationId = conversation.id;
       }
+
+      // Get conversation history
+      const messages = await storage.getMessagesByConversation(activeConversationId);
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
       // Create user message
       const userMessage = await storage.createMessage({
-        conversationId: conversationId || 0, // Will be updated if new conversation
+        conversationId: activeConversationId,
         role: "user",
         content: message,
         category: null
@@ -129,16 +136,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create assistant message
       const assistantMessage = await storage.createMessage({
-        conversationId: conversationId || 0,
+        conversationId: activeConversationId,
         role: "assistant",
         content: aiResponse.content,
         category: aiResponse.category || null
       });
 
       // Save recommendations if any
+      const savedRecommendations = [];
       if (aiResponse.recommendations && aiResponse.recommendations.length > 0) {
         for (const rec of aiResponse.recommendations) {
-          await storage.createRecommendation({
+          const savedRec = await storage.createRecommendation({
             restaurantId,
             messageId: assistantMessage.id,
             title: rec.title,
@@ -147,13 +155,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             recipe: rec.recipe || null,
             implemented: false
           });
+          savedRecommendations.push(savedRec);
         }
       }
 
       res.json({
+        conversationId: activeConversationId,
         userMessage,
         assistantMessage,
-        recommendations: aiResponse.recommendations || []
+        recommendations: savedRecommendations
       });
     } catch (error) {
       console.error("Chat error:", error);
@@ -179,8 +189,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         additionalContext: restaurant.additionalContext || undefined
       });
 
-      res.json(response);
+      // Save recommendations from the response
+      const savedRecommendations = [];
+      if (response.recommendations && response.recommendations.length > 0) {
+        for (const rec of response.recommendations) {
+          const savedRec = await storage.createRecommendation({
+            restaurantId,
+            messageId: null,
+            title: rec.title,
+            description: rec.description,
+            category: response.category || "menu",
+            recipe: rec.recipe || null,
+            implemented: false
+          });
+          savedRecommendations.push(savedRec);
+        }
+      }
+
+      res.json({
+        ...response,
+        savedRecommendations
+      });
     } catch (error) {
+      console.error("Menu suggestions error:", error);
       res.status(500).json({ error: "Failed to generate menu suggestions" });
     }
   });
@@ -202,8 +233,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         additionalContext: restaurant.additionalContext || undefined
       });
 
-      res.json(response);
+      // Save recommendations from the response
+      const savedRecommendations = [];
+      if (response.recommendations && response.recommendations.length > 0) {
+        for (const rec of response.recommendations) {
+          const savedRec = await storage.createRecommendation({
+            restaurantId,
+            messageId: null,
+            title: rec.title,
+            description: rec.description,
+            category: response.category || "flavor-pairing",
+            recipe: rec.recipe || null,
+            implemented: false
+          });
+          savedRecommendations.push(savedRec);
+        }
+      }
+
+      res.json({
+        ...response,
+        savedRecommendations
+      });
     } catch (error) {
+      console.error("Flavor pairing error:", error);
       res.status(500).json({ error: "Failed to generate flavor pairings" });
     }
   });
@@ -225,8 +277,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         additionalContext: restaurant.additionalContext || undefined
       });
 
-      res.json(response);
+      // Save recommendations from the response
+      const savedRecommendations = [];
+      if (response.recommendations && response.recommendations.length > 0) {
+        for (const rec of response.recommendations) {
+          const savedRec = await storage.createRecommendation({
+            restaurantId,
+            messageId: null,
+            title: rec.title,
+            description: rec.description,
+            category: response.category || "efficiency",
+            recipe: rec.recipe || null,
+            implemented: false
+          });
+          savedRecommendations.push(savedRec);
+        }
+      }
+
+      res.json({
+        ...response,
+        savedRecommendations
+      });
     } catch (error) {
+      console.error("Efficiency analysis error:", error);
       res.status(500).json({ error: "Failed to analyze efficiency" });
     }
   });
@@ -248,8 +321,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         additionalContext: restaurant.additionalContext || undefined
       });
 
-      res.json(response);
+      // Save recommendations from the response
+      const savedRecommendations = [];
+      if (response.recommendations && response.recommendations.length > 0) {
+        for (const rec of response.recommendations) {
+          const savedRec = await storage.createRecommendation({
+            restaurantId,
+            messageId: null,
+            title: rec.title,
+            description: rec.description,
+            category: response.category || "cocktails",
+            recipe: rec.recipe || null,
+            implemented: false
+          });
+          savedRecommendations.push(savedRec);
+        }
+      }
+
+      res.json({
+        ...response,
+        savedRecommendations
+      });
     } catch (error) {
+      console.error("Cocktail creation error:", error);
       res.status(500).json({ error: "Failed to create cocktail suggestions" });
     }
   });

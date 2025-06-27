@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Bot, User, Paperclip, Mic } from "lucide-react";
-import type { Message } from "@shared/schema";
+import { Send, Bot, User, Paperclip, Mic, Plus, MessageSquare } from "lucide-react";
+import type { Message, Conversation } from "@shared/schema";
 
 interface ChatInterfaceProps {
   restaurantId: number;
@@ -20,6 +21,10 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: conversations = [] } = useQuery<Conversation[]>({
+    queryKey: [`/api/restaurants/${restaurantId}/conversations`],
+  });
 
   const { data: messages = [] } = useQuery<Message[]>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
@@ -36,14 +41,24 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
       return response.json();
     },
     onSuccess: (data) => {
-      if (conversationId) {
+      // Update conversation ID if this was the first message
+      if (!conversationId && data.conversationId) {
+        onConversationChange(data.conversationId);
+      }
+      
+      // Invalidate relevant queries
+      if (data.conversationId) {
         queryClient.invalidateQueries({ 
-          queryKey: [`/api/conversations/${conversationId}/messages`] 
+          queryKey: [`/api/conversations/${data.conversationId}/messages`] 
         });
       }
       queryClient.invalidateQueries({ 
         queryKey: [`/api/restaurants/${restaurantId}/recommendations`] 
       });
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/restaurants/${restaurantId}/conversations`] 
+      });
+      
       setMessage("");
     },
     onError: () => {
