@@ -4,6 +4,7 @@ import { RestaurantContext } from "@/components/RestaurantContext";
 import { ChatInterface } from "@/components/ChatInterface";
 import { RecommendationsList } from "@/components/RecommendationsList";
 import { RestaurantDashboard } from "@/components/RestaurantDashboard";
+import { MenuCocktailGenerator } from "@/components/MenuCocktailGenerator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -127,10 +128,14 @@ export default function ChefAssistant() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Main Navigation Tabs */}
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="dashboard" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>Operations Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="generator" className="flex items-center space-x-2">
+              <Utensils className="h-4 w-4" />
+              <span>Menu & Cocktail Generator</span>
             </TabsTrigger>
             <TabsTrigger value="ai-chef" className="flex items-center space-x-2">
               <MessageSquare className="h-4 w-4" />
@@ -144,6 +149,10 @@ export default function ChefAssistant() {
 
           <TabsContent value="dashboard">
             <RestaurantDashboard restaurantId={restaurantId} />
+          </TabsContent>
+
+          <TabsContent value="generator">
+            <MenuCocktailGenerator restaurantId={restaurantId} />
           </TabsContent>
 
           <TabsContent value="ai-chef">
