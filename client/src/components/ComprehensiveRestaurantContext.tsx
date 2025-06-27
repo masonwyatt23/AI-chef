@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Building, MapPin, ChefHat, Users, Target, AlertCircle, Utensils, Palette, TrendingUp, Wine } from "lucide-react";
+import { Edit, Building, MapPin, ChefHat, Users, Target, AlertCircle, Utensils, Palette, TrendingUp, Wine, Menu } from "lucide-react";
 import type { Restaurant, InsertRestaurant } from "@shared/schema";
 
 interface ComprehensiveRestaurantContextProps {
@@ -1011,34 +1011,260 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
               </form>
             </Form>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    Restaurant Overview
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Type:</span>
+                      <span className="font-medium capitalize">{restaurant.establishmentType || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Service Style:</span>
+                      <span className="font-medium capitalize">{restaurant.serviceStyle?.replace('_', ' ') || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Target Market:</span>
+                      <span className="font-medium">{restaurant.targetDemographic || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Average Ticket:</span>
+                      <span className="font-medium">{restaurant.averageTicketPrice ? `$${restaurant.averageTicketPrice}` : 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Seating Capacity:</span>
+                      <span className="font-medium">{restaurant.diningCapacity || 'Not specified'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Location & Market
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Location:</span>
+                      <span className="font-medium">{restaurant.location || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Market Type:</span>
+                      <span className="font-medium capitalize">{restaurant.marketType || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Price Position:</span>
+                      <span className="font-medium capitalize">{restaurant.pricePosition?.replace('_', ' ') || 'Not specified'}</span>
+                    </div>
+                    {restaurant.operatingHours && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Hours:</span>
+                        <span className="font-medium">{restaurant.operatingHours}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu Categories */}
               <div>
-                <h3 className="font-medium text-sm text-slate-700 mb-2">Current Menu Categories</h3>
+                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Menu className="h-4 w-4" />
+                  Menu Categories
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {restaurant.categories.map((category) => (
-                    <Badge key={category} variant="secondary">
+                    <Badge key={category} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
                       {category}
                     </Badge>
                   ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Kitchen & Operations */}
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-medium text-sm text-slate-700 mb-1">Kitchen Capability</h3>
-                  <p className="text-sm text-slate-600 capitalize">{restaurant.kitchenCapability}</p>
+                  <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                    <ChefHat className="h-4 w-4" />
+                    Kitchen Operations
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Capability Level:</span>
+                      <span className="font-medium capitalize">{restaurant.kitchenCapability}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Kitchen Size:</span>
+                      <span className="font-medium capitalize">{restaurant.kitchenSize || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Prep Space:</span>
+                      <span className="font-medium capitalize">{restaurant.prepSpace || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Storage:</span>
+                      <span className="font-medium capitalize">{restaurant.storageCapacity?.replace('_', ' ') || 'Not specified'}</span>
+                    </div>
+                  </div>
+                  {restaurant.kitchenEquipment && restaurant.kitchenEquipment.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-slate-600 text-sm mb-2">Equipment Available:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {restaurant.kitchenEquipment.map((equipment) => (
+                          <Badge key={equipment} variant="outline" className="text-xs">
+                            {equipment}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <h3 className="font-medium text-sm text-slate-700 mb-1">Staff Size</h3>
-                  <p className="text-sm text-slate-600">{restaurant.staffSize} team members</p>
+                  <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Staff & Resources
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Team Size:</span>
+                      <span className="font-medium">{restaurant.staffSize} members</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Chef Experience:</span>
+                      <span className="font-medium capitalize">{restaurant.chefExperience?.replace('_', ' ') || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Staff Skill Level:</span>
+                      <span className="font-medium capitalize">{restaurant.staffSkillLevel || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Labor Budget:</span>
+                      <span className="font-medium capitalize">{restaurant.laborBudget || 'Not specified'}</span>
+                    </div>
+                  </div>
+                  {restaurant.specializedRoles && restaurant.specializedRoles.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-slate-600 text-sm mb-2">Specialized Roles:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {restaurant.specializedRoles.map((role) => (
+                          <Badge key={role} variant="outline" className="text-xs">
+                            {role}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
+              {/* Business Goals */}
+              <div>
+                <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Business Goals & Targets
+                </h3>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Current Menu Size:</span>
+                    <span className="font-medium">{restaurant.currentMenuSize || 'Not specified'} items</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Profit Margin Goal:</span>
+                    <span className="font-medium">{restaurant.profitMarginGoals ? `${restaurant.profitMarginGoals}%` : 'Not specified'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Food Cost Goal:</span>
+                    <span className="font-medium">{restaurant.foodCostGoals ? `${restaurant.foodCostGoals}%` : 'Not specified'}</span>
+                  </div>
+                </div>
+                {restaurant.menuChangeFrequency && (
+                  <div className="mt-2 text-sm">
+                    <span className="text-slate-600">Menu Change Frequency: </span>
+                    <span className="font-medium capitalize">{restaurant.menuChangeFrequency}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Local Specialties */}
+              {(restaurant.localIngredients?.length > 0 || restaurant.culturalInfluences?.length > 0) && (
+                <div>
+                  <h3 className="font-semibold text-slate-800 mb-3">Local Market & Influences</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {restaurant.localIngredients?.length > 0 && (
+                      <div>
+                        <p className="text-slate-600 text-sm mb-2">Local Ingredients:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {restaurant.localIngredients.map((ingredient) => (
+                            <Badge key={ingredient} variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              {ingredient}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {restaurant.culturalInfluences?.length > 0 && (
+                      <div>
+                        <p className="text-slate-600 text-sm mb-2">Cultural Influences:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {restaurant.culturalInfluences.map((influence) => (
+                            <Badge key={influence} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                              {influence}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Challenges & Priorities */}
+              {(restaurant.currentChallenges?.length > 0 || restaurant.businessPriorities?.length > 0) && (
+                <div>
+                  <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Current Focus Areas
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {restaurant.currentChallenges?.length > 0 && (
+                      <div>
+                        <p className="text-slate-600 text-sm mb-2">Current Challenges:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {restaurant.currentChallenges.map((challenge) => (
+                            <Badge key={challenge} variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                              {challenge.replace('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {restaurant.businessPriorities?.length > 0 && (
+                      <div>
+                        <p className="text-slate-600 text-sm mb-2">Business Priorities:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {restaurant.businessPriorities.map((priority) => (
+                            <Badge key={priority} variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                              {priority.replace('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Context */}
               {restaurant.additionalContext && (
                 <div>
-                  <h3 className="font-medium text-sm text-slate-700 mb-1">Additional Context</h3>
-                  <p className="text-sm text-slate-600">{restaurant.additionalContext}</p>
+                  <h3 className="font-semibold text-slate-800 mb-2">Additional Context</h3>
+                  <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md border">{restaurant.additionalContext}</p>
                 </div>
               )}
 
