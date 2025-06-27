@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced Menu Generation API
   app.post("/api/generate/menu-items", async (req, res) => {
     try {
-      const { restaurantId, specificRequests, dietaryRestrictions, targetPricePoint, seasonalFocus } = req.body;
+      const { restaurantId, specificRequests, dietaryRestrictions, targetPricePoint, seasonalFocus, focusCategory, currentMenu } = req.body;
       
       const restaurant = await storage.getRestaurant(restaurantId);
       if (!restaurant) {
