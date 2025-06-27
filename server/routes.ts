@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         categories: restaurant.categories,
         kitchenCapability: restaurant.kitchenCapability,
         staffSize: restaurant.staffSize,
-        additionalContext: restaurant.additionalContext
+        additionalContext: restaurant.additionalContext || undefined
       };
 
       const menuItems = await menuGenerator.generateMenuItems({
