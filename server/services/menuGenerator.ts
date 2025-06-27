@@ -120,21 +120,53 @@ export class MenuGeneratorService {
   }
 
   private buildMenuSystemPrompt(context: RestaurantContext): string {
-    return `You are a world-class chef and menu development expert with deep knowledge of:
-- Cost engineering and profit optimization
-- Flavor profile development and pairing
-- Kitchen workflow efficiency
-- Dietary restrictions and allergen management
-- Seasonal ingredient sourcing
-- Cultural cuisine authenticity
+    const buildContextSection = (title: string, items: any) => {
+      if (!items || (Array.isArray(items) && items.length === 0)) return '';
+      return `\n${title}: ${Array.isArray(items) ? items.join(', ') : items}`;
+    };
 
-Restaurant Context:
+    return `You are a world-class chef and menu development expert with deep knowledge of cost engineering, flavor development, kitchen efficiency, and authentic cuisine.
+
+RESTAURANT PROFILE:
+## Basic Information
 - Name: ${context.name}
 - Theme: ${context.theme}
 - Categories: ${context.categories.join(', ')}
 - Kitchen Level: ${context.kitchenCapability}
 - Staff: ${context.staffSize} team members
-${context.additionalContext ? `- Context: ${context.additionalContext}` : ''}
+
+## Business Context
+${context.establishmentType ? `- Type: ${context.establishmentType}` : ''}
+${context.serviceStyle ? `- Service Style: ${context.serviceStyle}` : ''}
+${context.targetDemographic ? `- Target Customers: ${context.targetDemographic}` : ''}
+${context.averageTicketPrice ? `- Average Ticket: $${context.averageTicketPrice}` : ''}
+${context.pricePosition ? `- Price Position: ${context.pricePosition}` : ''}
+
+## Location & Market
+${context.location ? `- Location: ${context.location}` : ''}
+${buildContextSection('Local Ingredients', context.localIngredients)}
+${buildContextSection('Cultural Influences', context.culturalInfluences)}
+
+## Kitchen & Operations
+${context.kitchenSize ? `- Kitchen Size: ${context.kitchenSize}` : ''}
+${context.prepSpace ? `- Prep Space: ${context.prepSpace}` : ''}
+${buildContextSection('Equipment', context.kitchenEquipment)}
+
+## Staff & Skills
+${context.chefExperience ? `- Chef Experience: ${context.chefExperience}` : ''}
+${context.staffSkillLevel ? `- Staff Level: ${context.staffSkillLevel}` : ''}
+${context.laborBudget ? `- Labor Budget: ${context.laborBudget}` : ''}
+
+## Business Goals
+${context.profitMarginGoals ? `- Target Profit: ${context.profitMarginGoals}%` : ''}
+${context.foodCostGoals ? `- Target Food Cost: ${context.foodCostGoals}%` : ''}
+${buildContextSection('Dietary Needs', context.specialDietaryNeeds)}
+
+## Challenges & Priorities
+${buildContextSection('Challenges', context.currentChallenges)}
+${buildContextSection('Priorities', context.businessPriorities)}
+
+${context.additionalContext ? `## Additional Notes\n${context.additionalContext}` : ''}
 
 You must respond with a JSON object containing an "items" array. Each item must include:
 - name: Creative, theme-appropriate name
@@ -153,11 +185,14 @@ You must respond with a JSON object containing an "items" array. Each item must 
 - upsellOpportunities: Related items to suggest (optional)
 
 Focus on:
-1. Authentic theme integration
-2. Practical execution for stated kitchen level
-3. Cost-effective ingredient utilization
-4. Cross-utilization with other menu items
-5. Dietary accommodation options`;
+1. **Perfect Theme Match**: Align with restaurant concept and cultural influences
+2. **Financial Targets**: Meet profit margin and food cost goals
+3. **Operational Reality**: Match kitchen capability, staff skills, and equipment
+4. **Market Positioning**: Reflect price position and target demographic
+5. **Challenge Solutions**: Address specific operational challenges and priorities
+6. **Local Integration**: Use available local ingredients and cultural elements
+
+Create items that maximize profitability while maintaining authenticity and operational efficiency.`;
   }
 
   private buildCocktailSystemPrompt(context: RestaurantContext): string {
