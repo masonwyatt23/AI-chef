@@ -80,11 +80,35 @@ The application uses the following main entities:
 - **Development Tools**: Replit-specific plugins for error overlay and cartographer
 - **Configuration**: Custom vite config with conditional Replit plugins
 
+## Recent Updates
+
+### Database Integration (June 27, 2025)
+- **PostgreSQL Database**: Added persistent data storage with Drizzle ORM
+- **Enhanced Data Models**: Expanded schema for comprehensive restaurant management
+- **Database Storage**: Migrated from in-memory to PostgreSQL for production-ready persistence
+
+### Comprehensive Restaurant Management Platform (June 27, 2025)
+- **Operations Dashboard**: Full restaurant analytics with revenue, orders, efficiency metrics
+- **Multi-Tab Interface**: Organized dashboard, AI chat, and settings into separate focused areas
+- **Advanced Analytics**: Real-time tracking of kitchen efficiency, staff performance, inventory levels
+- **Restaurant Operations**: Daily service metrics, cover tracking, peak hour analysis
+- **Menu Performance**: Popular item tracking, profit margin analysis, optimization recommendations
+- **Staff Management**: Labor cost tracking, performance metrics, scheduling insights
+- **Inventory Management**: Stock level monitoring, reorder alerts, waste tracking
+
+### Enhanced AI Chef Capabilities
+- **Improved Layout**: Fixed text overflow issues with responsive chat interface
+- **Better Formatting**: Enhanced message display with proper bullet points and structured content
+- **Context Integration**: Deeper restaurant context awareness for more relevant recommendations
+- **Recommendation Tracking**: Interactive recommendation cards with detailed views and implementation tracking
+
 ## Changelog
 
 ```
 Changelog:
-- June 27, 2025. Initial setup
+- June 27, 2025: Major platform enhancement - Added database integration and comprehensive restaurant operations dashboard
+- June 27, 2025: Enhanced UI/UX with improved chat interface and fixed layout issues  
+- June 27, 2025: Initial setup
 ```
 
 ## User Preferences

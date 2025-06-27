@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { RestaurantContext } from "@/components/RestaurantContext";
 import { ChatInterface } from "@/components/ChatInterface";
 import { RecommendationsList } from "@/components/RecommendationsList";
+import { RestaurantDashboard } from "@/components/RestaurantDashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Utensils } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Download, Utensils, BarChart3, MessageSquare, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import type { Restaurant, Recommendation } from "@shared/schema";
 
@@ -122,69 +124,96 @@ export default function ChefAssistant() {
         </div>
       </header>
 
-      <div className="h-[calc(100vh-80px)] flex">
-        {/* Left Sidebar - Restaurant Context & Actions */}
-        <div className="w-80 border-r border-slate-200 flex flex-col">
-          <div className="p-4">
-            <RestaurantContext 
-              restaurant={restaurant} 
-              restaurantId={restaurantId}
-            />
-          </div>
-          
-          {/* Analytics Dashboard */}
-          <div className="p-4 border-t border-slate-200">
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">Performance Overview</h3>
-            <div className="space-y-3">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-green-700">Implemented</span>
-                  <span className="text-green-600">📊</span>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Main Navigation Tabs */}
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="dashboard" className="flex items-center space-x-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Operations Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-chef" className="flex items-center space-x-2">
+              <MessageSquare className="h-4 w-4" />
+              <span>AI Chef Assistant</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>Restaurant Settings</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard">
+            <RestaurantDashboard restaurantId={restaurantId} />
+          </TabsContent>
+
+          <TabsContent value="ai-chef">
+            <div className="h-[calc(100vh-200px)] flex">
+              {/* Left Sidebar - Quick Stats */}
+              <div className="w-80 border-r border-slate-200 flex flex-col p-4 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3">AI Insights</h3>
+                  <div className="space-y-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-green-700">Implemented</span>
+                        <span className="text-green-600">📊</span>
+                      </div>
+                      <div className="text-lg font-bold text-green-900">{stats.recommendationsUsed}</div>
+                      <div className="text-xs text-green-600">Recommendations used</div>
+                    </div>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-blue-700">Menu Items</span>
+                        <span className="text-blue-600">🍽️</span>
+                      </div>
+                      <div className="text-lg font-bold text-blue-900">{stats.menuItemsCreated}</div>
+                      <div className="text-xs text-blue-600">New additions</div>
+                    </div>
+                    
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-purple-700">Efficiency</span>
+                        <span className="text-purple-600">⏱️</span>
+                      </div>
+                      <div className="text-lg font-bold text-purple-900">{stats.efficiencyGains}%</div>
+                      <div className="text-xs text-purple-600">Operations focus</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-lg font-bold text-green-900">{stats.recommendationsUsed}</div>
-                <div className="text-xs text-green-600">Recommendations used</div>
               </div>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-blue-700">Menu Items</span>
-                  <span className="text-blue-600">🍽️</span>
+
+              {/* Main Content Area */}
+              <div className="flex-1 flex flex-col">
+                {/* Chat Interface */}
+                <div className="flex-1 p-4">
+                  <ChatInterface 
+                    restaurantId={restaurantId}
+                    conversationId={activeConversationId}
+                    onConversationChange={setActiveConversationId}
+                  />
                 </div>
-                <div className="text-lg font-bold text-blue-900">{stats.menuItemsCreated}</div>
-                <div className="text-xs text-blue-600">New additions</div>
-              </div>
-              
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-purple-700">Efficiency</span>
-                  <span className="text-purple-600">⏱️</span>
+
+                {/* Recent Recommendations - Bottom Panel */}
+                <div className="border-t border-slate-200 max-h-80 overflow-y-auto">
+                  <RecommendationsList 
+                    recommendations={recommendations}
+                    restaurantId={restaurantId}
+                  />
                 </div>
-                <div className="text-lg font-bold text-purple-900">{stats.efficiencyGains}%</div>
-                <div className="text-xs text-purple-600">Operations focus</div>
               </div>
             </div>
-          </div>
-        </div>
+          </TabsContent>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Chat Interface */}
-          <div className="flex-1 p-4">
-            <ChatInterface 
-              restaurantId={restaurantId}
-              conversationId={activeConversationId}
-              onConversationChange={setActiveConversationId}
-            />
-          </div>
-
-          {/* Recent Recommendations - Bottom Panel */}
-          <div className="border-t border-slate-200 max-h-80 overflow-y-auto">
-            <RecommendationsList 
-              recommendations={recommendations}
-              restaurantId={restaurantId}
-            />
-          </div>
-        </div>
+          <TabsContent value="settings">
+            <div className="max-w-2xl mx-auto">
+              <RestaurantContext 
+                restaurant={restaurant} 
+                restaurantId={restaurantId}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
