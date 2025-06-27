@@ -181,10 +181,10 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
                 </div>
               )}
               
-              <div className={`rounded-lg p-3 max-w-lg ${
+              <div className={`rounded-lg p-4 flex-1 ${
                 msg.role === 'user' 
-                  ? 'bg-primary text-white' 
-                  : 'bg-slate-50'
+                  ? 'bg-primary text-white ml-12' 
+                  : 'bg-slate-50 mr-12 border border-slate-200'
               }`}>
                 {msg.category && msg.role === 'assistant' && (
                   <Badge 
