@@ -50,6 +50,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/restaurants/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      console.log('PATCH request data:', JSON.stringify(req.body, null, 2));
+      
+      const updateData = insertRestaurantSchema.partial().parse(req.body);
+      console.log('Parsed update data:', JSON.stringify(updateData, null, 2));
+      
+      const restaurant = await storage.updateRestaurant(id, updateData);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+      
+      console.log('Updated restaurant:', JSON.stringify(restaurant, null, 2));
+      res.json(restaurant);
+    } catch (error) {
+      console.error('Restaurant update error:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      res.status(400).json({ error: "Invalid update data", details: error.message });
+    }
+  });
+
   // Conversation routes
   app.post("/api/conversations", async (req, res) => {
     try {
