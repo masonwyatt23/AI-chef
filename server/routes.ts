@@ -1,0 +1,284 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { aiChefService } from "./services/aiChef";
+import { 
+  insertRestaurantSchema, 
+  insertConversationSchema, 
+  insertMessageSchema,
+  insertRecommendationSchema 
+} from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Restaurant routes
+  app.post("/api/restaurants", async (req, res) => {
+    try {
+      const restaurantData = insertRestaurantSchema.parse(req.body);
+      const restaurant = await storage.createRestaurant(restaurantData);
+      res.json(restaurant);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid restaurant data" });
+    }
+  });
+
+  app.get("/api/restaurants/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const restaurant = await storage.getRestaurant(id);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+      res.json(restaurant);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch restaurant" });
+    }
+  });
+
+  app.put("/api/restaurants/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = insertRestaurantSchema.partial().parse(req.body);
+      const restaurant = await storage.updateRestaurant(id, updateData);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+      res.json(restaurant);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid update data" });
+    }
+  });
+
+  // Conversation routes
+  app.post("/api/conversations", async (req, res) => {
+    try {
+      const conversationData = insertConversationSchema.parse(req.body);
+      const conversation = await storage.createConversation(conversationData);
+      res.json(conversation);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid conversation data" });
+    }
+  });
+
+  app.get("/api/restaurants/:id/conversations", async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const conversations = await storage.getConversationsByRestaurant(restaurantId);
+      res.json(conversations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/conversations/:id/messages", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const messages = await storage.getMessagesByConversation(conversationId);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  // Chat routes
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { message, restaurantId, conversationId } = req.body;
+      
+      if (!message || !restaurantId) {
+        return res.status(400).json({ error: "Message and restaurant ID are required" });
+      }
+
+      // Get restaurant context
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      // Get conversation history if conversationId provided
+      let conversationHistory: Array<{ role: string; content: string }> = [];
+      if (conversationId) {
+        const messages = await storage.getMessagesByConversation(conversationId);
+        conversationHistory = messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+      }
+
+      // Create user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversationId || 0, // Will be updated if new conversation
+        role: "user",
+        content: message,
+        category: null
+      });
+
+      // Get AI response
+      const aiResponse = await aiChefService.getChefAdvice(
+        message,
+        {
+          name: restaurant.name,
+          theme: restaurant.theme,
+          categories: restaurant.categories,
+          kitchenCapability: restaurant.kitchenCapability,
+          staffSize: restaurant.staffSize,
+          additionalContext: restaurant.additionalContext || undefined
+        },
+        conversationHistory
+      );
+
+      // Create assistant message
+      const assistantMessage = await storage.createMessage({
+        conversationId: conversationId || 0,
+        role: "assistant",
+        content: aiResponse.content,
+        category: aiResponse.category || null
+      });
+
+      // Save recommendations if any
+      if (aiResponse.recommendations && aiResponse.recommendations.length > 0) {
+        for (const rec of aiResponse.recommendations) {
+          await storage.createRecommendation({
+            restaurantId,
+            messageId: assistantMessage.id,
+            title: rec.title,
+            description: rec.description,
+            category: aiResponse.category || "general",
+            recipe: rec.recipe || null,
+            implemented: false
+          });
+        }
+      }
+
+      res.json({
+        userMessage,
+        assistantMessage,
+        recommendations: aiResponse.recommendations || []
+      });
+    } catch (error) {
+      console.error("Chat error:", error);
+      res.status(500).json({ error: "Failed to process chat message" });
+    }
+  });
+
+  // Quick action routes
+  app.post("/api/quick-actions/menu-suggestions", async (req, res) => {
+    try {
+      const { restaurantId } = req.body;
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      const response = await aiChefService.generateMenuSuggestions({
+        name: restaurant.name,
+        theme: restaurant.theme,
+        categories: restaurant.categories,
+        kitchenCapability: restaurant.kitchenCapability,
+        staffSize: restaurant.staffSize,
+        additionalContext: restaurant.additionalContext || undefined
+      });
+
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate menu suggestions" });
+    }
+  });
+
+  app.post("/api/quick-actions/flavor-pairing", async (req, res) => {
+    try {
+      const { restaurantId, ingredient } = req.body;
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      const response = await aiChefService.generateFlavorPairings(ingredient || "beef", {
+        name: restaurant.name,
+        theme: restaurant.theme,
+        categories: restaurant.categories,
+        kitchenCapability: restaurant.kitchenCapability,
+        staffSize: restaurant.staffSize,
+        additionalContext: restaurant.additionalContext || undefined
+      });
+
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate flavor pairings" });
+    }
+  });
+
+  app.post("/api/quick-actions/efficiency-analysis", async (req, res) => {
+    try {
+      const { restaurantId } = req.body;
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      const response = await aiChefService.analyzeOperationalEfficiency({
+        name: restaurant.name,
+        theme: restaurant.theme,
+        categories: restaurant.categories,
+        kitchenCapability: restaurant.kitchenCapability,
+        staffSize: restaurant.staffSize,
+        additionalContext: restaurant.additionalContext || undefined
+      });
+
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to analyze efficiency" });
+    }
+  });
+
+  app.post("/api/quick-actions/cocktail-creation", async (req, res) => {
+    try {
+      const { restaurantId } = req.body;
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      const response = await aiChefService.createSignatureCocktails({
+        name: restaurant.name,
+        theme: restaurant.theme,
+        categories: restaurant.categories,
+        kitchenCapability: restaurant.kitchenCapability,
+        staffSize: restaurant.staffSize,
+        additionalContext: restaurant.additionalContext || undefined
+      });
+
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create cocktail suggestions" });
+    }
+  });
+
+  // Recommendations routes
+  app.get("/api/restaurants/:id/recommendations", async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const recommendations = await storage.getRecommendationsByRestaurant(restaurantId);
+      res.json(recommendations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch recommendations" });
+    }
+  });
+
+  app.put("/api/recommendations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = insertRecommendationSchema.partial().parse(req.body);
+      const recommendation = await storage.updateRecommendation(id, updateData);
+      if (!recommendation) {
+        return res.status(404).json({ error: "Recommendation not found" });
+      }
+      res.json(recommendation);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid update data" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
