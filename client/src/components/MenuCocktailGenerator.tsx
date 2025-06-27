@@ -294,6 +294,86 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Existing Menu Analysis */}
+                <div className="border rounded-lg p-4 bg-slate-50">
+                  <Label className="text-base font-semibold">Existing Menu Analysis</Label>
+                  <p className="text-sm text-slate-600 mb-3">Paste your current menu to analyze categories and generate targeted improvements</p>
+                  <Textarea
+                    placeholder="Paste your existing menu here...
+APPETIZERS
+---
+Bruschetta - Fresh tomatoes, basil $12
+Calamari Rings - Crispy fried $15
+
+ENTREES  
+---
+Grilled Salmon - With vegetables $24
+Ribeye Steak - 12oz premium cut $32
+..."
+                    value={existingMenu}
+                    onChange={(e) => setExistingMenu(e.target.value)}
+                    rows={6}
+                    className="mb-3"
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={parseMenu} 
+                      disabled={isAnalyzingMenu}
+                      size="sm"
+                      variant="outline"
+                    >
+                      {isAnalyzingMenu ? "Analyzing..." : "Analyze Menu"}
+                    </Button>
+                    {parsedCategories.length > 0 && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        {parsedCategories.length} categories found
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {parsedCategories.length > 0 && (
+                    <div className="mt-3">
+                      <Label className="text-sm">Focus on Category (Optional)</Label>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select category to focus on" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All Categories</SelectItem>
+                          {parsedCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedCategory && (
+                        <p className="text-xs text-slate-600 mt-1">
+                          Will generate items specifically for {selectedCategory}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {parsedMenuItems.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm text-slate-600 mb-2">Current menu items analyzed:</p>
+                      <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+                        {parsedMenuItems.slice(0, 10).map((item, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {item.name} ({item.category})
+                          </Badge>
+                        ))}
+                        {parsedMenuItems.length > 10 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{parsedMenuItems.length - 10} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Specific Requests */}
                 <div>
                   <Label>Specific Requests</Label>

@@ -423,7 +423,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         specificRequests,
         dietaryRestrictions,
         targetPricePoint,
-        seasonalFocus
+        seasonalFocus,
+        focusCategory,
+        currentMenu
       });
 
       res.json({ menuItems });

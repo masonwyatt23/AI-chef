@@ -13,6 +13,7 @@ export interface MenuGenerationRequest {
   targetPricePoint?: 'budget' | 'mid-range' | 'premium';
   seasonalFocus?: string;
   currentMenu?: Array<{name: string; category: string; price?: number}>;
+  focusCategory?: string;
 }
 
 export interface GeneratedMenuItem {
@@ -237,31 +238,107 @@ Focus on:
   }
 
   private buildMenuUserPrompt(request: MenuGenerationRequest): string {
-    let prompt = `Generate 3-5 innovative menu items`;
+    let prompt = "";
+    
+    // Category-specific generation with expert guidance
+    if (request.focusCategory) {
+      prompt = `Create 3-4 exceptional ${request.focusCategory.toLowerCase()} items that will elevate this category and drive customer excitement`;
+      
+      // Add category-specific guidance
+      const categoryGuidance = this.getCategorySpecificGuidance(request.focusCategory);
+      if (categoryGuidance) {
+        prompt += `. ${categoryGuidance}`;
+      }
+    } else {
+      prompt = `Create 3-4 innovative menu items across different categories that showcase culinary excellence`;
+    }
+    
+    // Existing menu analysis for strategic positioning
+    if (request.currentMenu?.length) {
+      const currentItems = request.currentMenu.map(item => `${item.name} (${item.category})`).join(', ');
+      prompt += `. Analyze current menu: ${currentItems}. Create items that complement but don't compete directly, filling gaps or elevating the offering`;
+      
+      if (request.focusCategory) {
+        const categoryItems = request.currentMenu.filter(item => 
+          item.category.toLowerCase().includes(request.focusCategory.toLowerCase())
+        );
+        if (categoryItems.length > 0) {
+          prompt += `. Current ${request.focusCategory} offerings: ${categoryItems.map(item => item.name).join(', ')}. Design items that surpass these in creativity and appeal`;
+        }
+      }
+    }
     
     if (request.specificRequests?.length) {
-      prompt += ` incorporating these requests: ${request.specificRequests.join(', ')}`;
+      prompt += ` incorporating these requirements: ${request.specificRequests.join(', ')}`;
     }
     
     if (request.dietaryRestrictions?.length) {
-      prompt += `. Include options for: ${request.dietaryRestrictions.join(', ')}`;
+      prompt += `. Must skillfully accommodate: ${request.dietaryRestrictions.join(', ')} without compromising flavor or presentation`;
     }
     
     if (request.targetPricePoint) {
-      prompt += `. Target ${request.targetPricePoint} price point`;
+      const priceGuidance = this.getPricePointGuidance(request.targetPricePoint);
+      prompt += `. ${priceGuidance}`;
     }
     
     if (request.seasonalFocus) {
-      prompt += `. Focus on ${request.seasonalFocus} seasonal ingredients`;
+      prompt += `. Highlight ${request.seasonalFocus} seasonal ingredients with innovative flavor combinations that create memorable dining experiences`;
     }
     
-    if (request.currentMenu?.length) {
-      prompt += `. Avoid duplicating these existing items: ${request.currentMenu.map(item => item.name).join(', ')}`;
-    }
-    
-    prompt += `. Ensure each item aligns with the restaurant theme and can be executed by the current kitchen team.`;
+    prompt += `. Each item should demonstrate culinary mastery, tell a story, and position this restaurant as a destination for exceptional food.`;
     
     return prompt;
+  }
+
+  private getCategorySpecificGuidance(category: string): string {
+    const categoryLower = category.toLowerCase();
+    
+    if (categoryLower.includes('appetizer') || categoryLower.includes('starter')) {
+      return "Design items that ignite curiosity and appetite. Focus on shareable presentations, Instagram-worthy plating, perfect wine pairings, and flavors that create anticipation for the meal ahead. Consider temperature contrasts, textural variety, and bold flavor statements";
+    }
+    
+    if (categoryLower.includes('entree') || categoryLower.includes('main') || categoryLower.includes('dinner')) {
+      return "Create signature dishes that define the restaurant's identity. Emphasize protein excellence, innovative cooking techniques, seasonal vegetable integration, and memorable flavor profiles that justify premium pricing and drive repeat visits";
+    }
+    
+    if (categoryLower.includes('dessert') || categoryLower.includes('sweet')) {
+      return "Craft desserts that provide an unforgettable finale. Focus on house-made components, seasonal fruit showcase, unique flavor combinations, and stunning presentations that encourage social sharing and create lasting memories";
+    }
+    
+    if (categoryLower.includes('salad')) {
+      return "Reimagine salads as crave-worthy entrees with unexpected ingredients, house-made dressings, creative protein additions, and beautiful compositions that challenge preconceptions about healthy eating";
+    }
+    
+    if (categoryLower.includes('pasta') || categoryLower.includes('noodle')) {
+      return "Elevate pasta beyond expectations with house-made noodles, innovative sauce combinations, premium ingredients, and expert techniques that showcase Italian traditions while creating something distinctly new";
+    }
+    
+    if (categoryLower.includes('pizza')) {
+      return "Redefine pizza with artisanal doughs, unexpected topping combinations, premium cheeses, and creative sauce applications that transform this familiar format into a gourmet experience";
+    }
+    
+    if (categoryLower.includes('seafood') || categoryLower.includes('fish')) {
+      return "Celebrate ocean-to-table freshness with sustainable sourcing, precise cooking techniques, and preparations that highlight natural flavors while incorporating global influences and seasonal accompaniments";
+    }
+    
+    if (categoryLower.includes('breakfast') || categoryLower.includes('brunch')) {
+      return "Transform morning classics into Instagram-worthy experiences with creative egg preparations, artisanal breads, unique flavor combinations, and presentations that make breakfast feel like a special occasion";
+    }
+    
+    return "Focus on ingredients that tell a story, techniques that showcase skill, and presentations that create emotional connections with diners";
+  }
+
+  private getPricePointGuidance(pricePoint: string): string {
+    switch (pricePoint) {
+      case 'budget':
+        return "Target $8-15 range using cost-effective ingredients creatively. Aim for 25-30% food cost with generous portions and smart preparation techniques that maximize flavor impact";
+      case 'mid-range':
+        return "Target $15-25 range with quality ingredients and refined execution. Achieve 28-32% food cost through strategic ingredient selection and elevated presentation that justifies premium pricing";
+      case 'premium':
+        return "Target $25+ range with luxury ingredients, sophisticated techniques, and exceptional presentation. Create unique dining experiences that command premium prices through culinary artistry and storytelling";
+      default:
+        return "Balance cost efficiency with quality to achieve optimal profit margins while delivering exceptional value";
+    }
   }
 
   private buildCocktailUserPrompt(request: CocktailGenerationRequest): string {
