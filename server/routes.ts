@@ -424,7 +424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         categories: restaurant.categories,
         kitchenCapability: restaurant.kitchenCapability,
         staffSize: restaurant.staffSize,
-        additionalContext: restaurant.additionalContext
+        additionalContext: restaurant.additionalContext || undefined
       };
 
       const cocktails = await menuGenerator.generateCocktails({
@@ -459,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         categories: restaurant.categories,
         kitchenCapability: restaurant.kitchenCapability,
         staffSize: restaurant.staffSize,
-        additionalContext: restaurant.additionalContext
+        additionalContext: restaurant.additionalContext || undefined
       };
 
       const pairings = await menuGenerator.generatePairedMenuCocktails(menuItems, context);
