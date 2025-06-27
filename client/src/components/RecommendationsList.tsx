@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Bookmark, BookmarkCheck, Clock } from "lucide-react";
+import { Bookmark, BookmarkCheck, Clock, Eye, Copy, CheckCircle } from "lucide-react";
 import type { Recommendation } from "@shared/schema";
 
 interface RecommendationsListProps {
@@ -13,6 +15,7 @@ interface RecommendationsListProps {
 }
 
 export function RecommendationsList({ recommendations, restaurantId }: RecommendationsListProps) {
+  const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -74,7 +77,15 @@ export function RecommendationsList({ recommendations, restaurantId }: Recommend
   const handleToggleImplemented = (recommendation: Recommendation) => {
     toggleImplementedMutation.mutate({
       id: recommendation.id,
-      implemented: recommendation.implemented,
+      implemented: !!(recommendation.implemented),
+    });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard",
+      description: "Recipe copied to clipboard successfully.",
     });
   };
 
@@ -128,21 +139,21 @@ export function RecommendationsList({ recommendations, restaurantId }: Recommend
                     
                     {recommendation.recipe && (
                       <div className="bg-white rounded-lg p-3 border border-slate-200 text-sm">
-                        {recommendation.recipe.ingredients && (
+                        {(recommendation.recipe as any)?.ingredients && (
                           <div className="mb-2">
                             <h5 className="font-medium text-slate-900 mb-1">Ingredients:</h5>
                             <ul className="text-slate-700 space-y-1">
-                              {recommendation.recipe.ingredients.map((ingredient: string, index: number) => (
+                              {((recommendation.recipe as any).ingredients as string[]).map((ingredient: string, index: number) => (
                                 <li key={index}>• {ingredient}</li>
                               ))}
                             </ul>
                           </div>
                         )}
-                        {recommendation.recipe.instructions && (
+                        {(recommendation.recipe as any)?.instructions && (
                           <div>
                             <h5 className="font-medium text-slate-900 mb-1">Instructions:</h5>
                             <ol className="text-slate-700 space-y-1">
-                              {recommendation.recipe.instructions.map((instruction: string, index: number) => (
+                              {((recommendation.recipe as any).instructions as string[]).map((instruction: string, index: number) => (
                                 <li key={index}>{index + 1}. {instruction}</li>
                               ))}
                             </ol>
@@ -152,19 +163,80 @@ export function RecommendationsList({ recommendations, restaurantId }: Recommend
                     )}
                   </div>
                   
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleImplemented(recommendation)}
-                    disabled={toggleImplementedMutation.isPending}
-                    className="text-slate-400 hover:text-slate-600"
-                  >
-                    {recommendation.implemented ? (
-                      <BookmarkCheck className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Bookmark className="h-4 w-4" />
-                    )}
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>{recommendation.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Badge variant="secondary" className={getCategoryColor(recommendation.category)}>
+                              <span className="mr-1">{getCategoryIcon(recommendation.category)}</span>
+                              {recommendation.category.replace('-', ' ')}
+                            </Badge>
+                          </div>
+                          <p className="text-slate-700">{recommendation.description}</p>
+                          
+                          {recommendation.recipe && (
+                            <div className="bg-slate-50 rounded-lg p-4 space-y-4">
+                              {(recommendation.recipe as any)?.ingredients && (
+                                <div>
+                                  <h4 className="font-semibold text-slate-900 mb-2">Ingredients:</h4>
+                                  <ul className="space-y-1">
+                                    {((recommendation.recipe as any).ingredients as string[]).map((ingredient: string, index: number) => (
+                                      <li key={index} className="text-slate-700">• {ingredient}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {(recommendation.recipe as any)?.instructions && (
+                                <div>
+                                  <h4 className="font-semibold text-slate-900 mb-2">Instructions:</h4>
+                                  <ol className="space-y-1">
+                                    {((recommendation.recipe as any).instructions as string[]).map((instruction: string, index: number) => (
+                                      <li key={index} className="text-slate-700">{index + 1}. {instruction}</li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyToClipboard(JSON.stringify(recommendation.recipe, null, 2))}
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Recipe
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleImplemented(recommendation)}
+                      disabled={toggleImplementedMutation.isPending}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      {recommendation.implemented ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Bookmark className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

@@ -13,7 +13,7 @@ import type { Message, Conversation } from "@shared/schema";
 interface ChatInterfaceProps {
   restaurantId: number;
   conversationId: number | null;
-  onConversationChange: (id: number) => void;
+  onConversationChange: (id: number | null) => void;
 }
 
 export function ChatInterface({ restaurantId, conversationId, onConversationChange }: ChatInterfaceProps) {
@@ -117,6 +117,41 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <span className="text-sm text-muted-foreground">Connected</span>
           </div>
+        </div>
+        
+        {/* Conversation Selector */}
+        <div className="flex items-center space-x-2 mt-3">
+          <Select
+            value={conversationId?.toString() || ""}
+            onValueChange={(value) => onConversationChange(parseInt(value))}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Select or start a conversation">
+                {conversationId ? 
+                  conversations.find(c => c.id === conversationId)?.title || "Conversation" 
+                  : "Start a new conversation"
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {conversations.map((conv) => (
+                <SelectItem key={conv.id} value={conv.id.toString()}>
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>{conv.title}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onConversationChange(null)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
       </CardHeader>
 
