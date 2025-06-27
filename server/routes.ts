@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiChefService } from "./services/aiChef";
+import { menuGenerator } from "./services/menuGenerator";
 import { 
   insertRestaurantSchema, 
   insertConversationSchema, 
@@ -370,6 +371,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(recommendation);
     } catch (error) {
       res.status(400).json({ error: "Invalid update data" });
+    }
+  });
+
+  // Enhanced Menu Generation API
+  app.post("/api/generate/menu-items", async (req, res) => {
+    try {
+      const { restaurantId, specificRequests, dietaryRestrictions, targetPricePoint, seasonalFocus } = req.body;
+      
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      const context = {
+        name: restaurant.name,
+        theme: restaurant.theme,
+        categories: restaurant.categories,
+        kitchenCapability: restaurant.kitchenCapability,
+        staffSize: restaurant.staffSize,
+        additionalContext: restaurant.additionalContext
+      };
+
+      const menuItems = await menuGenerator.generateMenuItems({
+        context,
+        specificRequests,
+        dietaryRestrictions,
+        targetPricePoint,
+        seasonalFocus
+      });
+
+      res.json({ menuItems });
+    } catch (error) {
+      console.error("Menu generation error:", error);
+      res.status(500).json({ error: "Failed to generate menu items" });
+    }
+  });
+
+  // Enhanced Cocktail Generation API
+  app.post("/api/generate/cocktails", async (req, res) => {
+    try {
+      const { restaurantId, theme, baseSpirits, complexity, batchable, seasonality } = req.body;
+      
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      const context = {
+        name: restaurant.name,
+        theme: restaurant.theme,
+        categories: restaurant.categories,
+        kitchenCapability: restaurant.kitchenCapability,
+        staffSize: restaurant.staffSize,
+        additionalContext: restaurant.additionalContext
+      };
+
+      const cocktails = await menuGenerator.generateCocktails({
+        context,
+        theme,
+        baseSpirits,
+        complexity,
+        batchable,
+        seasonality
+      });
+
+      res.json({ cocktails });
+    } catch (error) {
+      console.error("Cocktail generation error:", error);
+      res.status(500).json({ error: "Failed to generate cocktails" });
+    }
+  });
+
+  // Menu-Cocktail Pairing Generation
+  app.post("/api/generate/paired-menu-cocktails", async (req, res) => {
+    try {
+      const { restaurantId, menuItems } = req.body;
+      
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ error: "Restaurant not found" });
+      }
+
+      const context = {
+        name: restaurant.name,
+        theme: restaurant.theme,
+        categories: restaurant.categories,
+        kitchenCapability: restaurant.kitchenCapability,
+        staffSize: restaurant.staffSize,
+        additionalContext: restaurant.additionalContext
+      };
+
+      const pairings = await menuGenerator.generatePairedMenuCocktails(menuItems, context);
+
+      res.json({ pairings });
+    } catch (error) {
+      console.error("Menu-cocktail pairing error:", error);
+      res.status(500).json({ error: "Failed to generate menu-cocktail pairings" });
     }
   });
 
