@@ -131,12 +131,13 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
 
   const updateMutation = useMutation({
     mutationFn: async (data: InsertRestaurant) => {
-      const response = await apiRequest(`/api/restaurants/${restaurantId}`, {
+      const response = await fetch(`/api/restaurants/${restaurantId}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
         headers: { 'Content-Type': 'application/json' }
       });
-      return response;
+      if (!response.ok) throw new Error('Update failed');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/restaurants', restaurantId] });

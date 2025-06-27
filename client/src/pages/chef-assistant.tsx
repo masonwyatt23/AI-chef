@@ -207,7 +207,7 @@ export default function ChefAssistant() {
 
           <TabsContent value="settings">
             <div className="max-w-2xl mx-auto">
-              <RestaurantContext 
+              <ComprehensiveRestaurantContext 
                 restaurant={restaurant} 
                 restaurantId={restaurantId}
               />

@@ -12,6 +12,50 @@ export interface RestaurantContext {
   kitchenCapability: string;
   staffSize: number;
   additionalContext?: string;
+  
+  // Business Context
+  establishmentType?: string;
+  serviceStyle?: string;
+  targetDemographic?: string;
+  averageTicketPrice?: number;
+  diningCapacity?: number;
+  operatingHours?: string;
+  
+  // Location & Market
+  location?: string;
+  marketType?: string;
+  localIngredients?: string[];
+  culturalInfluences?: string[];
+  
+  // Kitchen & Operations
+  kitchenSize?: string;
+  kitchenEquipment?: string[];
+  prepSpace?: string;
+  storageCapacity?: string;
+  deliveryCapability?: boolean;
+  
+  // Staff & Skills
+  chefExperience?: string;
+  staffSkillLevel?: string;
+  specializedRoles?: string[];
+  laborBudget?: string;
+  
+  // Menu & Business Goals
+  currentMenuSize?: number;
+  menuChangeFrequency?: string;
+  profitMarginGoals?: number;
+  foodCostGoals?: number;
+  specialDietaryNeeds?: string[];
+  
+  // Competition & Positioning
+  primaryCompetitors?: string[];
+  uniqueSellingPoints?: string[];
+  pricePosition?: string;
+  
+  // Challenges & Priorities
+  currentChallenges?: string[];
+  businessPriorities?: string[];
+  seasonalConsiderations?: string;
 }
 
 export interface ChefResponse {
@@ -26,35 +70,77 @@ export interface ChefResponse {
 
 export class AIChefService {
   private buildSystemPrompt(context: RestaurantContext): string {
+    const buildContextSection = (title: string, items: any) => {
+      if (!items || (Array.isArray(items) && items.length === 0)) return '';
+      return `\n${title}: ${Array.isArray(items) ? items.join(', ') : items}`;
+    };
+
     return `You are an expert chef consultant specializing in restaurant operations and culinary development. You have decades of experience in menu development, flavor pairing, kitchen efficiency, and restaurant management.
 
-Restaurant Context:
+RESTAURANT PROFILE:
+## Basic Information
 - Name: ${context.name}
-- Theme: ${context.theme}
-- Menu Categories: ${context.categories.join(', ')}
+- Theme & Concept: ${context.theme}
+- Categories: ${context.categories.join(', ')}
 - Kitchen Capability: ${context.kitchenCapability}
 - Staff Size: ${context.staffSize}
-${context.additionalContext ? `- Additional Context: ${context.additionalContext}` : ''}
 
-Your expertise includes:
-1. Creative menu development with complementary items
-2. Advanced flavor pairing and ingredient combinations
-3. Kitchen efficiency and process optimization
-4. Cost-effective recipe development
-5. Staff capability assessment and training recommendations
-6. Cocktail and beverage creation
-7. Inventory management optimization
+## Business Context
+${context.establishmentType ? `- Type: ${context.establishmentType}` : ''}
+${context.serviceStyle ? `- Service Style: ${context.serviceStyle}` : ''}
+${context.targetDemographic ? `- Target Customers: ${context.targetDemographic}` : ''}
+${context.averageTicketPrice ? `- Average Ticket: $${context.averageTicketPrice}` : ''}
+${context.diningCapacity ? `- Seating Capacity: ${context.diningCapacity}` : ''}
+${context.operatingHours ? `- Hours: ${context.operatingHours}` : ''}
 
-Guidelines:
-- Provide practical, executable recommendations
-- Consider the restaurant's theme and customer base
-- Factor in kitchen capabilities and staff skill level
-- Focus on cost-effectiveness and efficiency
-- Include detailed recipes when appropriate
-- Suggest items that complement existing menu categories
-- Always consider food safety and industry best practices
+## Location & Market
+${context.location ? `- Location: ${context.location}` : ''}
+${context.marketType ? `- Market Type: ${context.marketType}` : ''}
+${buildContextSection('Local Ingredients', context.localIngredients)}
+${buildContextSection('Cultural Influences', context.culturalInfluences)}
 
-Respond with detailed, professional advice that exceeds what a basic LLM would provide. Include specific measurements, techniques, and implementation steps.`;
+## Kitchen & Operations
+${context.kitchenSize ? `- Kitchen Size: ${context.kitchenSize}` : ''}
+${context.prepSpace ? `- Prep Space: ${context.prepSpace}` : ''}
+${context.storageCapacity ? `- Storage: ${context.storageCapacity}` : ''}
+${context.deliveryCapability ? '- Delivery Available: Yes' : '- Delivery Available: No'}
+${buildContextSection('Equipment Available', context.kitchenEquipment)}
+
+## Staff & Skills
+${context.chefExperience ? `- Chef Experience: ${context.chefExperience}` : ''}
+${context.staffSkillLevel ? `- Staff Skill Level: ${context.staffSkillLevel}` : ''}
+${context.laborBudget ? `- Labor Budget: ${context.laborBudget}` : ''}
+${buildContextSection('Specialized Roles', context.specializedRoles)}
+
+## Business Goals & Constraints
+${context.currentMenuSize ? `- Current Menu Size: ${context.currentMenuSize} items` : ''}
+${context.menuChangeFrequency ? `- Menu Changes: ${context.menuChangeFrequency}` : ''}
+${context.profitMarginGoals ? `- Target Profit Margin: ${context.profitMarginGoals}%` : ''}
+${context.foodCostGoals ? `- Target Food Cost: ${context.foodCostGoals}%` : ''}
+${context.pricePosition ? `- Price Position: ${context.pricePosition}` : ''}
+${buildContextSection('Dietary Accommodations', context.specialDietaryNeeds)}
+
+## Market Position
+${buildContextSection('Unique Selling Points', context.uniqueSellingPoints)}
+${buildContextSection('Main Competitors', context.primaryCompetitors)}
+
+## Current Challenges & Priorities
+${buildContextSection('Operational Challenges', context.currentChallenges)}
+${buildContextSection('Business Priorities', context.businessPriorities)}
+${context.seasonalConsiderations ? `- Seasonal Factors: ${context.seasonalConsiderations}` : ''}
+
+${context.additionalContext ? `## Additional Notes\n${context.additionalContext}` : ''}
+
+EXPERTISE GUIDELINES:
+Provide expert culinary advice that is:
+1. **Highly Tailored**: Address the specific restaurant profile, constraints, and goals
+2. **Financially Focused**: Consider profit margins, food costs, and pricing strategy
+3. **Operationally Practical**: Match kitchen capabilities, staff skills, and prep limitations
+4. **Market-Aware**: Reflect local ingredients, competition, and target demographic
+5. **Challenge-Specific**: Address identified operational challenges and business priorities
+6. **Scalable**: Suitable for the restaurant's size, capacity, and growth goals
+
+Always provide specific, actionable recommendations with estimated costs, prep times, and implementation steps. Consider seasonal availability, dietary restrictions, and equipment limitations. Focus on maximizing profitability while maintaining quality and operational efficiency.`;
   }
 
   async getChefAdvice(
