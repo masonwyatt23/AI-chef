@@ -161,7 +161,32 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
 
   const onSubmit = (data: InsertRestaurant) => {
     console.log('Submitting restaurant data:', data);
-    updateMutation.mutate(data);
+    
+    // Transform array fields that might come as strings from textareas
+    const transformedData = {
+      ...data,
+      localIngredients: Array.isArray(data.localIngredients) ? data.localIngredients : 
+        (typeof data.localIngredients === 'string' ? data.localIngredients.split('\n').filter(Boolean) : []),
+      culturalInfluences: Array.isArray(data.culturalInfluences) ? data.culturalInfluences :
+        (typeof data.culturalInfluences === 'string' ? data.culturalInfluences.split('\n').filter(Boolean) : []),
+      kitchenEquipment: Array.isArray(data.kitchenEquipment) ? data.kitchenEquipment :
+        (typeof data.kitchenEquipment === 'string' ? data.kitchenEquipment.split('\n').filter(Boolean) : []),
+      specializedRoles: Array.isArray(data.specializedRoles) ? data.specializedRoles :
+        (typeof data.specializedRoles === 'string' ? data.specializedRoles.split('\n').filter(Boolean) : []),
+      specialDietaryNeeds: Array.isArray(data.specialDietaryNeeds) ? data.specialDietaryNeeds :
+        (typeof data.specialDietaryNeeds === 'string' ? data.specialDietaryNeeds.split('\n').filter(Boolean) : []),
+      primaryCompetitors: Array.isArray(data.primaryCompetitors) ? data.primaryCompetitors :
+        (typeof data.primaryCompetitors === 'string' ? data.primaryCompetitors.split('\n').filter(Boolean) : []),
+      uniqueSellingPoints: Array.isArray(data.uniqueSellingPoints) ? data.uniqueSellingPoints :
+        (typeof data.uniqueSellingPoints === 'string' ? data.uniqueSellingPoints.split('\n').filter(Boolean) : []),
+      currentChallenges: Array.isArray(data.currentChallenges) ? data.currentChallenges :
+        (typeof data.currentChallenges === 'string' ? data.currentChallenges.split('\n').filter(Boolean) : []),
+      businessPriorities: Array.isArray(data.businessPriorities) ? data.businessPriorities :
+        (typeof data.businessPriorities === 'string' ? data.businessPriorities.split('\n').filter(Boolean) : []),
+    };
+    
+    console.log('Transformed data:', transformedData);
+    updateMutation.mutate(transformedData);
   };
 
   const handleQuickAction = (action: string) => {
