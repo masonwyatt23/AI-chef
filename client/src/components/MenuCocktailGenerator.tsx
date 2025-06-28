@@ -1583,7 +1583,7 @@ Ribeye Steak - 12oz premium cut $32
                               <div className="text-center">
                                 <div className="flex items-center justify-center space-x-1 text-green-600 font-semibold">
                                   <DollarSign className="h-5 w-5" />
-                                  <span>${typeof cocktail.suggestedPrice === 'number' ? cocktail.suggestedPrice.toFixed(2) : cocktail.suggestedPrice || '0.00'}</span>
+                                  <span>{formatCurrency(cocktail.suggestedPrice)}</span>
                                 </div>
                                 <p className="text-xs text-slate-500">Suggested Price</p>
                               </div>
@@ -1616,11 +1616,11 @@ Ribeye Steak - 12oz premium cut $32
                                 <div className="space-y-1 text-sm">
                                   <div className="flex justify-between">
                                     <span>Estimated Cost:</span>
-                                    <span>${typeof cocktail.estimatedCost === 'number' ? cocktail.estimatedCost.toFixed(2) : cocktail.estimatedCost || '0.00'}</span>
+                                    <span>{formatCurrency(cocktail.estimatedCost)}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Suggested Price:</span>
-                                    <span>${typeof cocktail.suggestedPrice === 'number' ? cocktail.suggestedPrice.toFixed(2) : cocktail.suggestedPrice || '0.00'}</span>
+                                    <span>{formatCurrency(cocktail.suggestedPrice)}</span>
                                   </div>
                                   <div className="flex justify-between font-semibold">
                                     <span>Profit Margin:</span>
@@ -1656,7 +1656,7 @@ Ribeye Steak - 12oz premium cut $32
                                     <span className="font-medium">{ingredient.ingredient}</span>
                                     <div className="text-right text-sm">
                                       <div>{ingredient.amount}</div>
-                                      <div className="text-slate-500">${typeof ingredient.cost === 'number' ? ingredient.cost.toFixed(2) : ingredient.cost || '0.00'}</div>
+                                      <div className="text-slate-500">{formatCurrency(ingredient.cost)}</div>
                                     </div>
                                   </div>
                                 ))}
@@ -1893,14 +1893,14 @@ Ribeye Steak - 12oz premium cut $32
                                           <DollarSign className="h-4 w-4" />
                                           Cost
                                         </h4>
-                                        <p className="text-sm">${item.estimatedCost?.toFixed(2) || 'N/A'}</p>
+                                        <p className="text-sm">{formatCurrency(item.estimatedCost)}</p>
                                       </div>
                                       <div>
                                         <h4 className="font-semibold mb-2 flex items-center gap-1">
                                           <Star className="h-4 w-4" />
                                           Price
                                         </h4>
-                                        <p className="text-sm">${item.suggestedPrice?.toFixed(2) || 'N/A'}</p>
+                                        <p className="text-sm">{formatCurrency(item.suggestedPrice)}</p>
                                       </div>
                                     </div>
                                     
