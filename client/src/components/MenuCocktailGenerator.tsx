@@ -1585,7 +1585,7 @@ Ribeye Steak - 12oz premium cut $32
                               <div className="text-center">
                                 <div className="flex items-center justify-center space-x-1 text-amber-600 font-semibold">
                                   <Star className="h-5 w-5" />
-                                  <span>{cocktail.profitMargin}%</span>
+                                  <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : cocktail.profitMargin || '0'}%</span>
                                 </div>
                                 <p className="text-xs text-slate-500">Profit Margin</p>
                               </div>
@@ -1612,7 +1612,7 @@ Ribeye Steak - 12oz premium cut $32
                                   </div>
                                   <div className="flex justify-between font-semibold">
                                     <span>Profit Margin:</span>
-                                    <span>{cocktail.profitMargin}%</span>
+                                    <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : cocktail.profitMargin || '0'}%</span>
                                   </div>
                                 </div>
                               </div>
