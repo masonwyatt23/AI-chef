@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Bot, User, Lightbulb, ChevronDown, ChevronUp, Utensils, BarChart3, Users, Zap, DollarSign, Target, Plus, MessageSquare } from "lucide-react";
+import { Send, Bot, User, Lightbulb, ChevronDown, ChevronUp, Utensils, BarChart3, Users, Zap, DollarSign, Target, Plus, MessageSquare, Trash2, Edit3, MoreVertical } from "lucide-react";
 import type { Message, Conversation } from "@shared/schema";
 
 interface ChatInterfaceProps {
@@ -160,6 +162,32 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
 
   const { data: conversations = [] } = useQuery<Conversation[]>({
     queryKey: [`/api/restaurants/${restaurantId}/conversations`],
+  });
+
+  // Delete conversation mutation
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (conversationId: number) => {
+      const response = await apiRequest("DELETE", `/api/conversations/${conversationId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/conversations`] });
+      // If we just deleted the current conversation, switch to new chat
+      if (conversationId && conversations.find(c => c.id === conversationId)) {
+        onConversationChange(null);
+      }
+      toast({
+        title: "Success",
+        description: "Conversation deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive",
+      });
+    },
   });
 
   const { data: messages = [] } = useQuery<Message[]>({
@@ -344,26 +372,84 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
         {/* Controls */}
         <div className="flex items-center justify-between px-4 pb-4">
           <div className="flex items-center space-x-2">
-            <Select
-              value={conversationId?.toString() || ""}
-              onValueChange={(value) => onConversationChange(parseInt(value))}
-            >
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Select conversation">
-                  {conversationId ? 
-                    conversations.find(c => c.id === conversationId)?.title || "Current Chat" 
-                    : "Start new conversation"
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {conversations.map((conv) => (
-                  <SelectItem key={conv.id} value={conv.id.toString()}>
-                    {conv.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Enhanced Conversation Selector with Management */}
+            <div className="flex items-center space-x-1">
+              <Select
+                value={conversationId?.toString() || ""}
+                onValueChange={(value) => onConversationChange(parseInt(value))}
+              >
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select conversation">
+                    {conversationId ? 
+                      conversations.find(c => c.id === conversationId)?.title || "Current Chat" 
+                      : "Start new conversation"
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  {conversations.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                      No conversations yet
+                    </div>
+                  ) : (
+                    conversations.map((conv) => (
+                      <div key={conv.id} className="flex items-center group">
+                        <SelectItem 
+                          value={conv.id.toString()}
+                          className="flex-1 cursor-pointer pr-8"
+                        >
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{conv.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(conv.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </SelectItem>
+                        
+                        {/* Conversation Actions */}
+                        <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onConversationChange(conv.id);
+                                }}
+                              >
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                Open Chat
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm("Are you sure you want to delete this conversation? This action cannot be undone.")) {
+                                    deleteConversationMutation.mutate(conv.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
             
             <Button
               variant="outline"

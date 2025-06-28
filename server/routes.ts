@@ -106,6 +106,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/conversations/:id", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const success = await storage.deleteConversation(conversationId);
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: "Conversation not found or could not be deleted" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete conversation" });
+    }
+  });
+
   // Chat routes
   app.post("/api/chat", async (req, res) => {
     try {

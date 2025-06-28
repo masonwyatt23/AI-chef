@@ -30,6 +30,7 @@ export interface IStorage {
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   getConversationsByRestaurant(restaurantId: number): Promise<Conversation[]>;
   getConversation(id: number): Promise<Conversation | undefined>;
+  deleteConversation(id: number): Promise<boolean>;
   
   createMessage(message: InsertMessage): Promise<Message>;
   getMessagesByConversation(conversationId: number): Promise<Message[]>;
@@ -99,6 +100,21 @@ export class DatabaseStorage implements IStorage {
   async getConversation(id: number): Promise<Conversation | undefined> {
     const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
     return conversation || undefined;
+  }
+
+  async deleteConversation(id: number): Promise<boolean> {
+    try {
+      // First delete all messages in the conversation
+      await db.delete(messages).where(eq(messages.conversationId, id));
+      
+      // Then delete the conversation
+      const result = await db.delete(conversations).where(eq(conversations.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      return false;
+    }
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
