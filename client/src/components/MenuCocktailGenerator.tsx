@@ -733,7 +733,7 @@ Ribeye Steak - 12oz premium cut $32
                     <p className="text-sm">Configure your preferences and generate items</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
                     {generatedMenuItems.map((item, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-start justify-between flex-wrap gap-2">
@@ -926,7 +926,7 @@ Ribeye Steak - 12oz premium cut $32
                     <p className="text-sm">Configure your preferences and generate cocktails</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
                     {generatedCocktails.map((cocktail, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-start justify-between flex-wrap gap-2">
