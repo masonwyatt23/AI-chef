@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Utensils, MessageSquare, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import depotLogoPath from "@assets/depot logo_1751085413672.png";
 import jsPDF from 'jspdf';
 import type { Restaurant, Recommendation } from "@shared/schema";
 
@@ -192,8 +193,12 @@ export default function ChefAssistant() {
               Export
             </Button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">M</span>
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center overflow-hidden border border-slate-200">
+                <img 
+                  src={depotLogoPath} 
+                  alt="Depot Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="text-sm font-medium text-slate-700">{restaurant.name}</span>
             </div>

@@ -496,8 +496,6 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
           
-          console.log('Found category:', currentCategory, 'from line:', trimmedLine);
-          
           if (!categories.includes(currentCategory)) {
             categories.push(currentCategory);
           }
@@ -528,10 +526,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
               category: currentCategory,
               price
             };
-            console.log('Adding item:', itemName, 'to category:', currentCategory, 'price:', price);
             items.push(item);
-          } else {
-            console.log('Skipping line (not an item):', trimmedLine, 'cleaned name:', itemName, 'current category:', currentCategory);
           }
         }
       });
@@ -585,7 +580,6 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
 
   // Load Depot menu data
   const loadDepotMenu = () => {
-    console.log('=== DEPOT MENU FUNCTION CALLED ===');
     // Clear previous parsed data first
     setParsedCategories([]);
     setParsedMenuItems([]);
@@ -659,7 +653,6 @@ Applesauce or Coleslaw 3`;
 
   // Load Junction Catering menu data
   const loadJunctionMenu = () => {
-    console.log('=== JUNCTION MENU FUNCTION CALLED ===');
     // Clear previous parsed data first
     setParsedCategories([]);
     setParsedMenuItems([]);
