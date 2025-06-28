@@ -468,17 +468,24 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
         
         // Check if line is likely a category header
         const isAllCaps = trimmedLine.toUpperCase() === trimmedLine && trimmedLine.length > 2;
-        const isAlphaOnly = /^[A-Z\s&-]+$/.test(trimmedLine);
-        const hasNoPrice = !trimmedLine.includes('$') && !trimmedLine.includes('.');
-        const isCategoryWord = /appetizer|starter|salad|soup|entree|main|pasta|pizza|dessert|beverage|drink|side|steak|rib|chicken|seafood|fish|sandwich|lite bite|steaks,?\s*ribs\s*(and|&)?\s*chicken|sandwiches\s*&\s*lite\s*bites/i.test(trimmedLine);
+        const isAlphaOnly = /^[A-Za-z\s&-]+$/.test(trimmedLine);
+        const hasNoPrice = !trimmedLine.includes('$') && !/\d+\s*$/.test(trimmedLine);
+        const isCategoryWord = /^(appetizer|starter|salad|soup|entree|main|pasta|pizza|dessert|beverage|drink|side|steak|rib|chicken|seafood|fish|sandwich|lite bite|steaks,?\s*ribs\s*(and|&)?\s*chicken|sandwiches\s*&\s*lite\s*bites)s?$/i.test(trimmedLine);
         const isShortLine = trimmedLine.length < 40;
         const nextLineIsDashes = /^[-=]{3,}/.test(lines[index + 1] || '');
+        
+        // Check for simple depot-style categories (single words like "Appetizers", "Salads")
+        const isSimpleCategory = /^[A-Za-z\s&]+$/.test(trimmedLine) && 
+                                 trimmedLine.length < 30 && 
+                                 hasNoPrice && 
+                                 (isCategoryWord || /^(appetizers|salads|sandwiches|pasta|seafood|fish|entrees|mains|sides|desserts|beverages|drinks)$/i.test(trimmedLine));
         
         const isCategoryHeader = 
           hasNoPrice && (
             (isAllCaps && isShortLine) ||
             (isAlphaOnly && (isCategoryWord || isShortLine)) ||
-            nextLineIsDashes
+            nextLineIsDashes ||
+            isSimpleCategory
           );
         
         if (isCategoryHeader) {
@@ -488,6 +495,8 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
             .split(' ')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
+          
+          console.log('Found category:', currentCategory, 'from line:', trimmedLine);
           
           if (!categories.includes(currentCategory)) {
             categories.push(currentCategory);
@@ -519,7 +528,10 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
               category: currentCategory,
               price
             };
+            console.log('Adding item:', itemName, 'to category:', currentCategory, 'price:', price);
             items.push(item);
+          } else {
+            console.log('Skipping line (not an item):', trimmedLine, 'cleaned name:', itemName, 'current category:', currentCategory);
           }
         }
       });
