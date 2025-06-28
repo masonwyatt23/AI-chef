@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   ChefHat, 
   Wine, 
@@ -22,7 +23,9 @@ import {
   Star,
   Utensils,
   Upload,
-  FileText
+  FileText,
+  Eye,
+  AlertCircle
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -735,67 +738,290 @@ Ribeye Steak - 12oz premium cut $32
                 ) : (
                   <div className="space-y-4 flex-1 overflow-y-auto">
                     {generatedMenuItems.map((item, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-start justify-between flex-wrap gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-slate-900 break-words">{item.name}</h4>
-                            <p className="text-sm text-slate-600 mt-1 break-words">{item.description}</p>
-                          </div>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 shrink-0">
-                            {item.category}
-                          </Badge>
-                        </div>
-
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center space-x-1">
-                            <DollarSign className="h-4 w-4 text-green-600" />
-                            <span>${item.suggestedPrice}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4 text-blue-600" />
-                            <span>{item.preparationTime}min</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-4 w-4 text-amber-600" />
-                            <span>{item.profitMargin}% margin</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <Badge 
-                            variant="secondary" 
-                            className={
-                              item.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
-                              item.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-red-100 text-red-700'
-                            }
-                          >
-                            {item.difficulty} difficulty
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(JSON.stringify(item.recipe, null, 2))}
-                            className="shrink-0"
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copy Recipe
-                          </Button>
-                        </div>
-
-                        {item.allergens.length > 0 && (
-                          <div>
-                            <p className="text-xs text-slate-500 mb-1">Allergens:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {item.allergens.map((allergen, i) => (
-                                <Badge key={i} variant="outline" className="text-xs bg-red-50 text-red-700">
-                                  {allergen}
+                      <Dialog key={index}>
+                        <DialogTrigger asChild>
+                          <div className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                            <div className="flex items-start justify-between flex-wrap gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-slate-900 break-words">{item.name}</h4>
+                                <p className="text-sm text-slate-600 mt-1 break-words">{item.description}</p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                                  {item.category}
                                 </Badge>
-                              ))}
+                                <Eye className="h-4 w-4 text-slate-400" />
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <div className="flex items-center space-x-1">
+                                <DollarSign className="h-4 w-4 text-green-600" />
+                                <span>${item.suggestedPrice}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Clock className="h-4 w-4 text-blue-600" />
+                                <span>{item.preparationTime}min</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Star className="h-4 w-4 text-amber-600" />
+                                <span>{item.profitMargin}% margin</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <Badge 
+                                variant="secondary" 
+                                className={
+                                  item.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                                  item.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-red-100 text-red-700'
+                                }
+                              >
+                                {item.difficulty} difficulty
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyToClipboard(JSON.stringify(item.recipe, null, 2));
+                                }}
+                                className="shrink-0"
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Recipe
+                              </Button>
+                            </div>
+
+                            {item.allergens.length > 0 && (
+                              <div>
+                                <p className="text-xs text-slate-500 mb-1">Allergens:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {item.allergens.map((allergen, i) => (
+                                    <Badge key={i} variant="outline" className="text-xs bg-red-50 text-red-700">
+                                      {allergen}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-xl">
+                              <Utensils className="h-6 w-6 text-green-600" />
+                              {item.name}
+                            </DialogTitle>
+                          </DialogHeader>
+                          
+                          <div className="space-y-6">
+                            {/* Header Info */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg">
+                              <div className="text-center">
+                                <div className="flex items-center justify-center space-x-1 text-green-600 font-semibold">
+                                  <DollarSign className="h-5 w-5" />
+                                  <span>${item.suggestedPrice}</span>
+                                </div>
+                                <p className="text-xs text-slate-500">Suggested Price</p>
+                              </div>
+                              <div className="text-center">
+                                <div className="flex items-center justify-center space-x-1 text-blue-600 font-semibold">
+                                  <Clock className="h-5 w-5" />
+                                  <span>{item.preparationTime} min</span>
+                                </div>
+                                <p className="text-xs text-slate-500">Prep Time</p>
+                              </div>
+                              <div className="text-center">
+                                <div className="flex items-center justify-center space-x-1 text-amber-600 font-semibold">
+                                  <Star className="h-5 w-5" />
+                                  <span>{item.profitMargin}%</span>
+                                </div>
+                                <p className="text-xs text-slate-500">Profit Margin</p>
+                              </div>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                              <h3 className="font-semibold text-lg mb-2">Description</h3>
+                              <p className="text-slate-700">{item.description}</p>
+                            </div>
+
+                            {/* Financial Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="p-4 border rounded-lg">
+                                <h4 className="font-semibold text-green-600 mb-2">Cost Analysis</h4>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span>Estimated Cost:</span>
+                                    <span>${item.estimatedCost}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Suggested Price:</span>
+                                    <span>${item.suggestedPrice}</span>
+                                  </div>
+                                  <div className="flex justify-between font-semibold">
+                                    <span>Profit Margin:</span>
+                                    <span>{item.profitMargin}%</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="p-4 border rounded-lg">
+                                <h4 className="font-semibold text-purple-600 mb-2">Details</h4>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span>Category:</span>
+                                    <Badge variant="outline">{item.category}</Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Difficulty:</span>
+                                    <Badge 
+                                      variant="secondary" 
+                                      className={
+                                        item.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                                        item.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                      }
+                                    >
+                                      {item.difficulty}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Serves:</span>
+                                    <span>{item.recipe.serves} portions</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Ingredients */}
+                            <div>
+                              <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {item.ingredients.map((ingredient, i) => (
+                                  <div key={i} className="flex items-center p-2 bg-slate-50 rounded">
+                                    <span className="text-sm">{ingredient}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Recipe Instructions */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                              <div>
+                                <h4 className="font-semibold text-blue-600 mb-3">Preparation</h4>
+                                <ol className="space-y-2 text-sm">
+                                  {item.recipe.prepInstructions.map((step, i) => (
+                                    <li key={i} className="flex">
+                                      <span className="font-semibold text-blue-600 mr-2">{i + 1}.</span>
+                                      <span>{step}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
+                              
+                              <div>
+                                <h4 className="font-semibold text-orange-600 mb-3">Cooking</h4>
+                                <ol className="space-y-2 text-sm">
+                                  {item.recipe.cookingInstructions.map((step, i) => (
+                                    <li key={i} className="flex">
+                                      <span className="font-semibold text-orange-600 mr-2">{i + 1}.</span>
+                                      <span>{step}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
+                              
+                              <div>
+                                <h4 className="font-semibold text-purple-600 mb-3">Plating</h4>
+                                <ol className="space-y-2 text-sm">
+                                  {item.recipe.platingInstructions.map((step, i) => (
+                                    <li key={i} className="flex">
+                                      <span className="font-semibold text-purple-600 mr-2">{i + 1}.</span>
+                                      <span>{step}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
+                            </div>
+
+                            {/* Techniques & Additional Info */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                <h4 className="font-semibold mb-3">Cooking Techniques</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {item.recipe.techniques.map((technique, i) => (
+                                    <Badge key={i} variant="outline" className="bg-blue-50">
+                                      {technique}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              {item.allergens.length > 0 && (
+                                <div>
+                                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4 text-red-500" />
+                                    Allergens
+                                  </h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {item.allergens.map((allergen, i) => (
+                                      <Badge key={i} variant="outline" className="bg-red-50 text-red-700">
+                                        {allergen}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Wine Pairings & Upsells */}
+                            {(item.winePairings && item.winePairings.length > 0) && (
+                              <div>
+                                <h4 className="font-semibold mb-3">Wine Pairings</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {item.winePairings.map((wine, i) => (
+                                    <Badge key={i} variant="outline" className="bg-purple-50">
+                                      {wine}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {(item.upsellOpportunities && item.upsellOpportunities.length > 0) && (
+                              <div>
+                                <h4 className="font-semibold mb-3">Upsell Opportunities</h4>
+                                <div className="space-y-2">
+                                  {item.upsellOpportunities.map((upsell, i) => (
+                                    <div key={i} className="p-2 bg-green-50 rounded text-sm">
+                                      {upsell}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-end space-x-2 pt-4 border-t">
+                              <Button
+                                variant="outline"
+                                onClick={() => copyToClipboard(JSON.stringify(item.recipe, null, 2))}
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Recipe
+                              </Button>
+                              <Button
+                                onClick={() => copyToClipboard(JSON.stringify(item, null, 2))}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Export Full Details
+                              </Button>
                             </div>
                           </div>
-                        )}
-                      </div>
+                        </DialogContent>
+                      </Dialog>
                     ))}
                   </div>
                 )}
@@ -928,52 +1154,238 @@ Ribeye Steak - 12oz premium cut $32
                 ) : (
                   <div className="space-y-4 flex-1 overflow-y-auto">
                     {generatedCocktails.map((cocktail, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-start justify-between flex-wrap gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-slate-900 break-words">{cocktail.name}</h4>
-                            <p className="text-sm text-slate-600 mt-1 break-words">{cocktail.description}</p>
-                          </div>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 shrink-0">
-                            {cocktail.category}
-                          </Badge>
-                        </div>
+                      <Dialog key={index}>
+                        <DialogTrigger asChild>
+                          <div className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                            <div className="flex items-start justify-between flex-wrap gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-slate-900 break-words">{cocktail.name}</h4>
+                                <p className="text-sm text-slate-600 mt-1 break-words">{cocktail.description}</p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                                  {cocktail.category}
+                                </Badge>
+                                <Eye className="h-4 w-4 text-slate-400" />
+                              </div>
+                            </div>
 
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center space-x-1">
-                            <DollarSign className="h-4 w-4 text-green-600" />
-                            <span>${cocktail.suggestedPrice}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4 text-blue-600" />
-                            <span>{cocktail.preparationTime}min</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-4 w-4 text-amber-600" />
-                            <span>{cocktail.profitMargin}% margin</span>
-                          </div>
-                        </div>
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <div className="flex items-center space-x-1">
+                                <DollarSign className="h-4 w-4 text-green-600" />
+                                <span>${cocktail.suggestedPrice}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Clock className="h-4 w-4 text-blue-600" />
+                                <span>{cocktail.preparationTime}min</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Star className="h-4 w-4 text-amber-600" />
+                                <span>{cocktail.profitMargin}% margin</span>
+                              </div>
+                            </div>
 
-                        <div className="text-sm flex flex-wrap gap-4">
-                          <p className="font-medium text-slate-700">Glassware: {cocktail.glassware}</p>
-                          <p className="font-medium text-slate-700">Garnish: {cocktail.garnish}</p>
-                        </div>
+                            <div className="text-sm flex flex-wrap gap-4">
+                              <p className="font-medium text-slate-700">Glassware: {cocktail.glassware}</p>
+                              <p className="font-medium text-slate-700">Garnish: {cocktail.garnish}</p>
+                            </div>
 
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                            ${cocktail.estimatedCost.toFixed(2)} cost
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(JSON.stringify(cocktail, null, 2))}
-                            className="shrink-0"
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copy Recipe
-                          </Button>
-                        </div>
-                      </div>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                                ${cocktail.estimatedCost.toFixed(2)} cost
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyToClipboard(JSON.stringify(cocktail, null, 2));
+                                }}
+                                className="shrink-0"
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Recipe
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-xl">
+                              <Wine className="h-6 w-6 text-purple-600" />
+                              {cocktail.name}
+                            </DialogTitle>
+                          </DialogHeader>
+                          
+                          <div className="space-y-6">
+                            {/* Header Info */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg">
+                              <div className="text-center">
+                                <div className="flex items-center justify-center space-x-1 text-green-600 font-semibold">
+                                  <DollarSign className="h-5 w-5" />
+                                  <span>${cocktail.suggestedPrice}</span>
+                                </div>
+                                <p className="text-xs text-slate-500">Suggested Price</p>
+                              </div>
+                              <div className="text-center">
+                                <div className="flex items-center justify-center space-x-1 text-blue-600 font-semibold">
+                                  <Clock className="h-5 w-5" />
+                                  <span>{cocktail.preparationTime} min</span>
+                                </div>
+                                <p className="text-xs text-slate-500">Prep Time</p>
+                              </div>
+                              <div className="text-center">
+                                <div className="flex items-center justify-center space-x-1 text-amber-600 font-semibold">
+                                  <Star className="h-5 w-5" />
+                                  <span>{cocktail.profitMargin}%</span>
+                                </div>
+                                <p className="text-xs text-slate-500">Profit Margin</p>
+                              </div>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                              <h3 className="font-semibold text-lg mb-2">Description</h3>
+                              <p className="text-slate-700">{cocktail.description}</p>
+                            </div>
+
+                            {/* Financial Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="p-4 border rounded-lg">
+                                <h4 className="font-semibold text-green-600 mb-2">Cost Analysis</h4>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span>Estimated Cost:</span>
+                                    <span>${cocktail.estimatedCost.toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Suggested Price:</span>
+                                    <span>${cocktail.suggestedPrice}</span>
+                                  </div>
+                                  <div className="flex justify-between font-semibold">
+                                    <span>Profit Margin:</span>
+                                    <span>{cocktail.profitMargin}%</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="p-4 border rounded-lg">
+                                <h4 className="font-semibold text-purple-600 mb-2">Details</h4>
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between">
+                                    <span>Category:</span>
+                                    <Badge variant="outline">{cocktail.category}</Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Glassware:</span>
+                                    <span>{cocktail.glassware}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Garnish:</span>
+                                    <span>{cocktail.garnish}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Ingredients */}
+                            <div>
+                              <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {cocktail.ingredients.map((ingredient, i) => (
+                                  <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded">
+                                    <span className="font-medium">{ingredient.ingredient}</span>
+                                    <div className="text-right text-sm">
+                                      <div>{ingredient.amount}</div>
+                                      <div className="text-slate-500">${ingredient.cost.toFixed(2)}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Instructions */}
+                            <div>
+                              <h3 className="font-semibold text-lg mb-3">Instructions</h3>
+                              <ol className="space-y-2">
+                                {cocktail.instructions.map((step, i) => (
+                                  <li key={i} className="flex">
+                                    <span className="font-semibold text-purple-600 mr-3 mt-1">{i + 1}.</span>
+                                    <span className="text-sm leading-relaxed">{step}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+
+                            {/* Variations & Food Pairings */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {(cocktail.variations && cocktail.variations.length > 0) && (
+                                <div>
+                                  <h4 className="font-semibold mb-3">Variations</h4>
+                                  <div className="space-y-3">
+                                    {cocktail.variations.map((variation, i) => (
+                                      <div key={i} className="p-3 border rounded-lg">
+                                        <h5 className="font-medium text-purple-600">{variation.name}</h5>
+                                        <ul className="text-sm mt-1 space-y-1">
+                                          {variation.changes.map((change, j) => (
+                                            <li key={j} className="text-slate-600">• {change}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {(cocktail.foodPairings && cocktail.foodPairings.length > 0) && (
+                                <div>
+                                  <h4 className="font-semibold mb-3">Food Pairings</h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {cocktail.foodPairings.map((pairing, i) => (
+                                      <Badge key={i} variant="outline" className="bg-orange-50">
+                                        {pairing}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Batch Instructions */}
+                            {(cocktail.batchInstructions && cocktail.batchInstructions.length > 0) && (
+                              <div>
+                                <h4 className="font-semibold mb-3">Batch Preparation</h4>
+                                <div className="bg-blue-50 p-4 rounded-lg">
+                                  <ol className="space-y-2">
+                                    {cocktail.batchInstructions.map((instruction, i) => (
+                                      <li key={i} className="flex">
+                                        <span className="font-semibold text-blue-600 mr-3">{i + 1}.</span>
+                                        <span className="text-sm">{instruction}</span>
+                                      </li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-end space-x-2 pt-4 border-t">
+                              <Button
+                                variant="outline"
+                                onClick={() => copyToClipboard(cocktail.instructions.join('\n'))}
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Instructions
+                              </Button>
+                              <Button
+                                onClick={() => copyToClipboard(JSON.stringify(cocktail, null, 2))}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Export Full Details
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     ))}
                   </div>
                 )}
