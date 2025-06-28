@@ -458,7 +458,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       const items: Array<{name: string; category: string; price?: number}> = [];
       let currentCategory = "";
       
-      console.log('Parsing menu text:', menuText.substring(0, 100) + '...');
+
       
       lines.forEach((line, index) => {
         const trimmedLine = line.trim();
@@ -544,8 +544,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       setParsedCategories(categories);
       setParsedMenuItems(items);
       
-      console.log('Setting parsed items:', items);
-      console.log('Items length:', items.length);
+
       
       toast({
         title: "Menu analyzed!",
