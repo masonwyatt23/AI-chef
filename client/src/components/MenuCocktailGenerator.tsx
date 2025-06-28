@@ -2049,7 +2049,7 @@ Ribeye Steak - 12oz premium cut $32
                                       </div>
                                     )}
                                     
-                                    {cocktail.instructions && cocktail.instructions.length > 0 && (
+                                    {Array.isArray(cocktail.instructions) && cocktail.instructions.length > 0 && (
                                       <div>
                                         <h4 className="font-semibold mb-2">Instructions</h4>
                                         <ol className="text-sm space-y-1">
