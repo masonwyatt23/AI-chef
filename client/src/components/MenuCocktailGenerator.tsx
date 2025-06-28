@@ -706,7 +706,7 @@ Ribeye Steak - 12oz premium cut $32
             </Card>
 
             {/* Generated Menu Items */}
-            <Card>
+            <Card className="flex flex-col h-full">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center space-x-2">
@@ -725,15 +725,15 @@ Ribeye Steak - 12oz premium cut $32
                   )}
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 flex flex-col">
                 {generatedMenuItems.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-slate-500 flex-1 flex flex-col justify-center">
                     <ChefHat className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p>No menu items generated yet</p>
                     <p className="text-sm">Configure your preferences and generate items</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                  <div className="space-y-4 flex-1 overflow-y-auto">
                     {generatedMenuItems.map((item, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-start justify-between flex-wrap gap-2">
@@ -899,7 +899,7 @@ Ribeye Steak - 12oz premium cut $32
             </Card>
 
             {/* Generated Cocktails */}
-            <Card>
+            <Card className="flex flex-col h-full">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center space-x-2">
@@ -918,15 +918,15 @@ Ribeye Steak - 12oz premium cut $32
                   )}
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 flex flex-col">
                 {generatedCocktails.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-slate-500 flex-1 flex flex-col justify-center">
                     <Wine className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p>No cocktails generated yet</p>
                     <p className="text-sm">Configure your preferences and generate cocktails</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                  <div className="space-y-4 flex-1 overflow-y-auto">
                     {generatedCocktails.map((cocktail, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-start justify-between flex-wrap gap-2">
