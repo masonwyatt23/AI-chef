@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from 'jspdf';
 
 interface MenuCocktailGeneratorProps {
   restaurantId: number;
@@ -760,16 +761,188 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
     });
   };
 
-  const exportData = (data: any, filename: string) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const exportCocktailsToPDF = (cocktails: GeneratedCocktail[]) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let yPosition = margin;
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cocktail Recipe Collection', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Date
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    cocktails.forEach((cocktail, index) => {
+      // Check if we need a new page
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      // Cocktail Name
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(cocktail.name, margin, yPosition);
+      yPosition += 8;
+
+      // Category and pricing info
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Category: ${cocktail.category} | Price: ${formatCurrency(cocktail.suggestedPrice)} | Prep: ${cocktail.preparationTime}min`, margin, yPosition);
+      yPosition += 6;
+
+      // Description
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'italic');
+      const splitDescription = doc.splitTextToSize(cocktail.description || '', pageWidth - (margin * 2));
+      doc.text(splitDescription, margin, yPosition);
+      yPosition += (splitDescription.length * 4) + 5;
+
+      // Ingredients
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Ingredients:', margin, yPosition);
+      yPosition += 5;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      (cocktail.ingredients || []).forEach((ingredient) => {
+        const ingredientText = `• ${ingredient.ingredient} - ${ingredient.amount} (${formatCurrency(ingredient.cost)})`;
+        doc.text(ingredientText, margin + 5, yPosition);
+        yPosition += 4;
+      });
+      yPosition += 3;
+
+      // Instructions
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Instructions:', margin, yPosition);
+      yPosition += 5;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      const instructions = Array.isArray(cocktail.instructions) ? cocktail.instructions : [];
+      instructions.forEach((instruction, i) => {
+        const instructionText = `${i + 1}. ${instruction}`;
+        const splitInstruction = doc.splitTextToSize(instructionText, pageWidth - (margin * 2) - 10);
+        doc.text(splitInstruction, margin + 5, yPosition);
+        yPosition += (splitInstruction.length * 4) + 2;
+      });
+
+      // Cost Analysis
+      yPosition += 3;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cost Analysis:', margin, yPosition);
+      yPosition += 4;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Cost: ${formatCurrency(cocktail.estimatedCost)} | Price: ${formatCurrency(cocktail.suggestedPrice)} | Profit: ${typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : '0'}%`, margin + 5, yPosition);
+      yPosition += 6;
+
+      // Glassware and Garnish
+      doc.text(`Glassware: ${cocktail.glassware} | Garnish: ${cocktail.garnish}`, margin + 5, yPosition);
+      yPosition += 10;
+
+      // Add separator line between cocktails
+      if (index < cocktails.length - 1) {
+        doc.setLineWidth(0.1);
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 8;
+      }
+    });
+
+    // Save the PDF
+    doc.save(`cocktail-recipes-${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  const exportMenuItemsToPDF = (items: GeneratedMenuItem[]) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let yPosition = margin;
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Menu Item Collection', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Date
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    items.forEach((item, index) => {
+      // Check if we need a new page
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      // Item Name
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(item.name, margin, yPosition);
+      yPosition += 8;
+
+      // Category and pricing info
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Category: ${item.category} | Price: ${formatCurrency(item.suggestedPrice)} | Prep: ${item.preparationTime}min | Difficulty: ${item.difficulty}`, margin, yPosition);
+      yPosition += 6;
+
+      // Description
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'italic');
+      const splitDescription = doc.splitTextToSize(item.description || '', pageWidth - (margin * 2));
+      doc.text(splitDescription, margin, yPosition);
+      yPosition += (splitDescription.length * 4) + 5;
+
+      // Ingredients
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Ingredients:', margin, yPosition);
+      yPosition += 5;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      (item.ingredients || []).forEach((ingredient) => {
+        doc.text(`• ${ingredient}`, margin + 5, yPosition);
+        yPosition += 4;
+      });
+      yPosition += 5;
+
+      // Cost Analysis
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cost Analysis:', margin, yPosition);
+      yPosition += 4;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Cost: ${formatCurrency(item.estimatedCost)} | Price: ${formatCurrency(item.suggestedPrice)} | Profit: ${typeof item.profitMargin === 'number' ? item.profitMargin.toFixed(0) : '0'}%`, margin + 5, yPosition);
+      yPosition += 10;
+
+      // Add separator line between items
+      if (index < items.length - 1) {
+        doc.setLineWidth(0.1);
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 8;
+      }
+    });
+
+    // Save the PDF
+    doc.save(`menu-items-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -1678,11 +1851,11 @@ Ribeye Steak - 12oz premium cut $32
 
                             {/* Variations & Food Pairings */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                              {(cocktail.variations && cocktail.variations.length > 0) && (
+                              {(Array.isArray(cocktail.variations) && cocktail.variations.length > 0) && (
                                 <div>
                                   <h4 className="font-semibold mb-3">Variations</h4>
                                   <div className="space-y-3">
-                                    {(Array.isArray(cocktail.variations) ? cocktail.variations : []).map((variation, i) => (
+                                    {cocktail.variations.map((variation, i) => (
                                       <div key={i} className="p-3 border rounded-lg">
                                         <h5 className="font-medium text-purple-600">{variation.name}</h5>
                                         <ul className="text-sm mt-1 space-y-1">
@@ -1696,11 +1869,11 @@ Ribeye Steak - 12oz premium cut $32
                                 </div>
                               )}
 
-                              {(cocktail.foodPairings && cocktail.foodPairings.length > 0) && (
+                              {(Array.isArray(cocktail.foodPairings) && cocktail.foodPairings.length > 0) && (
                                 <div>
                                   <h4 className="font-semibold mb-3">Food Pairings</h4>
                                   <div className="flex flex-wrap gap-2">
-                                    {(Array.isArray(cocktail.foodPairings) ? cocktail.foodPairings : []).map((pairing, i) => (
+                                    {cocktail.foodPairings.map((pairing, i) => (
                                       <Badge key={i} variant="outline" className="bg-orange-50">
                                         {pairing}
                                       </Badge>
@@ -1711,12 +1884,12 @@ Ribeye Steak - 12oz premium cut $32
                             </div>
 
                             {/* Batch Instructions */}
-                            {(cocktail.batchInstructions && cocktail.batchInstructions.length > 0) && (
+                            {(Array.isArray(cocktail.batchInstructions) && cocktail.batchInstructions.length > 0) && (
                               <div>
                                 <h4 className="font-semibold mb-3">Batch Preparation</h4>
                                 <div className="bg-blue-50 p-4 rounded-lg">
                                   <ol className="space-y-2">
-                                    {(Array.isArray(cocktail.batchInstructions) ? cocktail.batchInstructions : []).map((instruction, i) => (
+                                    {cocktail.batchInstructions.map((instruction, i) => (
                                       <li key={i} className="flex">
                                         <span className="font-semibold text-blue-600 mr-3">{i + 1}.</span>
                                         <span className="text-sm">{instruction}</span>
