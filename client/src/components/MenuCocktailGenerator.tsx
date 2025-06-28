@@ -269,8 +269,11 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
           description: `Extracted text from ${result.filename}`,
         });
         
-        // Auto-analyze the extracted text
-        setTimeout(() => parseExistingMenu(), 500);
+        // Auto-analyze the extracted text after state update
+        setTimeout(() => {
+          // Call the analysis function directly with the extracted text
+          analyzeMenuText(result.text);
+        }, 100);
       } else {
         toast({
           title: "PDF uploaded",
@@ -302,9 +305,9 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     }
   };
 
-  // Smart menu parsing function
-  const parseExistingMenu = () => {
-    if (!existingMenu.trim()) {
+  // Analyze menu text function that can work with any text
+  const analyzeMenuText = (menuText: string) => {
+    if (!menuText || !menuText.trim()) {
       toast({
         title: "No menu provided",
         description: "Please paste your existing menu to analyze.",
@@ -316,7 +319,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     setIsAnalyzingMenu(true);
     
     try {
-      const lines = existingMenu.split('\n').filter(line => line.trim());
+      const lines = menuText.split('\n').filter(line => line.trim());
       const categories: string[] = [];
       const items: Array<{name: string; category: string; price?: number}> = [];
       let currentCategory = "";
@@ -363,7 +366,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       
       // Fallback: if no clear categories found, use common patterns
       if (categories.length === 0) {
-        const menuText = existingMenu.toLowerCase();
+        const menuTextLower = menuText.toLowerCase();
         commonCategories.forEach(cat => {
           if (menuText.includes(cat.toLowerCase())) {
             categories.push(cat);
@@ -405,54 +408,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     }
   };
 
-  // Parse existing menu to extract categories and items
-  const parseMenu = () => {
-    if (!existingMenu.trim()) {
-      toast({ title: "Please enter your existing menu first", variant: "destructive" });
-      return;
-    }
 
-    setIsAnalyzingMenu(true);
-    const lines = existingMenu.split('\n').filter(line => line.trim());
-    const categories = new Set<string>();
-    const items: Array<{name: string; category: string; price?: number}> = [];
-    
-    let currentCategory = "";
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      // Detect category headers (usually capitalized, may have decorative elements)
-      if (trimmed.match(/^[A-Z][A-Z\s&-]+$/) || trimmed.includes('---') || trimmed.includes('===')) {
-        currentCategory = trimmed.replace(/[-=]/g, '').trim();
-        if (currentCategory && !categories.has(currentCategory)) {
-          categories.add(currentCategory);
-        }
-      }
-      // Detect menu items (usually have prices or descriptive text)
-      else if (trimmed.match(/\$\d+/) || (currentCategory && trimmed.length > 3)) {
-        const priceMatch = trimmed.match(/\$(\d+(?:\.\d{2})?)/);
-        const price = priceMatch ? parseFloat(priceMatch[1]) : undefined;
-        const name = trimmed.replace(/\$\d+(?:\.\d{2})?/, '').trim();
-        
-        if (name && currentCategory) {
-          items.push({
-            name: name.split(' - ')[0].trim(), // Remove descriptions after dash
-            category: currentCategory,
-            price
-          });
-        }
-      }
-    }
-
-    setParsedCategories(Array.from(categories));
-    setParsedMenuItems(items);
-    setIsAnalyzingMenu(false);
-    
-    toast({ 
-      title: `Menu analyzed successfully!`, 
-      description: `Found ${categories.size} categories and ${items.length} items` 
-    });
-  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -565,7 +521,7 @@ Ribeye Steak - 12oz premium cut $32
                   />
                   <div className="flex gap-2">
                     <Button 
-                      onClick={parseExistingMenu} 
+                      onClick={() => analyzeMenuText(existingMenu)} 
                       disabled={isAnalyzingMenu}
                       size="sm"
                       variant="outline"
