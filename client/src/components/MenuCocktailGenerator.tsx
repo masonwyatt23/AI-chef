@@ -1435,6 +1435,316 @@ Ribeye Steak - 12oz premium cut $32
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Recipe History Section */}
+      {(menuHistory.length > 0 || cocktailHistory.length > 0) && (
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Recipe History
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Previously generated items you can reference
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="menu-history" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="menu-history" className="flex items-center gap-2">
+                    <Utensils className="h-4 w-4" />
+                    Menu Items ({menuHistory.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="cocktail-history" className="flex items-center gap-2">
+                    <Wine className="h-4 w-4" />
+                    Cocktails ({cocktailHistory.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="menu-history" className="space-y-4">
+                  {menuHistory.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      No menu items in history yet
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground">
+                          {menuHistory.length} menu items saved
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={clearMenuHistory}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Clear All
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {menuHistory.map((item, index) => (
+                          <Card key={index} className="relative">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-start">
+                                <CardTitle className="text-lg">{item.name}</CardTitle>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteMenuItemFromHistory(index)}
+                                  className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <Badge variant="secondary">{item.category}</Badge>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {item.description}
+                              </p>
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {item.preparationTime}min
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  ${item.suggestedPrice}
+                                </span>
+                              </div>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="w-full">
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      <Utensils className="h-5 w-5" />
+                                      {item.name}
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    {/* Same detailed view as current generated items */}
+                                    <div>
+                                      <h4 className="font-semibold mb-2">Description</h4>
+                                      <p className="text-sm">{item.description}</p>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <h4 className="font-semibold mb-2">Category</h4>
+                                        <Badge variant="outline">{item.category}</Badge>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold mb-2">Difficulty</h4>
+                                        <Badge variant={item.difficulty === "easy" ? "default" : item.difficulty === "medium" ? "secondary" : "destructive"}>
+                                          {item.difficulty}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <div>
+                                        <h4 className="font-semibold mb-2 flex items-center gap-1">
+                                          <Clock className="h-4 w-4" />
+                                          Prep Time
+                                        </h4>
+                                        <p className="text-sm">{item.preparationTime} minutes</p>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold mb-2 flex items-center gap-1">
+                                          <DollarSign className="h-4 w-4" />
+                                          Cost
+                                        </h4>
+                                        <p className="text-sm">${item.estimatedCost?.toFixed(2) || 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold mb-2 flex items-center gap-1">
+                                          <Star className="h-4 w-4" />
+                                          Price
+                                        </h4>
+                                        <p className="text-sm">${item.suggestedPrice?.toFixed(2) || 'N/A'}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    {item.ingredients && item.ingredients.length > 0 && (
+                                      <div>
+                                        <h4 className="font-semibold mb-2">Ingredients</h4>
+                                        <ul className="text-sm space-y-1">
+                                          {item.ingredients.map((ingredient, idx) => (
+                                            <li key={idx} className="flex items-center gap-2">
+                                              <div className="w-2 h-2 bg-primary rounded-full" />
+                                              {ingredient}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="cocktail-history" className="space-y-4">
+                  {cocktailHistory.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      No cocktails in history yet
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground">
+                          {cocktailHistory.length} cocktails saved
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={clearCocktailHistory}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Clear All
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {cocktailHistory.map((cocktail, index) => (
+                          <Card key={index} className="relative">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-start">
+                                <CardTitle className="text-lg">{cocktail.name}</CardTitle>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteCocktailFromHistory(index)}
+                                  className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <Badge variant="secondary">{cocktail.category}</Badge>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {cocktail.description}
+                              </p>
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {cocktail.preparationTime}min
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  ${cocktail.suggestedPrice}
+                                </span>
+                              </div>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="w-full">
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      <Wine className="h-5 w-5" />
+                                      {cocktail.name}
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    <div>
+                                      <h4 className="font-semibold mb-2">Description</h4>
+                                      <p className="text-sm">{cocktail.description}</p>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <h4 className="font-semibold mb-2">Category</h4>
+                                        <Badge variant="outline">{cocktail.category}</Badge>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold mb-2">Glassware</h4>
+                                        <p className="text-sm">{cocktail.glassware}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <div>
+                                        <h4 className="font-semibold mb-2 flex items-center gap-1">
+                                          <Clock className="h-4 w-4" />
+                                          Prep Time
+                                        </h4>
+                                        <p className="text-sm">{cocktail.preparationTime} minutes</p>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold mb-2 flex items-center gap-1">
+                                          <DollarSign className="h-4 w-4" />
+                                          Cost
+                                        </h4>
+                                        <p className="text-sm">${cocktail.estimatedCost?.toFixed(2) || 'N/A'}</p>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold mb-2 flex items-center gap-1">
+                                          <Star className="h-4 w-4" />
+                                          Price
+                                        </h4>
+                                        <p className="text-sm">${cocktail.suggestedPrice?.toFixed(2) || 'N/A'}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    {cocktail.ingredients && cocktail.ingredients.length > 0 && (
+                                      <div>
+                                        <h4 className="font-semibold mb-2">Ingredients</h4>
+                                        <ul className="text-sm space-y-1">
+                                          {cocktail.ingredients.map((ingredient, idx) => (
+                                            <li key={idx} className="flex items-center gap-2">
+                                              <div className="w-2 h-2 bg-primary rounded-full" />
+                                              {typeof ingredient === 'string' ? ingredient : `${ingredient.ingredient} - ${ingredient.amount}`}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    
+                                    {cocktail.instructions && cocktail.instructions.length > 0 && (
+                                      <div>
+                                        <h4 className="font-semibold mb-2">Instructions</h4>
+                                        <ol className="text-sm space-y-1">
+                                          {cocktail.instructions.map((instruction, idx) => (
+                                            <li key={idx} className="flex gap-2">
+                                              <span className="text-primary font-medium">{idx + 1}.</span>
+                                              {instruction}
+                                            </li>
+                                          ))}
+                                        </ol>
+                                      </div>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
