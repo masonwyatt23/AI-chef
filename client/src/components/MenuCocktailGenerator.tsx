@@ -785,7 +785,7 @@ Ribeye Steak - 12oz premium cut $32
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  copyToClipboard(JSON.stringify(item.recipe, null, 2));
+                                  copyToClipboard(JSON.stringify(item.recipe || {}, null, 2));
                                 }}
                                 className="shrink-0"
                               >
@@ -889,7 +889,7 @@ Ribeye Steak - 12oz premium cut $32
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Serves:</span>
-                                    <span>{item.recipe.serves} portions</span>
+                                    <span>{item.recipe?.serves || 1} portions</span>
                                   </div>
                                 </div>
                               </div>
@@ -899,7 +899,7 @@ Ribeye Steak - 12oz premium cut $32
                             <div>
                               <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {item.ingredients.map((ingredient, i) => (
+                                {(item.ingredients || []).map((ingredient, i) => (
                                   <div key={i} className="flex items-center p-2 bg-slate-50 rounded">
                                     <span className="text-sm">{ingredient}</span>
                                   </div>
@@ -912,7 +912,7 @@ Ribeye Steak - 12oz premium cut $32
                               <div>
                                 <h4 className="font-semibold text-blue-600 mb-3">Preparation</h4>
                                 <ol className="space-y-2 text-sm">
-                                  {item.recipe.prepInstructions.map((step, i) => (
+                                  {(item.recipe?.prepInstructions || []).map((step, i) => (
                                     <li key={i} className="flex">
                                       <span className="font-semibold text-blue-600 mr-2">{i + 1}.</span>
                                       <span>{step}</span>
@@ -924,7 +924,7 @@ Ribeye Steak - 12oz premium cut $32
                               <div>
                                 <h4 className="font-semibold text-orange-600 mb-3">Cooking</h4>
                                 <ol className="space-y-2 text-sm">
-                                  {item.recipe.cookingInstructions.map((step, i) => (
+                                  {(item.recipe?.cookingInstructions || []).map((step, i) => (
                                     <li key={i} className="flex">
                                       <span className="font-semibold text-orange-600 mr-2">{i + 1}.</span>
                                       <span>{step}</span>
@@ -936,7 +936,7 @@ Ribeye Steak - 12oz premium cut $32
                               <div>
                                 <h4 className="font-semibold text-purple-600 mb-3">Plating</h4>
                                 <ol className="space-y-2 text-sm">
-                                  {item.recipe.platingInstructions.map((step, i) => (
+                                  {(item.recipe?.platingInstructions || []).map((step, i) => (
                                     <li key={i} className="flex">
                                       <span className="font-semibold text-purple-600 mr-2">{i + 1}.</span>
                                       <span>{step}</span>
@@ -951,7 +951,7 @@ Ribeye Steak - 12oz premium cut $32
                               <div>
                                 <h4 className="font-semibold mb-3">Cooking Techniques</h4>
                                 <div className="flex flex-wrap gap-2">
-                                  {item.recipe.techniques.map((technique, i) => (
+                                  {(item.recipe?.techniques || []).map((technique, i) => (
                                     <Badge key={i} variant="outline" className="bg-blue-50">
                                       {technique}
                                     </Badge>
@@ -1007,7 +1007,7 @@ Ribeye Steak - 12oz premium cut $32
                             <div className="flex justify-end space-x-2 pt-4 border-t">
                               <Button
                                 variant="outline"
-                                onClick={() => copyToClipboard(JSON.stringify(item.recipe, null, 2))}
+                                onClick={() => copyToClipboard(JSON.stringify(item.recipe || {}, null, 2))}
                               >
                                 <Copy className="h-4 w-4 mr-2" />
                                 Copy Recipe
@@ -1291,7 +1291,7 @@ Ribeye Steak - 12oz premium cut $32
                             <div>
                               <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {cocktail.ingredients.map((ingredient, i) => (
+                                {(cocktail.ingredients || []).map((ingredient, i) => (
                                   <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded">
                                     <span className="font-medium">{ingredient.ingredient}</span>
                                     <div className="text-right text-sm">
@@ -1307,7 +1307,7 @@ Ribeye Steak - 12oz premium cut $32
                             <div>
                               <h3 className="font-semibold text-lg mb-3">Instructions</h3>
                               <ol className="space-y-2">
-                                {cocktail.instructions.map((step, i) => (
+                                {(cocktail.instructions || []).map((step, i) => (
                                   <li key={i} className="flex">
                                     <span className="font-semibold text-purple-600 mr-3 mt-1">{i + 1}.</span>
                                     <span className="text-sm leading-relaxed">{step}</span>
@@ -1356,7 +1356,7 @@ Ribeye Steak - 12oz premium cut $32
                                 <h4 className="font-semibold mb-3">Batch Preparation</h4>
                                 <div className="bg-blue-50 p-4 rounded-lg">
                                   <ol className="space-y-2">
-                                    {cocktail.batchInstructions.map((instruction, i) => (
+                                    {(cocktail.batchInstructions || []).map((instruction, i) => (
                                       <li key={i} className="flex">
                                         <span className="font-semibold text-blue-600 mr-3">{i + 1}.</span>
                                         <span className="text-sm">{instruction}</span>
