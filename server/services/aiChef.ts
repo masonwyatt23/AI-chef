@@ -146,13 +146,29 @@ Always provide specific, actionable recommendations with estimated costs, prep t
   async getChefAdvice(
     userMessage: string, 
     context: RestaurantContext,
-    conversationHistory: Array<{ role: string; content: string }> = []
+    conversationHistory: Array<{ role: string; content: string }> = [],
+    responseLength: "brief" | "balanced" | "detailed" = "balanced"
   ): Promise<ChefResponse> {
     try {
+      // Add response length instruction based on user preference
+      let lengthInstruction = "";
+      switch (responseLength) {
+        case "brief":
+          lengthInstruction = "\n\nIMPORTANT: Provide a brief, concise response. Keep it short and to the point with only the most essential information.";
+          break;
+        case "detailed":
+          lengthInstruction = "\n\nIMPORTANT: Provide a comprehensive, detailed response with thorough explanations, examples, and step-by-step guidance.";
+          break;
+        case "balanced":
+        default:
+          lengthInstruction = "\n\nIMPORTANT: Provide a balanced response with moderate detail, covering key points without being overly brief or lengthy.";
+          break;
+      }
+
       const messages = [
         { role: "system", content: this.buildSystemPrompt(context) },
         ...conversationHistory.slice(-10), // Keep last 10 messages for context
-        { role: "user", content: userMessage }
+        { role: "user", content: userMessage + lengthInstruction }
       ];
 
       const response = await openai.chat.completions.create({
