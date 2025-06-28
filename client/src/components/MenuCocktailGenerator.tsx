@@ -36,6 +36,18 @@ interface MenuCocktailGeneratorProps {
   restaurantId: number;
 }
 
+// Helper function to safely format currency
+const formatCurrency = (value: any): string => {
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  return isNaN(num) ? 'N/A' : `$${num.toFixed(2)}`;
+};
+
+// Helper function to safely format percentage
+const formatPercentage = (value: any): string => {
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  return isNaN(num) ? 'N/A' : `${num.toFixed(1)}%`;
+};
+
 interface GeneratedMenuItem {
   name: string;
   description: string;
@@ -1521,7 +1533,7 @@ Ribeye Steak - 12oz premium cut $32
                             <div className="flex flex-wrap gap-4 text-sm">
                               <div className="flex items-center space-x-1">
                                 <DollarSign className="h-4 w-4 text-green-600" />
-                                <span>${typeof cocktail.suggestedPrice === 'number' ? cocktail.suggestedPrice.toFixed(2) : cocktail.suggestedPrice || '0.00'}</span>
+                                <span>{formatCurrency(cocktail.suggestedPrice)}</span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Clock className="h-4 w-4 text-blue-600" />
@@ -1540,7 +1552,7 @@ Ribeye Steak - 12oz premium cut $32
 
                             <div className="flex items-center justify-between flex-wrap gap-2">
                               <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                                ${typeof cocktail.estimatedCost === 'number' ? cocktail.estimatedCost.toFixed(2) : cocktail.estimatedCost || '0.00'} cost
+                                {formatCurrency(cocktail.estimatedCost)} cost
                               </Badge>
                               <Button
                                 variant="ghost"
@@ -2012,14 +2024,14 @@ Ribeye Steak - 12oz premium cut $32
                                           <DollarSign className="h-4 w-4" />
                                           Cost
                                         </h4>
-                                        <p className="text-sm">${cocktail.estimatedCost?.toFixed(2) || 'N/A'}</p>
+                                        <p className="text-sm">{formatCurrency(cocktail.estimatedCost)}</p>
                                       </div>
                                       <div>
                                         <h4 className="font-semibold mb-2 flex items-center gap-1">
                                           <Star className="h-4 w-4" />
                                           Price
                                         </h4>
-                                        <p className="text-sm">${cocktail.suggestedPrice?.toFixed(2) || 'N/A'}</p>
+                                        <p className="text-sm">{formatCurrency(cocktail.suggestedPrice)}</p>
                                       </div>
                                     </div>
                                     
