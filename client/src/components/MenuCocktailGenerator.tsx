@@ -25,7 +25,9 @@ import {
   Upload,
   FileText,
   Eye,
-  AlertCircle
+  AlertCircle,
+  Trash2,
+  History
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -106,6 +108,10 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // History state for previously generated items
+  const [menuHistory, setMenuHistory] = useState<GeneratedMenuItem[]>([]);
+  const [cocktailHistory, setCocktailHistory] = useState<GeneratedCocktail[]>([]);
+  
   // Enhanced category options with common restaurant categories
   const commonCategories = [
     "Appetizers", "Starters", "Small Plates", "Shareables",
@@ -172,10 +178,19 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       return response.json();
     },
     onSuccess: (data) => {
-      setGeneratedMenuItems(data.menuItems || []);
+      const newItems = data.menuItems || [];
+      setGeneratedMenuItems(newItems);
+      // Add new items to history (avoid duplicates)
+      setMenuHistory(prev => {
+        const combined = [...prev, ...newItems];
+        const unique = combined.filter((item, index, self) => 
+          index === self.findIndex(i => i.name === item.name)
+        );
+        return unique;
+      });
       toast({
         title: "Menu items generated!",
-        description: `Generated ${data.menuItems?.length || 0} customized menu items`,
+        description: `Generated ${newItems.length} customized menu items`,
       });
     },
     onError: () => {
@@ -193,10 +208,19 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       return response.json();
     },
     onSuccess: (data) => {
-      setGeneratedCocktails(data.cocktails || []);
+      const newCocktails = data.cocktails || [];
+      setGeneratedCocktails(newCocktails);
+      // Add new cocktails to history (avoid duplicates)
+      setCocktailHistory(prev => {
+        const combined = [...prev, ...newCocktails];
+        const unique = combined.filter((cocktail, index, self) => 
+          index === self.findIndex(c => c.name === cocktail.name)
+        );
+        return unique;
+      });
       toast({
         title: "Cocktails generated!",
-        description: `Generated ${data.cocktails?.length || 0} signature cocktails`,
+        description: `Generated ${newCocktails.length} signature cocktails`,
       });
     },
     onError: () => {
@@ -409,6 +433,23 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       setBaseSpirits([...baseSpirits, newBaseSpirit.trim()]);
       setNewBaseSpirit("");
     }
+  };
+
+  // History management functions
+  const deleteMenuItemFromHistory = (indexToDelete: number) => {
+    setMenuHistory(prev => prev.filter((_, index) => index !== indexToDelete));
+  };
+
+  const deleteCocktailFromHistory = (indexToDelete: number) => {
+    setCocktailHistory(prev => prev.filter((_, index) => index !== indexToDelete));
+  };
+
+  const clearMenuHistory = () => {
+    setMenuHistory([]);
+  };
+
+  const clearCocktailHistory = () => {
+    setCocktailHistory([]);
   };
 
 
