@@ -598,60 +598,65 @@ Applesauce or Coleslaw 3`;
     }, 100);
   };
 
-  // Load Junction menu data
+  // Load Junction Catering menu data
   const loadJunctionMenu = () => {
-    const junctionMenuText = `Beer Cans
-Benchtop Brewing Proven Theory IPA (Norfolk, VA) 7.0% Brewed with Citra and Mosaic hops
-The Veil Brewing Thrown IPA (Richmond, VA) 6.3% 60 IBU West Coast Style
-Triple Crossing Falcon Smash IPA (Richmond, VA) 7% This flagship IPA delivers on balanced hop and yeast character of brighter citrus, orange pine marmalade, and stone fruit cohesion
-Hi-Wire Brewing Double Hi-Pitch IPA (Asheville, NC) 9% 65 IBU Classic West coast hops
-Alesmith Brewing Speedway Stout (San Diego, CA) 12% Imperial Stout with coffee
-Smuttynose Old Brown Dog (Hampton, NH) 6.5% 30 IBU American Brown Ale
-Virginia Beer Co. Saving Daylight Citrus Wheat (Williamsburg, VA) 5% Citrusy sweet Orange peels packed into this American Wheat ale
-Bingo Beer Company Lager (Richmond, VA) 4.8% German style lager
-1911 Cherry Pie Cider (East Boston, MA) 6.9% Premium small batch cider- 4 out of 6 sweetness
-Bold Rock Vodka Bay Crush (Nellysford, VA) 7.5% Real vodka with pineapple and cranberry
-Cutwater Tequila Paloma (San Diego, CA) 7% Real Tequila with refreshing grapefruit soda
-Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromatic bitters with Cutwater award winning bourbon
+    const junctionCateringMenuText = `THE JUNCTION CATERING MENU
 
-Wine
-WHITE
-Ant Moore Sauvignon Blanc (New Zealand) Elegant and refreshing with lemon sorbet and lime zest, revealing hints of dried pineapple, toasted herbs and sea salt 12/35
-Highway 12 Chardonnay (CA) The nose presents tropical hints of charred pineapples and bright citrus. The fruit and floral notes are balanced by light acidity and a rich toasty vanilla oak warmth 11/32
-Cavazza Pinot Grigio (Italy) hints of almond tree flowers and golden apple with a citrus aftertaste 9/29
+Food & Beverage Service
+Selection of pre-ordered appetizers due two weeks before the event
+Full bar service available
+All drinks are billed per order; guests will be charged only for what is consumed
+Our full bar features a selection of beer, wine, cocktails, and non-alcoholic options
+Custom drink selection is available upon request
+Separate checks can be provided for all alcohol purchases upon request
 
-RED
-Serena Sweet Red (Italy) Aromas of rose and an accent of rhubarb-strawberry pie. On the palate the wine has raspberry and cherry flavors 11/32
-Trumpeter Malbec (Argentina) The palate features zippy cherry and red plum fruit, while the finish is dry, properly oaky and smooth. The acid-driven fruit successfully fights through any overt wood or tannins 10/32
-Frey Organic Pinot Noir (CA) Flavors of cassis and black cherry are balanced by a spicy herbal finish 40
-Trumpeter Cabernet Sauvignon (Argentina) An intense ruby red wine with juicy berry aromas. It has flavors of blackberry and red currant, with hints of vanilla, cocoa and sweet oak on the finish 10/32
+APPETIZERS
 
-BUBBLES
-Bricco Riella Moscato D'Asti (Italy) Aromatic and charming with candied citrus, peach and honeysuckle, creamy bubbles, ripe tropical notes and hints of lemon drops 9/30
-Zardetto Prosecco (Italy) Fresh and fragrant on the palate with flavors of citrus, apples, orange blossoms and stone fruits supported by creamy bubbles 27
+Crudité with house-made ranch - $1.50 per person
+Fresh fruit tray - $1.75 per person
+Cheese & fruit tray with crackers - $2.50 per person
+Mini crab cakes with house remoulade - $3.00 per piece
+Fried Virginia oysters with house cocktail sauce - Market Price
+Hot crab dip with crackers - $3.00 per person
+Spinach artichoke dip with tortilla chips - $2.50 per person
+Smoked salmon dip with bagel chips - $2.75 per person
+DPO chicken tenders with dipping sauce - $2.25 per piece
+Pulled pork or smoked brisket sliders - $4.00 per piece
 
-Cocktails
-Cherry Bourbon Smash Makers Mark Kentucky Bourbon Whisky | tart cherry juice | sour 12
-Junction Old Fashion Whisky | Maraschino liqueur | orange bitters | Luxardo cherries Maker's Mark 13 Copper Fox Chestnut American Whisky 17
-Blackberry Lemonade Margarita Teremana Blanco Tequilla | blackberry syrup | lemonade | sour | sugar rim 11
-Strawberry Ginger Moscow Mule Tito's handmade vodka | strawberry ginger syrup | ginger beer 12
-Espresso Martini Tito's handmade vodka | cold brew | cream 12
-Raspberry Sour Tito's | strawberry | raspberry puree | sour | Sprite 12
+DESSERTS
 
-Mocktails
-Tart Cherry Temple Tart cherry syrup and sprite
-The Mermaid Pineapple, sour, blue curacao syrup and a splash of soda
-Strawberry Ginger Mule strawberry ginger syrup and ginger beer in a copper mug`;
+Brownie bite - 30 pieces | $30.00
+Lemon bars - 20 pieces | $35.00
+Assorted cheesecake bites - 21 pieces | $32.00
 
-    setExistingMenu(junctionMenuText);
+CATERING DETAILS
+
+Private Event Package:
+- Room rental for 3 hours: $350
+- Each additional hour: $100
+- Private use of The Junction
+- Bartender & service staff included
+- House sound system for background music
+- Cleaning included
+- Existing setup included
+
+Capacity: 55 people maximum
+Availability: Tuesday & Wednesday 11am-9:30pm, Friday-Sunday 11am-4pm
+Deposit: $100 required to confirm booking (applied to final bill)
+Final payment due at conclusion of event
+Cancellation policy: Seven days in advance for full refund
+State & local sales tax: 12.3% (subject to change)
+Gratuity not included`;
+
+    setExistingMenu(junctionCateringMenuText);
     toast({
-      title: "Junction menu loaded",
-      description: "Menu content has been loaded for analysis",
+      title: "Junction Catering menu loaded",
+      description: "Catering menu content has been loaded for analysis",
     });
     
     // Auto-analyze the menu text
     setTimeout(() => {
-      analyzeMenuText(junctionMenuText);
+      analyzeMenuText(junctionCateringMenuText);
     }, 100);
   };
 
@@ -812,7 +817,7 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                         className="flex items-center flex-1"
                       >
                         <FileText className="h-4 w-4 mr-2" />
-                        Junction Menu
+                        Junction Catering
                       </Button>
                     </div>
                   </div>
