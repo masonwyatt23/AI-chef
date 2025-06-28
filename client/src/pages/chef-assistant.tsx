@@ -15,26 +15,10 @@ export default function ChefAssistant() {
   const [restaurantId, setRestaurantId] = useState<number | null>(null);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
 
-  // Initialize with default restaurant
+  // Initialize with existing restaurant (ID 70)
   useEffect(() => {
-    const initializeRestaurant = async () => {
-      try {
-        const response = await apiRequest("POST", "/api/restaurants", {
-          name: "The Train Station Steakhouse",
-          theme: "Family-friendly steak and seafood restaurant in an old train depot with vintage train theme",
-          categories: ["Steaks", "Seafood", "Sandwiches", "Salads", "Appetizers"],
-          kitchenCapability: "intermediate",
-          staffSize: 8,
-          additionalContext: "Located in a historic train depot building with a family-friendly atmosphere"
-        });
-        const restaurant = await response.json();
-        setRestaurantId(restaurant.id);
-      } catch (error) {
-        console.error("Failed to initialize restaurant:", error);
-      }
-    };
-
-    initializeRestaurant();
+    // Use the existing restaurant with full profile data
+    setRestaurantId(70);
   }, []);
 
   const { data: restaurant } = useQuery<Restaurant>({
