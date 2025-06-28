@@ -94,6 +94,55 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [parsedCategories, setParsedCategories] = useState<string[]>([]);
   const [parsedMenuItems, setParsedMenuItems] = useState<Array<{name: string; category: string; price?: number}>>([]);
   const [isAnalyzingMenu, setIsAnalyzingMenu] = useState(false);
+  const [customCategory, setCustomCategory] = useState("");
+  
+  // Enhanced category options with common restaurant categories
+  const commonCategories = [
+    "Appetizers", "Starters", "Small Plates", "Shareables",
+    "Salads", "Soups", "Entrees", "Main Courses", "Mains",
+    "Pasta", "Pizza", "Burgers", "Sandwiches", "Wraps",
+    "Seafood", "Steaks", "Chicken", "Pork", "Beef", "Vegetarian", "Vegan",
+    "Desserts", "Sweets", "Ice Cream", "Pastries",
+    "Breakfast", "Brunch", "Lunch Specials", "Dinner Specials",
+    "Kids Menu", "Sides", "Beverages", "Hot Drinks", "Cold Drinks"
+  ];
+  
+  // Get all available categories (parsed + common + custom)
+  const getAllCategories = () => {
+    const allCategories = new Set([...parsedCategories, ...commonCategories]);
+    return Array.from(allCategories).sort();
+  };
+
+  // Get AI focus description for selected category
+  const getCategoryFocusDescription = (category: string): string => {
+    const categoryLower = category.toLowerCase();
+    
+    if (categoryLower.includes('appetizer') || categoryLower.includes('starter')) {
+      return "Creating shareable, Instagram-worthy appetizers with bold flavors that ignite curiosity and appetite.";
+    }
+    if (categoryLower.includes('entree') || categoryLower.includes('main')) {
+      return "Designing signature dishes that define your restaurant's identity with premium ingredients and memorable flavor profiles.";
+    }
+    if (categoryLower.includes('dessert') || categoryLower.includes('sweet')) {
+      return "Crafting unforgettable desserts with house-made components and stunning presentations that encourage social sharing.";
+    }
+    if (categoryLower.includes('salad')) {
+      return "Reimagining salads as crave-worthy entrees with unexpected ingredients and beautiful compositions.";
+    }
+    if (categoryLower.includes('pasta') || categoryLower.includes('noodle')) {
+      return "Elevating pasta with house-made noodles, innovative sauces, and expert techniques that showcase Italian traditions.";
+    }
+    if (categoryLower.includes('pizza')) {
+      return "Redefining pizza with artisanal doughs, unexpected toppings, and gourmet preparations.";
+    }
+    if (categoryLower.includes('seafood') || categoryLower.includes('fish')) {
+      return "Celebrating ocean-to-table freshness with sustainable sourcing and precise cooking techniques.";
+    }
+    if (categoryLower.includes('breakfast') || categoryLower.includes('brunch')) {
+      return "Transforming morning classics into Instagram-worthy experiences with creative preparations.";
+    }
+    return "Focusing on ingredients that tell a story and techniques that showcase culinary skill and creativity.";
+  };
   
   // Cocktail generation state
   const [cocktailTheme, setCocktailTheme] = useState("");
@@ -176,6 +225,95 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     if (newMenuRequest.trim()) {
       setMenuRequests([...menuRequests, newMenuRequest.trim()]);
       setNewMenuRequest("");
+    }
+  };
+
+  // Smart menu parsing function
+  const parseExistingMenu = () => {
+    if (!existingMenu.trim()) {
+      toast({
+        title: "No menu provided",
+        description: "Please paste your existing menu to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsAnalyzingMenu(true);
+    
+    try {
+      const lines = existingMenu.split('\n').filter(line => line.trim());
+      const categories: string[] = [];
+      const items: Array<{name: string; category: string; price?: number}> = [];
+      let currentCategory = "";
+      
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        
+        // Check if line is likely a category header (all caps, contains key category words, or followed by dashes/equals)
+        const isCategoryHeader = 
+          trimmedLine.toUpperCase() === trimmedLine && trimmedLine.length > 2 ||
+          /^[A-Z\s&-]+$/g.test(trimmedLine) && (
+            /appetizer|starter|salad|soup|entree|main|pasta|pizza|dessert|beverage|drink|side/i.test(trimmedLine) ||
+            trimmedLine.length < 30
+          ) ||
+          /^[-=]{3,}/.test(lines[lines.indexOf(line) + 1] || '');
+        
+        if (isCategoryHeader && !trimmedLine.includes('$') && !trimmedLine.includes('.')) {
+          currentCategory = trimmedLine.charAt(0).toUpperCase() + trimmedLine.slice(1).toLowerCase();
+          if (!categories.includes(currentCategory)) {
+            categories.push(currentCategory);
+          }
+        } 
+        // Check if line is a menu item (contains price indicators or formatted like an item)
+        else if (trimmedLine && currentCategory) {
+          const priceMatch = trimmedLine.match(/\$?(\d+\.?\d*)/);
+          const price = priceMatch ? parseFloat(priceMatch[1]) : undefined;
+          
+          // Clean item name by removing price and common formatting
+          const itemName = trimmedLine
+            .replace(/\$?\d+\.?\d*\s*$/, '')
+            .replace(/\.{2,}/, '')
+            .replace(/\s+\.\s+/, ' ')
+            .trim();
+          
+          if (itemName && itemName.length > 2) {
+            items.push({
+              name: itemName,
+              category: currentCategory,
+              price
+            });
+          }
+        }
+      });
+      
+      // Fallback: if no clear categories found, use common patterns
+      if (categories.length === 0) {
+        const menuText = existingMenu.toLowerCase();
+        commonCategories.forEach(cat => {
+          if (menuText.includes(cat.toLowerCase())) {
+            categories.push(cat);
+          }
+        });
+      }
+      
+      setParsedCategories(categories);
+      setParsedMenuItems(items);
+      
+      toast({
+        title: "Menu analyzed!",
+        description: `Found ${categories.length} categories and ${items.length} items`,
+      });
+      
+    } catch (error) {
+      console.error('Menu parsing error:', error);
+      toast({
+        title: "Analysis failed",
+        description: "Could not parse menu. Please check the format and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzingMenu(false);
     }
   };
 
@@ -317,7 +455,7 @@ Ribeye Steak - 12oz premium cut $32
                   />
                   <div className="flex gap-2">
                     <Button 
-                      onClick={parseMenu} 
+                      onClick={parseExistingMenu} 
                       disabled={isAnalyzingMenu}
                       size="sm"
                       variant="outline"
@@ -331,29 +469,66 @@ Ribeye Steak - 12oz premium cut $32
                     )}
                   </div>
                   
-                  {parsedCategories.length > 0 && (
-                    <div className="mt-3">
-                      <Label className="text-sm">Focus on Category (Optional)</Label>
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select category to focus on" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All Categories</SelectItem>
-                          {parsedCategories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {selectedCategory && (
-                        <p className="text-xs text-slate-600 mt-1">
-                          Will generate items specifically for {selectedCategory}
+                  <div className="mt-3">
+                    <Label className="text-sm">Focus on Category (Optional)</Label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select category to focus on" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Categories</SelectItem>
+                        {parsedCategories.length > 0 && (
+                          <>
+                            {parsedCategories.map((category) => (
+                              <SelectItem key={`parsed-${category}`} value={category}>
+                                🎯 {category} (from your menu)
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {getAllCategories().filter(cat => !parsedCategories.includes(cat)).map((category) => (
+                          <SelectItem key={`common-${category}`} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedCategory && (
+                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-xs font-medium text-blue-800 mb-1">
+                          AI Focus: {selectedCategory}
                         </p>
-                      )}
+                        <p className="text-xs text-blue-700">
+                          {getCategoryFocusDescription(selectedCategory)}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Custom Category Input */}
+                    <div className="mt-2">
+                      <Label className="text-xs text-slate-600">Or create custom category:</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          placeholder="e.g., Signature Dishes, Weekend Specials"
+                          value={customCategory}
+                          onChange={(e) => setCustomCategory(e.target.value)}
+                          className="text-sm"
+                        />
+                        <Button 
+                          onClick={() => {
+                            if (customCategory.trim()) {
+                              setSelectedCategory(customCategory.trim());
+                              setCustomCategory("");
+                            }
+                          }}
+                          size="sm"
+                          variant="outline"
+                        >
+                          Use
+                        </Button>
+                      </div>
                     </div>
-                  )}
+                  </div>
                   
                   {parsedMenuItems.length > 0 && (
                     <div className="mt-3">
