@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -108,9 +108,26 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // History state for previously generated items
-  const [menuHistory, setMenuHistory] = useState<GeneratedMenuItem[]>([]);
-  const [cocktailHistory, setCocktailHistory] = useState<GeneratedCocktail[]>([]);
+  // History state for previously generated items with localStorage persistence
+  const [menuHistory, setMenuHistory] = useState<GeneratedMenuItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('chef-assistant-menu-history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Error loading menu history from localStorage:', error);
+      return [];
+    }
+  });
+  
+  const [cocktailHistory, setCocktailHistory] = useState<GeneratedCocktail[]>(() => {
+    try {
+      const saved = localStorage.getItem('chef-assistant-cocktail-history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Error loading cocktail history from localStorage:', error);
+      return [];
+    }
+  });
   
   // Enhanced category options with common restaurant categories
   const commonCategories = [
@@ -171,6 +188,23 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   // Generated results
   const [generatedMenuItems, setGeneratedMenuItems] = useState<GeneratedMenuItem[]>([]);
   const [generatedCocktails, setGeneratedCocktails] = useState<GeneratedCocktail[]>([]);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('chef-assistant-menu-history', JSON.stringify(menuHistory));
+    } catch (error) {
+      console.error('Error saving menu history to localStorage:', error);
+    }
+  }, [menuHistory]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('chef-assistant-cocktail-history', JSON.stringify(cocktailHistory));
+    } catch (error) {
+      console.error('Error saving cocktail history to localStorage:', error);
+    }
+  }, [cocktailHistory]);
 
   const menuMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -450,6 +484,15 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
 
   const clearCocktailHistory = () => {
     setCocktailHistory([]);
+  };
+
+  const clearAllHistory = () => {
+    setMenuHistory([]);
+    setCocktailHistory([]);
+    toast({
+      title: "History cleared",
+      description: "All recipe history has been removed",
+    });
   };
 
 
@@ -1441,13 +1484,26 @@ Ribeye Steak - 12oz premium cut $32
         <div className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                Recipe History
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Previously generated items you can reference
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="h-5 w-5" />
+                    Recipe History
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Previously generated items you can reference
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearAllHistory}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All History
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="menu-history" className="w-full">
