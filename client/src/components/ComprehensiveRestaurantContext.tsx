@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/api";
@@ -165,6 +165,8 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
     // Transform array fields that might come as strings from textareas
     const transformedData = {
       ...data,
+      categories: Array.isArray(data.categories) ? data.categories :
+        (typeof data.categories === 'string' ? data.categories.split('\n').filter(Boolean) : []),
       localIngredients: Array.isArray(data.localIngredients) ? data.localIngredients : 
         (typeof data.localIngredients === 'string' ? data.localIngredients.split('\n').filter(Boolean) : []),
       culturalInfluences: Array.isArray(data.culturalInfluences) ? data.culturalInfluences :
@@ -321,6 +323,29 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
                           <FormControl>
                             <Textarea {...field} rows={3} placeholder="Describe your restaurant's theme, atmosphere, and culinary concept..." />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="categories"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Menu Categories</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              {...field} 
+                              rows={3} 
+                              placeholder="Enter menu categories (one per line) e.g.&#10;Appetizers&#10;Entrees&#10;Desserts&#10;Beverages"
+                              value={Array.isArray(field.value) ? field.value.join('\n') : field.value || ''}
+                              onChange={(e) => field.onChange(e.target.value.split('\n').filter(Boolean))}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            List your main menu categories, one per line. These will be used for targeted menu generation.
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
