@@ -1224,7 +1224,7 @@ Ribeye Steak - 12oz premium cut $32
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => exportData(generatedMenuItems, 'menu-items.json')}
+                      onClick={() => exportMenuItemsToPDF(generatedMenuItems)}
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Export
@@ -1517,10 +1517,10 @@ Ribeye Steak - 12oz premium cut $32
                                 Copy Recipe
                               </Button>
                               <Button
-                                onClick={() => copyToClipboard(JSON.stringify(item, null, 2))}
+                                onClick={() => exportMenuItemsToPDF([item])}
                               >
                                 <Download className="h-4 w-4 mr-2" />
-                                Export Full Details
+                                Export as PDF
                               </Button>
                             </div>
                           </div>
@@ -1669,7 +1669,7 @@ Ribeye Steak - 12oz premium cut $32
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => exportData(generatedCocktails, 'cocktails.json')}
+                      onClick={() => exportCocktailsToPDF(generatedCocktails)}
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Export
@@ -1910,10 +1910,10 @@ Ribeye Steak - 12oz premium cut $32
                                 Copy Instructions
                               </Button>
                               <Button
-                                onClick={() => copyToClipboard(JSON.stringify(cocktail, null, 2))}
+                                onClick={() => exportCocktailsToPDF([cocktail])}
                               >
                                 <Download className="h-4 w-4 mr-2" />
-                                Export Full Details
+                                Export as PDF
                               </Button>
                             </div>
                           </div>
