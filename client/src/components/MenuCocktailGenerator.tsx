@@ -147,8 +147,8 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const commonCategories = [
     "Appetizers", "Starters", "Small Plates", "Shareables",
     "Salads", "Soups", "Entrees", "Main Courses", "Mains",
-    "Pasta", "Pizza", "Burgers", "Sandwiches", "Wraps",
-    "Seafood", "Steaks", "Chicken", "Pork", "Beef", "Vegetarian", "Vegan",
+    "Pasta", "Pizza", "Burgers", "Sandwiches", "Wraps", "Sandwiches & Lite Bites",
+    "Seafood", "Seafood and Fish", "Steaks", "Steaks, Ribs and Chicken", "Chicken", "Pork", "Beef", "Ribs", "Vegetarian", "Vegan",
     "Desserts", "Sweets", "Ice Cream", "Pastries",
     "Breakfast", "Brunch", "Lunch Specials", "Dinner Specials",
     "Kids Menu", "Sides", "Beverages", "Hot Drinks", "Cold Drinks"
@@ -458,55 +458,88 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       const items: Array<{name: string; category: string; price?: number}> = [];
       let currentCategory = "";
       
-      lines.forEach(line => {
+      console.log('Analyzing menu with', lines.length, 'lines');
+      
+      lines.forEach((line, index) => {
         const trimmedLine = line.trim();
         
-        // Check if line is likely a category header (all caps, contains key category words, or followed by dashes/equals)
-        const isCategoryHeader = 
-          trimmedLine.toUpperCase() === trimmedLine && trimmedLine.length > 2 ||
-          /^[A-Z\s&-]+$/g.test(trimmedLine) && (
-            /appetizer|starter|salad|soup|entree|main|pasta|pizza|dessert|beverage|drink|side/i.test(trimmedLine) ||
-            trimmedLine.length < 30
-          ) ||
-          /^[-=]{3,}/.test(lines[lines.indexOf(line) + 1] || '');
+        // Skip empty lines
+        if (!trimmedLine) return;
         
-        if (isCategoryHeader && !trimmedLine.includes('$') && !trimmedLine.includes('.')) {
-          currentCategory = trimmedLine.charAt(0).toUpperCase() + trimmedLine.slice(1).toLowerCase();
+        // Check if line is likely a category header
+        const isAllCaps = trimmedLine.toUpperCase() === trimmedLine && trimmedLine.length > 2;
+        const isAlphaOnly = /^[A-Z\s&-]+$/.test(trimmedLine);
+        const hasNoPrice = !trimmedLine.includes('$') && !trimmedLine.includes('.');
+        const isCategoryWord = /appetizer|starter|salad|soup|entree|main|pasta|pizza|dessert|beverage|drink|side|steak|rib|chicken|seafood|fish|sandwich|lite bite|steaks,?\s*ribs\s*(and|&)?\s*chicken|sandwiches\s*&\s*lite\s*bites/i.test(trimmedLine);
+        const isShortLine = trimmedLine.length < 40;
+        const nextLineIsDashes = /^[-=]{3,}/.test(lines[index + 1] || '');
+        
+        const isCategoryHeader = 
+          hasNoPrice && (
+            (isAllCaps && isShortLine) ||
+            (isAlphaOnly && (isCategoryWord || isShortLine)) ||
+            nextLineIsDashes
+          );
+        
+        console.log(`Line ${index}: "${trimmedLine}" - Category: ${isCategoryHeader}`);
+        
+        if (isCategoryHeader) {
+          // Clean up category name
+          currentCategory = trimmedLine
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          
           if (!categories.includes(currentCategory)) {
             categories.push(currentCategory);
+            console.log('Found category:', currentCategory);
           }
         } 
-        // Check if line is a menu item (contains price indicators or formatted like an item)
+        // Check if line is a menu item
         else if (trimmedLine && currentCategory) {
-          const priceMatch = trimmedLine.match(/\$?(\d+\.?\d*)/);
+          // Look for price patterns at the end of the line
+          const priceMatch = trimmedLine.match(/(\d+(?:\.\d{2})?)\s*$/);
           const price = priceMatch ? parseFloat(priceMatch[1]) : undefined;
           
           // Clean item name by removing price and common formatting
-          const itemName = trimmedLine
-            .replace(/\$?\d+\.?\d*\s*$/, '')
-            .replace(/\.{2,}/, '')
-            .replace(/\s+\.\s+/, ' ')
+          let itemName = trimmedLine
+            .replace(/\s+\d+(?:\.\d{2})?\s*$/, '') // Remove trailing price
+            .replace(/\$\d+(?:\.\d{2})?/g, '') // Remove any $ prices
+            .replace(/\.{2,}/g, '') // Remove dotted lines
+            .replace(/\s+\.\s+/g, ' ') // Remove spaced dots
             .trim();
           
-          if (itemName && itemName.length > 2) {
-            items.push({
+          // Split on first occurrence of descriptive text (usually after the name)
+          const parts = itemName.split(/\s+(?=with|served|topped|crispy|batter|slow|char|pan|grilled|fried|sautéed|mixed)/i);
+          if (parts.length > 1) {
+            itemName = parts[0].trim();
+          }
+          
+          if (itemName && itemName.length > 2 && !itemName.match(/^\d+$/)) {
+            const item = {
               name: itemName,
               category: currentCategory,
               price
-            });
+            };
+            items.push(item);
+            console.log('Found item:', item);
           }
         }
       });
       
       // Fallback: if no clear categories found, use common patterns
       if (categories.length === 0) {
+        console.log('No categories found, trying fallback patterns');
         const menuTextLower = menuText.toLowerCase();
         commonCategories.forEach(cat => {
-          if (menuText.includes(cat.toLowerCase())) {
+          if (menuTextLower.includes(cat.toLowerCase())) {
             categories.push(cat);
           }
         });
       }
+      
+      console.log('Final results:', { categories, itemCount: items.length });
       
       setParsedCategories(categories);
       setParsedMenuItems(items);
