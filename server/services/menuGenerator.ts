@@ -90,6 +90,13 @@ export class MenuGeneratorService {
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
+      
+      // Debug logging to see the actual AI response structure
+      console.log('AI Response Structure:', JSON.stringify(result, null, 2));
+      if (result.items && result.items.length > 0) {
+        console.log('First item recipe structure:', JSON.stringify(result.items[0].recipe, null, 2));
+      }
+      
       return result.items || [];
     } catch (error) {
       console.error('Menu generation error:', error);
@@ -175,15 +182,63 @@ You must respond with a JSON object containing an "items" array. Each item must 
 - category: One of the restaurant's categories
 - ingredients: Array of specific ingredients with quantities
 - preparationTime: Minutes for complete preparation
-- difficulty: Based on kitchen capability level
+- difficulty: "easy", "medium", or "hard"
 - estimatedCost: Realistic ingredient cost in dollars
 - suggestedPrice: Market-appropriate pricing
 - profitMargin: Percentage profit margin
-- recipe: Detailed cooking instructions object
+- recipe: Object with these exact fields:
+  {
+    "serves": number,
+    "prepInstructions": ["step 1", "step 2", "step 3"],
+    "cookingInstructions": ["step 1", "step 2", "step 3"],
+    "platingInstructions": ["step 1", "step 2", "step 3"],
+    "techniques": ["grilling", "sautéing", "braising"]
+  }
 - allergens: Array of common allergens present
 - nutritionalHighlights: Health-conscious elements (optional)
 - winePairings: Recommended wine types (optional)
 - upsellOpportunities: Related items to suggest (optional)
+
+CRITICAL: The recipe object must contain ALL FOUR fields (prepInstructions, cookingInstructions, platingInstructions, techniques) as arrays with specific step-by-step instructions.
+
+EXAMPLE JSON STRUCTURE:
+{
+  "items": [
+    {
+      "name": "Grilled Salmon with Lemon Herb Butter",
+      "description": "Fresh Atlantic salmon grilled to perfection with aromatic herb butter.",
+      "category": "Entrees",
+      "ingredients": ["6oz salmon fillet", "2 tbsp butter", "1 lemon", "fresh herbs"],
+      "preparationTime": 25,
+      "difficulty": "medium",
+      "estimatedCost": 8.50,
+      "suggestedPrice": 24.95,
+      "profitMargin": 66,
+      "recipe": {
+        "serves": 1,
+        "prepInstructions": [
+          "Pat salmon dry and season with salt and pepper",
+          "Chop fresh herbs finely",
+          "Melt butter and mix with lemon juice and herbs"
+        ],
+        "cookingInstructions": [
+          "Preheat grill to medium-high heat",
+          "Grill salmon 4-5 minutes per side",
+          "Check internal temperature reaches 145°F"
+        ],
+        "platingInstructions": [
+          "Place salmon in center of plate",
+          "Drizzle herb butter over salmon",
+          "Garnish with lemon wedge and fresh herbs"
+        ],
+        "techniques": ["grilling", "seasoning", "compound butter"]
+      },
+      "allergens": ["fish"],
+      "winePairings": ["Chardonnay", "Sauvignon Blanc"],
+      "upsellOpportunities": ["Side of roasted vegetables", "Bread service"]
+    }
+  ]
+}
 
 Focus on:
 1. **Perfect Theme Match**: Align with restaurant concept and cultural influences
