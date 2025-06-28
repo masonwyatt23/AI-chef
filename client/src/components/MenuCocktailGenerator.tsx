@@ -107,6 +107,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cocktailMenuText, setCocktailMenuText] = useState("");
   
   // History state for previously generated items with localStorage persistence
   const [menuHistory, setMenuHistory] = useState<GeneratedMenuItem[]>(() => {
@@ -286,6 +287,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       complexity: cocktailComplexity,
       batchable,
       seasonality: cocktailSeasonality,
+      existingCocktails: cocktailMenuText ? cocktailMenuText.split('\n').filter(line => line.trim()) : [],
     });
   };
 
@@ -363,6 +365,64 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     if (file) {
       setUploadedFile(file);
       handlePdfUpload(file);
+    }
+  };
+
+  // Handle cocktail PDF upload
+  const handleCocktailPdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.includes('pdf')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a PDF file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('menuPdf', file);
+
+    try {
+      const response = await fetch('/api/parse-menu-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.text) {
+        setCocktailMenuText(result.text);
+        toast({
+          title: "Drink menu uploaded successfully",
+          description: `Extracted text from ${result.filename}`,
+        });
+      } else {
+        toast({
+          title: "PDF uploaded",
+          description: result.message || "PDF uploaded but no text extracted yet",
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload PDF. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 
@@ -1125,6 +1185,40 @@ Ribeye Steak - 12oz premium cut $32
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* PDF Upload for Drink Menu */}
+                <div>
+                  <Label>Upload Existing Drink Menu (PDF)</Label>
+                  <div className="mt-2">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleCocktailPdfUpload}
+                      className="hidden"
+                      id="cocktail-pdf-upload"
+                    />
+                    <label 
+                      htmlFor="cocktail-pdf-upload" 
+                      className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Choose Drink Menu PDF
+                    </label>
+                  </div>
+                  {cocktailMenuText && (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded">
+                      <p className="text-sm text-green-700 mb-2 font-medium">✓ Drink menu uploaded successfully</p>
+                      <details className="text-sm">
+                        <summary className="cursor-pointer text-green-600 hover:text-green-800">
+                          View extracted menu text
+                        </summary>
+                        <div className="mt-2 p-2 bg-white border rounded text-xs max-h-32 overflow-y-auto whitespace-pre-wrap">
+                          {cocktailMenuText}
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                </div>
+
                 {/* Theme */}
                 <div>
                   <Label>Theme or Concept</Label>
