@@ -458,6 +458,8 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       const items: Array<{name: string; category: string; price?: number}> = [];
       let currentCategory = "";
       
+      console.log('Parsing menu text:', menuText.substring(0, 100) + '...');
+      
       lines.forEach((line, index) => {
         const trimmedLine = line.trim();
         
@@ -571,6 +573,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
 
   // Load Depot menu data
   const loadDepotMenu = () => {
+    console.log('=== DEPOT MENU FUNCTION CALLED ===');
     // Clear previous parsed data first
     setParsedCategories([]);
     setParsedMenuItems([]);
@@ -644,6 +647,7 @@ Applesauce or Coleslaw 3`;
 
   // Load Junction Catering menu data
   const loadJunctionMenu = () => {
+    console.log('=== JUNCTION MENU FUNCTION CALLED ===');
     // Clear previous parsed data first
     setParsedCategories([]);
     setParsedMenuItems([]);
