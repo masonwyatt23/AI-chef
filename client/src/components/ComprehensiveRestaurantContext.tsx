@@ -160,47 +160,8 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
   });
 
   const onSubmit = (data: InsertRestaurant) => {
-    // Transform array strings to arrays and clean data
-    const cleanedData = {
-      ...data,
-      localIngredients: typeof data.localIngredients === 'string' 
-        ? data.localIngredients.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.localIngredients || [],
-      culturalInfluences: typeof data.culturalInfluences === 'string'
-        ? data.culturalInfluences.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.culturalInfluences || [],
-      kitchenEquipment: typeof data.kitchenEquipment === 'string'
-        ? data.kitchenEquipment.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.kitchenEquipment || [],
-      specializedRoles: typeof data.specializedRoles === 'string'
-        ? data.specializedRoles.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.specializedRoles || [],
-      specialDietaryNeeds: typeof data.specialDietaryNeeds === 'string'
-        ? data.specialDietaryNeeds.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.specialDietaryNeeds || [],
-      primaryCompetitors: typeof data.primaryCompetitors === 'string'
-        ? data.primaryCompetitors.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.primaryCompetitors || [],
-      uniqueSellingPoints: typeof data.uniqueSellingPoints === 'string'
-        ? data.uniqueSellingPoints.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.uniqueSellingPoints || [],
-      currentChallenges: typeof data.currentChallenges === 'string'
-        ? data.currentChallenges.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.currentChallenges || [],
-      businessPriorities: typeof data.businessPriorities === 'string'
-        ? data.businessPriorities.split('\n').map(s => s.trim()).filter(Boolean)
-        : data.businessPriorities || [],
-      
-      // Clean null/undefined values
-      averageTicketPrice: data.averageTicketPrice || null,
-      diningCapacity: data.diningCapacity || null,
-      currentMenuSize: data.currentMenuSize || null,
-      profitMarginGoals: data.profitMarginGoals || null,
-      foodCostGoals: data.foodCostGoals || null,
-    };
-    
-    console.log('Submitting restaurant data:', cleanedData);
-    updateMutation.mutate(cleanedData);
+    console.log('Submitting restaurant data:', data);
+    updateMutation.mutate(data);
   };
 
   const handleQuickAction = (action: string) => {
