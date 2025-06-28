@@ -140,7 +140,7 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/restaurants', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}`] });
       toast({ title: "Restaurant context updated successfully" });
       setIsEditing(false);
     },
