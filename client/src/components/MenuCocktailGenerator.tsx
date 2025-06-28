@@ -535,6 +535,9 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       setParsedCategories(categories);
       setParsedMenuItems(items);
       
+      console.log('Setting parsed items:', items);
+      console.log('Items length:', items.length);
+      
       toast({
         title: "Menu analyzed!",
         description: `Found ${categories.length} categories and ${items.length} items`,
