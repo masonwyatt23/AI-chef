@@ -495,13 +495,13 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
         } 
         // Check if line is a menu item
         else if (trimmedLine && currentCategory) {
-          // Look for price patterns at the end of the line
-          const priceMatch = trimmedLine.match(/(\d+(?:\.\d{2})?)\s*$/);
-          const price = priceMatch ? parseFloat(priceMatch[1]) : undefined;
+          // Look for price patterns at the end of the line - handle both $X.XX and just X formats
+          const priceMatch = trimmedLine.match(/(?:\$?(\d+(?:\.\d{2})?)|(\d+))\s*$/);
+          const price = priceMatch ? parseFloat(priceMatch[1] || priceMatch[2]) : undefined;
           
           // Clean item name by removing price and common formatting
           let itemName = trimmedLine
-            .replace(/\s+\d+(?:\.\d{2})?\s*$/, '') // Remove trailing price
+            .replace(/\s+\d+(?:\.\d{2})?\s*$/, '') // Remove trailing price (like "16" or "12.99")
             .replace(/\$\d+(?:\.\d{2})?/g, '') // Remove any $ prices
             .replace(/\.{2,}/g, '') // Remove dotted lines
             .replace(/\s+\.\s+/g, ' ') // Remove spaced dots
