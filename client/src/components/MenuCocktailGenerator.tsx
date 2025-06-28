@@ -736,17 +736,17 @@ Ribeye Steak - 12oz premium cut $32
                   <div className="space-y-4 max-h-96 overflow-y-auto">
                     {generatedMenuItems.map((item, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold text-slate-900">{item.name}</h4>
-                            <p className="text-sm text-slate-600 mt-1">{item.description}</p>
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-slate-900 break-words">{item.name}</h4>
+                            <p className="text-sm text-slate-600 mt-1 break-words">{item.description}</p>
                           </div>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 shrink-0">
                             {item.category}
                           </Badge>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="flex flex-wrap gap-4 text-sm">
                           <div className="flex items-center space-x-1">
                             <DollarSign className="h-4 w-4 text-green-600" />
                             <span>${item.suggestedPrice}</span>
@@ -761,7 +761,7 @@ Ribeye Steak - 12oz premium cut $32
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           <Badge 
                             variant="secondary" 
                             className={
@@ -776,6 +776,7 @@ Ribeye Steak - 12oz premium cut $32
                             variant="ghost"
                             size="sm"
                             onClick={() => copyToClipboard(JSON.stringify(item.recipe, null, 2))}
+                            className="shrink-0"
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             Copy Recipe
@@ -928,17 +929,17 @@ Ribeye Steak - 12oz premium cut $32
                   <div className="space-y-4 max-h-96 overflow-y-auto">
                     {generatedCocktails.map((cocktail, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold text-slate-900">{cocktail.name}</h4>
-                            <p className="text-sm text-slate-600 mt-1">{cocktail.description}</p>
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-slate-900 break-words">{cocktail.name}</h4>
+                            <p className="text-sm text-slate-600 mt-1 break-words">{cocktail.description}</p>
                           </div>
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 shrink-0">
                             {cocktail.category}
                           </Badge>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="flex flex-wrap gap-4 text-sm">
                           <div className="flex items-center space-x-1">
                             <DollarSign className="h-4 w-4 text-green-600" />
                             <span>${cocktail.suggestedPrice}</span>
@@ -953,12 +954,12 @@ Ribeye Steak - 12oz premium cut $32
                           </div>
                         </div>
 
-                        <div className="text-sm">
+                        <div className="text-sm flex flex-wrap gap-4">
                           <p className="font-medium text-slate-700">Glassware: {cocktail.glassware}</p>
                           <p className="font-medium text-slate-700">Garnish: {cocktail.garnish}</p>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                             ${cocktail.estimatedCost.toFixed(2)} cost
                           </Badge>
@@ -966,6 +967,7 @@ Ribeye Steak - 12oz premium cut $32
                             variant="ghost"
                             size="sm"
                             onClick={() => copyToClipboard(JSON.stringify(cocktail, null, 2))}
+                            className="shrink-0"
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             Copy Recipe
