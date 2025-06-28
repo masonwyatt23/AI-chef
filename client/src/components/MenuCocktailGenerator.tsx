@@ -529,6 +529,184 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     }
   };
 
+  // Load Depot menu data
+  const loadDepotMenu = () => {
+    const depotMenuText = `Appetizers
+Wings buffalo, BBQ, bourbon or dry rub 16
+Batter-Fried Mushrooms with ranch and horseradish sauce 12
+Crispy Fried Oysters with cocktail sauce 15
+Cheese Fries crispy bacon, melted blue cheese and queso with ranch for dipping 12
+Hot Crab Dip flavorful crab with fresh garlic and a blend of seasonings folded into cream cheese served with crackers 15
+Chips and Queso 8
+Loaded Flat Beds crispy potato skins with BBQ, bacon and cheese served with sour cream 12
+Spinach Artichoke Dip served with tortilla chips 10
+House-Made Crab Bisque 8 cup/10 bowl
+
+Salads
+DPO Tender Salad batter-fried tenders with shredded cheddar, crumbled bacon and tomatoes 14
+Cobb Salad grilled chicken with bacon, shredded cheese, blue cheese crumbles, tomatoes, cucumbers and hardboiled egg 16
+Grilled Steak Salad mixed greens with tomatoes, mushrooms, blue cheese crumbles, red onion, applewood smoked bacon and herb croutons 16
+Toosday Chicken Salad mixed greens, Granny Smith apples, candied pecans, feta cheese and mesquite grilled chicken with poppyseed dressing 14
+
+Sandwiches & Lite Bites
+Classic Burger char-grilled on a Brioche bun with lettuce and tomato 14
+Bacon/Cheddar Burger 15
+Mushroom/Swiss Burger 15
+French Dip slow-roasted shaved prime rib with melted mozzarella on a hoagie roll served with au jus 13
+DPO Chicken Sandwich grilled chicken breast with bacon, BBQ and melted mozzarella on a brioche bun 12
+Lump Crabcake Sandwich on a Brioche bun with lettuce, tomato and remoulade 17
+Chicken Tender Wrap (traditional or buffalo) flour tortilla with lettuce, tomato, cheddar and red onion 11
+Bourbon Salmon BLT on toasted whole wheat with lettuce, tomato and Applewood Smoked bacon 18
+Club On Wheat smoked turkey, honey ham, Swiss cheese, applewood smoked bacon, lettuce, tomato and mayo on thick sliced, toasted whole wheat 13
+Our Famous Chicken Tenders batter-dipped and crispy fried 13
+Fried Oysters plump select oysters golden fried and served with cocktail sauce 16
+
+Pasta
+Chicken Tender Parmesan crispy chicken tenders over penne pasta tossed with house-made marinara topped with melted mozzarella and parmesan 18
+Fettuccini Middlebrook sautéed shrimp, bacon and broccoli tossed with alfredo sauce and topped with grilled chicken 24
+Chessie's Veggie Pasta sauteed mushrooms, sweet corn, diced tomatoes, broccoli and capers with fresh garlic and basil then tossed with penne pasta 15
+
+Seafood and Fish
+Fish 'n Chips batter dipped, crispy fried fish served with tartar sauce 19
+Lump Crab Cakes pan seared and served with remoulade 29
+Fried Shrimp crispy, batter fried jumbo shrimp 24
+Fried Oyster Platter plump select oysters golden fried and served with cocktail sauce 24
+Bourbon Glazed Atlantic Salmon 24
+
+Steaks, Ribs and Chicken
+Hand-Cut Ribeye premium beef, well marbled 32
+Center Cut Sirloin char-grilled to order 22
+Marinated Steak Medallions char-grilled and sliced to order 22
+Slow Roasted Baby Back Ribs dry rubbed with our signature spices or finished with Sweet Baby Ray's BBQ sauce 1/2 rack 19 whole rack 26
+Our Famous Chicken Tenders batter-dipped and crispy fried 18
+Smothered Chicken char-grilled chicken breast with bacon, sautéed mushrooms and melted mozzarella 16
+Prime Rib Au Jus (limited quantities available) served after 5pm Friday, all day Saturday-Sunday 9 ounce 22 14 ounce 28
+
+Sides
+Crispy Fries, Baked Potato, Steamed Broccoli, Sautéed Mushrooms, Country Style Green Beans 4
+Applesauce or Coleslaw 3`;
+
+    setExistingMenu(depotMenuText);
+    toast({
+      title: "Depot menu loaded",
+      description: "Menu content has been loaded for analysis",
+    });
+    
+    // Auto-analyze the menu text
+    setTimeout(() => {
+      analyzeMenuText(depotMenuText);
+    }, 100);
+  };
+
+  // Load Junction menu data
+  const loadJunctionMenu = () => {
+    const junctionMenuText = `Beer Cans
+Benchtop Brewing Proven Theory IPA (Norfolk, VA) 7.0% Brewed with Citra and Mosaic hops
+The Veil Brewing Thrown IPA (Richmond, VA) 6.3% 60 IBU West Coast Style
+Triple Crossing Falcon Smash IPA (Richmond, VA) 7% This flagship IPA delivers on balanced hop and yeast character of brighter citrus, orange pine marmalade, and stone fruit cohesion
+Hi-Wire Brewing Double Hi-Pitch IPA (Asheville, NC) 9% 65 IBU Classic West coast hops
+Alesmith Brewing Speedway Stout (San Diego, CA) 12% Imperial Stout with coffee
+Smuttynose Old Brown Dog (Hampton, NH) 6.5% 30 IBU American Brown Ale
+Virginia Beer Co. Saving Daylight Citrus Wheat (Williamsburg, VA) 5% Citrusy sweet Orange peels packed into this American Wheat ale
+Bingo Beer Company Lager (Richmond, VA) 4.8% German style lager
+1911 Cherry Pie Cider (East Boston, MA) 6.9% Premium small batch cider- 4 out of 6 sweetness
+Bold Rock Vodka Bay Crush (Nellysford, VA) 7.5% Real vodka with pineapple and cranberry
+Cutwater Tequila Paloma (San Diego, CA) 7% Real Tequila with refreshing grapefruit soda
+Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromatic bitters with Cutwater award winning bourbon
+
+Wine
+WHITE
+Ant Moore Sauvignon Blanc (New Zealand) Elegant and refreshing with lemon sorbet and lime zest, revealing hints of dried pineapple, toasted herbs and sea salt 12/35
+Highway 12 Chardonnay (CA) The nose presents tropical hints of charred pineapples and bright citrus. The fruit and floral notes are balanced by light acidity and a rich toasty vanilla oak warmth 11/32
+Cavazza Pinot Grigio (Italy) hints of almond tree flowers and golden apple with a citrus aftertaste 9/29
+
+RED
+Serena Sweet Red (Italy) Aromas of rose and an accent of rhubarb-strawberry pie. On the palate the wine has raspberry and cherry flavors 11/32
+Trumpeter Malbec (Argentina) The palate features zippy cherry and red plum fruit, while the finish is dry, properly oaky and smooth. The acid-driven fruit successfully fights through any overt wood or tannins 10/32
+Frey Organic Pinot Noir (CA) Flavors of cassis and black cherry are balanced by a spicy herbal finish 40
+Trumpeter Cabernet Sauvignon (Argentina) An intense ruby red wine with juicy berry aromas. It has flavors of blackberry and red currant, with hints of vanilla, cocoa and sweet oak on the finish 10/32
+
+BUBBLES
+Bricco Riella Moscato D'Asti (Italy) Aromatic and charming with candied citrus, peach and honeysuckle, creamy bubbles, ripe tropical notes and hints of lemon drops 9/30
+Zardetto Prosecco (Italy) Fresh and fragrant on the palate with flavors of citrus, apples, orange blossoms and stone fruits supported by creamy bubbles 27
+
+Cocktails
+Cherry Bourbon Smash Makers Mark Kentucky Bourbon Whisky | tart cherry juice | sour 12
+Junction Old Fashion Whisky | Maraschino liqueur | orange bitters | Luxardo cherries Maker's Mark 13 Copper Fox Chestnut American Whisky 17
+Blackberry Lemonade Margarita Teremana Blanco Tequilla | blackberry syrup | lemonade | sour | sugar rim 11
+Strawberry Ginger Moscow Mule Tito's handmade vodka | strawberry ginger syrup | ginger beer 12
+Espresso Martini Tito's handmade vodka | cold brew | cream 12
+Raspberry Sour Tito's | strawberry | raspberry puree | sour | Sprite 12
+
+Mocktails
+Tart Cherry Temple Tart cherry syrup and sprite
+The Mermaid Pineapple, sour, blue curacao syrup and a splash of soda
+Strawberry Ginger Mule strawberry ginger syrup and ginger beer in a copper mug`;
+
+    setExistingMenu(junctionMenuText);
+    toast({
+      title: "Junction menu loaded",
+      description: "Menu content has been loaded for analysis",
+    });
+    
+    // Auto-analyze the menu text
+    setTimeout(() => {
+      analyzeMenuText(junctionMenuText);
+    }, 100);
+  };
+
+  // Load Junction cocktail menu data
+  const loadJunctionCocktailMenu = () => {
+    const junctionCocktailText = `Cocktails
+Cherry Bourbon Smash Makers Mark Kentucky Bourbon Whisky | tart cherry juice | sour 12
+Junction Old Fashion Whisky | Maraschino liqueur | orange bitters | Luxardo cherries Maker's Mark 13 Copper Fox Chestnut American Whisky 17
+Blackberry Lemonade Margarita Teremana Blanco Tequilla | blackberry syrup | lemonade | sour | sugar rim 11
+Strawberry Ginger Moscow Mule Tito's handmade vodka | strawberry ginger syrup | ginger beer 12
+Espresso Martini Tito's handmade vodka | cold brew | cream 12
+Raspberry Sour Tito's | strawberry | raspberry puree | sour | Sprite 12
+
+Mocktails
+Tart Cherry Temple Tart cherry syrup and sprite
+The Mermaid Pineapple Pineapple, sour, blue curacao syrup and a splash of soda
+Strawberry Ginger Mule strawberry ginger syrup and ginger beer in a copper mug
+
+Wine
+WHITE
+Ant Moore Sauvignon Blanc (New Zealand) Elegant and refreshing with lemon sorbet and lime zest, revealing hints of dried pineapple, toasted herbs and sea salt 12/35
+Highway 12 Chardonnay (CA) The nose presents tropical hints of charred pineapples and bright citrus. The fruit and floral notes are balanced by light acidity and a rich toasty vanilla oak warmth 11/32
+Cavazza Pinot Grigio (Italy) hints of almond tree flowers and golden apple with a citrus aftertaste 9/29
+
+RED
+Serena Sweet Red (Italy) Aromas of rose and an accent of rhubarb-strawberry pie. On the palate the wine has raspberry and cherry flavors 11/32
+Trumpeter Malbec (Argentina) The palate features zippy cherry and red plum fruit, while the finish is dry, properly oaky and smooth. The acid-driven fruit successfully fights through any overt wood or tannins 10/32
+Frey Organic Pinot Noir (CA) Flavors of cassis and black cherry are balanced by a spicy herbal finish 40
+Trumpeter Cabernet Sauvignon (Argentina) An intense ruby red wine with juicy berry aromas. It has flavors of blackberry and red currant, with hints of vanilla, cocoa and sweet oak on the finish 10/32
+
+BUBBLES
+Bricco Riella Moscato D'Asti (Italy) Aromatic and charming with candied citrus, peach and honeysuckle, creamy bubbles, ripe tropical notes and hints of lemon drops 9/30
+Zardetto Prosecco (Italy) Fresh and fragrant on the palate with flavors of citrus, apples, orange blossoms and stone fruits supported by creamy bubbles 27
+
+Beer
+Benchtop Brewing Proven Theory IPA (Norfolk, VA) 7.0% Brewed with Citra and Mosaic hops
+The Veil Brewing Thrown IPA (Richmond, VA) 6.3% 60 IBU West Coast Style
+Triple Crossing Falcon Smash IPA (Richmond, VA) 7% This flagship IPA delivers on balanced hop and yeast character of brighter citrus, orange pine marmalade, and stone fruit cohesion
+Hi-Wire Brewing Double Hi-Pitch IPA (Asheville, NC) 9% 65 IBU Classic West coast hops
+Alesmith Brewing Speedway Stout (San Diego, CA) 12% Imperial Stout with coffee
+Smuttynose Old Brown Dog (Hampton, NH) 6.5% 30 IBU American Brown Ale
+Virginia Beer Co. Saving Daylight Citrus Wheat (Williamsburg, VA) 5% Citrusy sweet Orange peels packed into this American Wheat ale
+Bingo Beer Company Lager (Richmond, VA) 4.8% German style lager
+1911 Cherry Pie Cider (East Boston, MA) 6.9% Premium small batch cider- 4 out of 6 sweetness
+Bold Rock Vodka Bay Crush (Nellysford, VA) 7.5% Real vodka with pineapple and cranberry
+Cutwater Tequila Paloma (San Diego, CA) 7% Real Tequila with refreshing grapefruit soda
+Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromatic bitters with Cutwater award winning bourbon`;
+
+    setCocktailMenuText(junctionCocktailText);
+    toast({
+      title: "Junction drink menu loaded",
+      description: "Cocktail and drink menu content has been loaded",
+    });
+  };
+
   // History management functions
   const deleteMenuItemFromHistory = (indexToDelete: number) => {
     setMenuHistory(prev => prev.filter((_, index) => index !== indexToDelete));
@@ -614,40 +792,32 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
                   <Label className="text-base font-semibold">Existing Menu Analysis</Label>
                   <p className="text-sm text-slate-600 mb-3">Upload a PDF menu or paste your current menu text to analyze categories and generate targeted improvements</p>
                   
-                  {/* PDF Upload Section */}
-                  <div className="mb-4 p-3 border-2 border-dashed border-gray-300 rounded-lg bg-white">
-                    <div className="text-center">
-                      <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                      <div className="text-sm">
-                        <label
-                          htmlFor="menu-pdf-upload"
-                          className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                        >
-                          <span>Upload PDF menu</span>
-                          <input
-                            id="menu-pdf-upload"
-                            ref={fileInputRef}
-                            name="menu-pdf-upload"
-                            type="file"
-                            accept=".pdf"
-                            className="sr-only"
-                            onChange={handleFileSelect}
-                            disabled={isUploading}
-                          />
-                        </label>
-                        <p className="text-gray-500">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">PDF up to 10MB</p>
-                      {isUploading && (
-                        <div className="mt-2 flex items-center justify-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                          <span className="text-sm text-blue-600">Uploading...</span>
-                        </div>
-                      )}
+                  {/* Quick Menu Load */}
+                  <div className="mb-4 p-3 border rounded-lg bg-white">
+                    <Label className="text-sm font-medium mb-2 block">Load Sample Menus</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={loadDepotMenu}
+                        className="flex items-center flex-1"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Depot Menu
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={loadJunctionMenu}
+                        className="flex items-center flex-1"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Junction Menu
+                      </Button>
                     </div>
                   </div>
                   
-                  <div className="text-center text-sm text-gray-500 mb-3">or</div>
+                  <div className="text-center text-sm text-gray-500 mb-3">or paste your own</div>
                   
                   <Textarea
                     placeholder="Paste your existing menu here...
@@ -1185,31 +1355,26 @@ Ribeye Steak - 12oz premium cut $32
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* PDF Upload for Drink Menu */}
+                {/* Load Sample Drink Menus */}
                 <div>
-                  <Label>Upload Existing Drink Menu (PDF)</Label>
+                  <Label>Load Sample Drink Menu</Label>
                   <div className="mt-2">
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleCocktailPdfUpload}
-                      className="hidden"
-                      id="cocktail-pdf-upload"
-                    />
-                    <label 
-                      htmlFor="cocktail-pdf-upload" 
-                      className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={loadJunctionCocktailMenu}
+                      className="flex items-center w-full"
                     >
                       <FileText className="h-4 w-4 mr-2" />
-                      Choose Drink Menu PDF
-                    </label>
+                      Junction Drink Menu
+                    </Button>
                   </div>
                   {cocktailMenuText && (
                     <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded">
-                      <p className="text-sm text-green-700 mb-2 font-medium">✓ Drink menu uploaded successfully</p>
+                      <p className="text-sm text-green-700 mb-2 font-medium">✓ Drink menu loaded successfully</p>
                       <details className="text-sm">
                         <summary className="cursor-pointer text-green-600 hover:text-green-800">
-                          View extracted menu text
+                          View loaded menu text
                         </summary>
                         <div className="mt-2 p-2 bg-white border rounded text-xs max-h-32 overflow-y-auto whitespace-pre-wrap">
                           {cocktailMenuText}
