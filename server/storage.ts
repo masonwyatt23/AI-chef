@@ -104,11 +104,22 @@ export class DatabaseStorage implements IStorage {
 
   async deleteConversation(id: number): Promise<boolean> {
     try {
-      // First delete all messages in the conversation
+      // First get all messages in this conversation
+      const conversationMessages = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.conversationId, id));
+      
+      // Delete recommendations that reference these messages
+      for (const message of conversationMessages) {
+        await db.delete(recommendations).where(eq(recommendations.messageId, message.id));
+      }
+      
+      // Then delete all messages in the conversation
       await db.delete(messages).where(eq(messages.conversationId, id));
       
-      // Then delete the conversation
-      const result = await db.delete(conversations).where(eq(conversations.id, id));
+      // Finally delete the conversation
+      await db.delete(conversations).where(eq(conversations.id, id));
       
       return true;
     } catch (error) {
