@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -128,6 +128,64 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
       seasonalConsiderations: restaurant.seasonalConsiderations || ""
     }
   });
+
+  // Reset form values when restaurant data changes
+  useEffect(() => {
+    if (restaurant) {
+      form.reset({
+        name: restaurant.name || "",
+        theme: restaurant.theme || "",
+        categories: restaurant.categories || [],
+        kitchenCapability: restaurant.kitchenCapability || "intermediate",
+        staffSize: restaurant.staffSize || 5,
+        additionalContext: restaurant.additionalContext || "",
+        
+        // Business Context
+        establishmentType: restaurant.establishmentType || "",
+        serviceStyle: restaurant.serviceStyle || "",
+        targetDemographic: restaurant.targetDemographic || "",
+        averageTicketPrice: restaurant.averageTicketPrice || 0,
+        diningCapacity: restaurant.diningCapacity || 0,
+        operatingHours: restaurant.operatingHours || "",
+        
+        // Location & Market
+        location: restaurant.location || "",
+        marketType: restaurant.marketType || "",
+        localIngredients: restaurant.localIngredients || [],
+        culturalInfluences: restaurant.culturalInfluences || [],
+        
+        // Kitchen & Operations
+        kitchenSize: restaurant.kitchenSize || "",
+        kitchenEquipment: restaurant.kitchenEquipment || [],
+        prepSpace: restaurant.prepSpace || "",
+        storageCapacity: restaurant.storageCapacity || "",
+        deliveryCapability: restaurant.deliveryCapability || false,
+        
+        // Staff & Skills
+        chefExperience: restaurant.chefExperience || "",
+        staffSkillLevel: restaurant.staffSkillLevel || "",
+        specializedRoles: restaurant.specializedRoles || [],
+        laborBudget: restaurant.laborBudget || "",
+        
+        // Menu & Business Goals
+        currentMenuSize: restaurant.currentMenuSize || 0,
+        menuChangeFrequency: restaurant.menuChangeFrequency || "",
+        profitMarginGoals: restaurant.profitMarginGoals || 0,
+        foodCostGoals: restaurant.foodCostGoals || 0,
+        specialDietaryNeeds: restaurant.specialDietaryNeeds || [],
+        
+        // Competition & Positioning
+        primaryCompetitors: restaurant.primaryCompetitors || [],
+        uniqueSellingPoints: restaurant.uniqueSellingPoints || [],
+        pricePosition: restaurant.pricePosition || "",
+        
+        // Challenges & Priorities
+        currentChallenges: restaurant.currentChallenges || [],
+        businessPriorities: restaurant.businessPriorities || [],
+        seasonalConsiderations: restaurant.seasonalConsiderations || "",
+      });
+    }
+  }, [restaurant, form]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: InsertRestaurant) => {
