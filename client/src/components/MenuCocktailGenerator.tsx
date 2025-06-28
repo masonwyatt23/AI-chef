@@ -205,7 +205,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       dietaryRestrictions: menuDietaryRestrictions,
       targetPricePoint: menuPricePoint,
       seasonalFocus: menuSeasonalFocus,
-      focusCategory: selectedCategory,
+      focusCategory: selectedCategory === "all" ? "" : selectedCategory,
       currentMenu: parsedMenuItems
     });
   };
@@ -476,7 +476,7 @@ Ribeye Steak - 12oz premium cut $32
                         <SelectValue placeholder="Select category to focus on" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Categories</SelectItem>
+                        <SelectItem value="all">All Categories</SelectItem>
                         {parsedCategories.length > 0 && (
                           <>
                             {parsedCategories.map((category) => (
@@ -493,7 +493,7 @@ Ribeye Steak - 12oz premium cut $32
                         ))}
                       </SelectContent>
                     </Select>
-                    {selectedCategory && (
+                    {selectedCategory && selectedCategory !== "all" && (
                       <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
                         <p className="text-xs font-medium text-blue-800 mb-1">
                           AI Focus: {selectedCategory}
