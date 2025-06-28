@@ -11,7 +11,6 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
-const pdfParse = require("pdf-parse");
 
 // Configure multer for PDF uploads
 const upload = multer({
@@ -29,28 +28,23 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // PDF Upload and Parse route
+  // PDF Upload route (parsing will be added later)
   app.post("/api/parse-menu-pdf", upload.single('menuPdf'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No PDF file uploaded" });
       }
 
-      const pdfData = await pdfParse(req.file.buffer);
-      const extractedText = pdfData.text;
-
-      if (!extractedText || extractedText.trim().length === 0) {
-        return res.status(400).json({ error: "No text could be extracted from the PDF" });
-      }
-
+      // For now, just return file info - PDF parsing will be implemented next
       res.json({ 
-        text: extractedText,
-        pages: pdfData.numpages,
-        info: pdfData.info
+        message: "PDF uploaded successfully",
+        filename: req.file.originalname,
+        size: req.file.size,
+        text: "PDF parsing will be implemented in the next step. For now, please copy and paste your menu text manually."
       });
     } catch (error) {
-      console.error("Error parsing PDF:", error);
-      res.status(500).json({ error: "Failed to parse PDF file" });
+      console.error("Error uploading PDF:", error);
+      res.status(500).json({ error: "Failed to upload PDF file" });
     }
   });
 

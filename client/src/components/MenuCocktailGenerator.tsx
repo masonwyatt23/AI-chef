@@ -98,6 +98,11 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [isAnalyzingMenu, setIsAnalyzingMenu] = useState(false);
   const [customCategory, setCustomCategory] = useState("");
   
+  // PDF upload state
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   // Enhanced category options with common restaurant categories
   const commonCategories = [
     "Appetizers", "Starters", "Small Plates", "Shareables",
@@ -227,6 +232,73 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     if (newMenuRequest.trim()) {
       setMenuRequests([...menuRequests, newMenuRequest.trim()]);
       setNewMenuRequest("");
+    }
+  };
+
+  // Handle PDF upload
+  const handlePdfUpload = async (file: File) => {
+    if (!file.type.includes('pdf')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a PDF file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('menuPdf', file);
+
+    try {
+      const response = await fetch('/api/parse-menu-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.text && result.text.trim()) {
+        setExistingMenu(result.text);
+        toast({
+          title: "PDF uploaded successfully",
+          description: `Extracted text from ${result.filename}`,
+        });
+        
+        // Auto-analyze the extracted text
+        setTimeout(() => parseExistingMenu(), 500);
+      } else {
+        toast({
+          title: "PDF uploaded",
+          description: result.message || "PDF uploaded but no text extracted yet",
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload PDF. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+      setUploadedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      handlePdfUpload(file);
     }
   };
 
@@ -437,7 +509,43 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
                 {/* Existing Menu Analysis */}
                 <div className="border rounded-lg p-4 bg-slate-50">
                   <Label className="text-base font-semibold">Existing Menu Analysis</Label>
-                  <p className="text-sm text-slate-600 mb-3">Paste your current menu to analyze categories and generate targeted improvements</p>
+                  <p className="text-sm text-slate-600 mb-3">Upload a PDF menu or paste your current menu text to analyze categories and generate targeted improvements</p>
+                  
+                  {/* PDF Upload Section */}
+                  <div className="mb-4 p-3 border-2 border-dashed border-gray-300 rounded-lg bg-white">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                      <div className="text-sm">
+                        <label
+                          htmlFor="menu-pdf-upload"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                        >
+                          <span>Upload PDF menu</span>
+                          <input
+                            id="menu-pdf-upload"
+                            ref={fileInputRef}
+                            name="menu-pdf-upload"
+                            type="file"
+                            accept=".pdf"
+                            className="sr-only"
+                            onChange={handleFileSelect}
+                            disabled={isUploading}
+                          />
+                        </label>
+                        <p className="text-gray-500">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">PDF up to 10MB</p>
+                      {isUploading && (
+                        <div className="mt-2 flex items-center justify-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          <span className="text-sm text-blue-600">Uploading...</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="text-center text-sm text-gray-500 mb-3">or</div>
+                  
                   <Textarea
                     placeholder="Paste your existing menu here...
 APPETIZERS
