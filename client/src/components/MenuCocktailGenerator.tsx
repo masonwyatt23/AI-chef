@@ -1670,11 +1670,11 @@ Ribeye Steak - 12oz premium cut $32
                                 <div>
                                   <h4 className="font-semibold mb-3">Variations</h4>
                                   <div className="space-y-3">
-                                    {cocktail.variations.map((variation, i) => (
+                                    {(Array.isArray(cocktail.variations) ? cocktail.variations : []).map((variation, i) => (
                                       <div key={i} className="p-3 border rounded-lg">
                                         <h5 className="font-medium text-purple-600">{variation.name}</h5>
                                         <ul className="text-sm mt-1 space-y-1">
-                                          {variation.changes.map((change, j) => (
+                                          {(Array.isArray(variation.changes) ? variation.changes : []).map((change, j) => (
                                             <li key={j} className="text-slate-600">• {change}</li>
                                           ))}
                                         </ul>
@@ -1688,7 +1688,7 @@ Ribeye Steak - 12oz premium cut $32
                                 <div>
                                   <h4 className="font-semibold mb-3">Food Pairings</h4>
                                   <div className="flex flex-wrap gap-2">
-                                    {cocktail.foodPairings.map((pairing, i) => (
+                                    {(Array.isArray(cocktail.foodPairings) ? cocktail.foodPairings : []).map((pairing, i) => (
                                       <Badge key={i} variant="outline" className="bg-orange-50">
                                         {pairing}
                                       </Badge>
