@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat routes
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, restaurantId, conversationId } = req.body;
+      const { message, restaurantId, conversationId, responseLength = "balanced" } = req.body;
       
       if (!message || !restaurantId) {
         return res.status(400).json({ error: "Message and restaurant ID are required" });
@@ -220,7 +220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           staffSize: restaurant.staffSize,
           additionalContext: restaurant.additionalContext || undefined
         },
-        conversationHistory
+        conversationHistory,
+        responseLength
       );
 
       // Create assistant message

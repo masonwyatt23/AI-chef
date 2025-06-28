@@ -24,6 +24,7 @@ interface ChatInterfaceProps {
 export function ChatInterface({ restaurantId, conversationId, onConversationChange }: ChatInterfaceProps) {
   const [message, setMessage] = useState("");
   const [showPromptBank, setShowPromptBank] = useState(false);
+  const [responseLength, setResponseLength] = useState<"brief" | "balanced" | "detailed">("balanced");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -201,6 +202,7 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
         message: userMessage,
         restaurantId,
         conversationId,
+        responseLength,
       });
       return response.json();
     },
@@ -548,6 +550,28 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
           {/* Chat Input */}
           <div className="border-t border-slate-200 bg-white p-4">
             <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+              {/* Response Length Control */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm font-medium text-slate-600">Response Length:</span>
+                  <Select value={responseLength} onValueChange={(value: "brief" | "balanced" | "detailed") => setResponseLength(value)}>
+                    <SelectTrigger className="w-[140px] h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="brief">Brief</SelectItem>
+                      <SelectItem value="balanced">Balanced</SelectItem>
+                      <SelectItem value="detailed">Detailed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="text-xs text-slate-500">
+                  {responseLength === "brief" && "Short, concise answers"}
+                  {responseLength === "balanced" && "Moderate detail with key points"}
+                  {responseLength === "detailed" && "Comprehensive explanations"}
+                </div>
+              </div>
+              
               <div className="flex space-x-3">
                 <Input
                   value={message}
