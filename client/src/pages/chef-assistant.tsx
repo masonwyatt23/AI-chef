@@ -147,55 +147,27 @@ export default function ChefAssistant() {
           </TabsContent>
 
           <TabsContent value="ai-chef">
-            <div className="h-[calc(100vh-200px)] flex">
-              {/* Left Sidebar - Quick Stats */}
-              <div className="w-80 border-r border-slate-200 flex flex-col p-4 space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-700 mb-3">AI Insights</h3>
-                  <div className="space-y-3">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-green-700">Implemented</span>
-                        <span className="text-green-600">📊</span>
-                      </div>
-                      <div className="text-lg font-bold text-green-900">{stats.recommendationsUsed}</div>
-                      <div className="text-xs text-green-600">Recommendations used</div>
-                    </div>
-                    
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-blue-700">Menu Items</span>
-                        <span className="text-blue-600">🍽️</span>
-                      </div>
-                      <div className="text-lg font-bold text-blue-900">{stats.menuItemsCreated}</div>
-                      <div className="text-xs text-blue-600">New additions</div>
-                    </div>
-                    
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-purple-700">Efficiency</span>
-                        <span className="text-purple-600">⏱️</span>
-                      </div>
-                      <div className="text-lg font-bold text-purple-900">{stats.efficiencyGains}%</div>
-                      <div className="text-xs text-purple-600">Operations focus</div>
-                    </div>
-                  </div>
-                </div>
+            <div className="h-[calc(100vh-200px)] flex flex-col">
+              {/* Full-Width Chat Interface */}
+              <div className="flex-1">
+                <ChatInterface 
+                  restaurantId={restaurantId}
+                  conversationId={activeConversationId}
+                  onConversationChange={setActiveConversationId}
+                />
               </div>
 
-              {/* Main Content Area */}
-              <div className="flex-1 flex flex-col">
-                {/* Chat Interface */}
-                <div className="flex-1 p-4">
-                  <ChatInterface 
-                    restaurantId={restaurantId}
-                    conversationId={activeConversationId}
-                    onConversationChange={setActiveConversationId}
-                  />
-                </div>
-
-                {/* Recent Recommendations - Bottom Panel */}
-                <div className="border-t border-slate-200 max-h-80 overflow-y-auto">
+              {/* Collapsible Recommendations Panel */}
+              <div className="border-t border-slate-200 max-h-64 overflow-y-auto bg-slate-50">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-slate-700">Recent AI Recommendations</h3>
+                    <div className="flex space-x-4 text-xs">
+                      <span className="text-green-600 font-medium">{stats.recommendationsUsed} Implemented</span>
+                      <span className="text-blue-600 font-medium">{stats.menuItemsCreated} Menu Items</span>
+                      <span className="text-purple-600 font-medium">{stats.efficiencyGains}% Efficiency Focus</span>
+                    </div>
+                  </div>
                   <RecommendationsList 
                     recommendations={recommendations}
                     restaurantId={restaurantId}
