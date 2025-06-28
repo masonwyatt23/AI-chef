@@ -227,35 +227,84 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
   };
 
   const formatMessageContent = (content: string) => {
-    // Enhanced formatting for better readability
+    // Advanced markdown-like formatting for much better readability
     return content
       .split('\n')
       .map((line, index) => {
         const trimmed = line.trim();
         
-        // Bold headings
-        if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-          return <div key={index} className="font-bold text-base mt-3 mb-2">{trimmed.slice(2, -2)}</div>;
+        // Handle various heading levels (# ## ### etc.)
+        if (trimmed.startsWith('#')) {
+          const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+          if (headingMatch) {
+            const level = headingMatch[1].length;
+            const text = headingMatch[2];
+            const sizeClass = level === 1 ? 'text-xl' : level === 2 ? 'text-lg' : 'text-base';
+            const marginClass = level === 1 ? 'mt-4 mb-3' : 'mt-3 mb-2';
+            return (
+              <div key={index} className={`font-bold ${sizeClass} ${marginClass} text-slate-900`}>
+                {text}
+              </div>
+            );
+          }
         }
         
-        // Bullet points with better styling
-        if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+        // Bold text with ** formatting
+        if (trimmed.includes('**')) {
+          const parts = trimmed.split(/(\*\*[^*]+\*\*)/);
           return (
-            <div key={index} className="flex items-start mt-1 mb-1">
-              <span className="text-primary mr-2 mt-1">•</span>
-              <span className="flex-1">{trimmed.replace(/^[-•]\s*/, '')}</span>
+            <div key={index} className="leading-relaxed mb-1">
+              {parts.map((part, partIndex) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return <strong key={partIndex} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>;
+                }
+                return part;
+              })}
             </div>
           );
         }
         
-        // Numbered lists
+        // Bullet points with enhanced styling
+        if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+          const text = trimmed.replace(/^[-•]\s*/, '');
+          return (
+            <div key={index} className="flex items-start mt-1 mb-1 ml-2">
+              <span className="text-primary mr-3 mt-1 font-bold">•</span>
+              <span className="flex-1 leading-relaxed">{text}</span>
+            </div>
+          );
+        }
+        
+        // Numbered lists with enhanced styling
         if (/^\d+\./.test(trimmed)) {
           const match = trimmed.match(/^(\d+\.)\s*(.*)$/);
           if (match) {
             return (
-              <div key={index} className="flex items-start mt-1 mb-1">
-                <span className="text-primary mr-2 mt-1 font-medium">{match[1]}</span>
-                <span className="flex-1">{match[2]}</span>
+              <div key={index} className="flex items-start mt-1 mb-1 ml-2">
+                <span className="text-primary mr-3 mt-1 font-semibold min-w-[20px]">{match[1]}</span>
+                <span className="flex-1 leading-relaxed">{match[2]}</span>
+              </div>
+            );
+          }
+        }
+        
+        // Code blocks or sections with backticks
+        if (trimmed.startsWith('```') || trimmed.startsWith('`')) {
+          return (
+            <div key={index} className="bg-slate-100 rounded px-3 py-2 my-2 font-mono text-sm border">
+              {trimmed.replace(/`/g, '')}
+            </div>
+          );
+        }
+        
+        // Special formatting for sections that look like categories or labels
+        if (trimmed.includes(':') && !trimmed.includes('?') && trimmed.length < 50) {
+          const [label, ...rest] = trimmed.split(':');
+          if (rest.length > 0) {
+            return (
+              <div key={index} className="mb-2">
+                <span className="font-semibold text-slate-900">{label}:</span>
+                <span className="ml-1">{rest.join(':')}</span>
               </div>
             );
           }
@@ -266,8 +315,8 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
           return <div key={index} className="h-2"></div>;
         }
         
-        // Regular text with better spacing
-        return <div key={index} className="leading-relaxed mb-1">{trimmed}</div>;
+        // Regular text with better spacing and line height
+        return <div key={index} className="leading-relaxed mb-1 text-slate-700">{trimmed}</div>;
       });
   };
 
