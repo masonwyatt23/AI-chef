@@ -35,95 +35,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No PDF file uploaded" });
       }
 
-      // Since the user provided the PDF content, I'll extract the text from the actual menus
-      // For The Depot Grille menu:
-      let extractedText = "";
+      // Import pdf-parse dynamically to parse the actual PDF content
+      const pdfParse = require('pdf-parse');
       
-      if (req.file.originalname.toLowerCase().includes('depot')) {
-        extractedText = `APPETIZERS
-Wings buffalo, BBQ, bourbon or dry rub 16
-Batter-Fried Mushrooms with ranch and horseradish sauce 12
-Crispy Fried Oysters with cocktail sauce 15
-Cheese Fries crispy bacon, melted blue cheese and queso with ranch for dipping 12
-Hot Crab Dip flavorful crab with fresh garlic and a blend of seasonings folded into cream cheese served with crackers 15
-Chips and Queso 8
-Loaded Flat Beds crispy potato skins with BBQ, bacon and cheese served with sour cream 12
-Spinach Artichoke Dip served with tortilla chips 10
-House-Made Crab Bisque 8 cup/10 bowl
+      try {
+        // Parse the actual PDF buffer
+        const data = await pdfParse(req.file.buffer);
+        const extractedText = data.text.trim();
+        
+        if (!extractedText) {
+          return res.status(400).json({ 
+            error: "No text could be extracted from the PDF",
+            filename: req.file.originalname
+          });
+        }
 
-SALADS
-DPO Tender Salad batter-fried tenders with shredded cheddar, crumbled bacon and tomatoes 14
-Cobb Salad grilled chicken with bacon, shredded cheese, blue cheese crumbles, tomatoes, cucumbers and hardboiled egg 16
-Grilled Steak Salad mixed greens with tomatoes, mushrooms, blue cheese crumbles, red onion, applewood smoked bacon and herb croutons 16
-Toosday Chicken Salad mixed greens, Granny Smith apples, candied pecans, feta cheese and mesquite grilled chicken with poppyseed dressing 14
+        console.log(`Successfully extracted ${extractedText.length} characters from PDF: ${req.file.originalname}`);
 
-SANDWICHES & LITE BITES
-Classic Burger char-grilled on a Brioche bun with lettuce and tomato 14
-Bacon/Cheddar Burger 15
-Mushroom/Swiss Burger 15
-French Dip slow-roasted shaved prime rib with melted mozzarella on a hoagie roll served with au jus 13
-DPO Chicken Sandwich grilled chicken breast with bacon, BBQ and melted mozzarella on a brioche bun 12
-Lump Crabcake Sandwich on a Brioche bun with lettuce, tomato and remoulade 17
-Chicken Tender Wrap (traditional or buffalo) flour tortilla with lettuce, tomato, cheddar and red onion 11
-Bourbon Salmon BLT on toasted whole wheat with lettuce, tomato and Applewood Smoked bacon 18
-Club On Wheat smoked turkey, honey ham, Swiss cheese, applewood smoked bacon, lettuce, tomato and mayo on thick sliced, toasted whole wheat 13
-Our Famous Chicken Tenders batter-dipped and crispy fried 13
-Fried Oysters plump select oysters golden fried and served with cocktail sauce 16
-
-PASTA
-Chicken Tender Parmesan crispy chicken tenders over penne pasta tossed with house-made marinara topped with melted mozzarella and parmesan 18
-Fettuccini Middlebrook sautéed shrimp, bacon and broccoli tossed with alfredo sauce and topped with grilled chicken 24
-Chessie's Veggie Pasta sauteed mushrooms, sweet corn, diced tomatoes, broccoli and capers with fresh garlic and basil then tossed with penne pasta 15
-
-SEAFOOD AND FISH
-Fish 'n Chips batter dipped, crispy fried fish served with tartar sauce 19
-Lump Crab Cakes pan seared and served with remoulade 29
-Fried Shrimp crispy, batter fried jumbo shrimp 24
-Fried Oyster Platter plump select oysters golden fried and served with cocktail sauce 24
-Bourbon Glazed Atlantic Salmon 24
-
-STEAKS, RIBS AND CHICKEN
-Hand-Cut Ribeye premium beef, well marbled 32
-Center Cut Sirloin char-grilled to order 22
-Marinated Steak Medallions char-grilled and sliced to order 22
-Slow Roasted Baby Back Ribs dry rubbed with our signature spices or finished with Sweet Baby Ray's BBQ sauce 1/2 rack 19 whole rack 26
-Our Famous Chicken Tenders batter-dipped and crispy fried 18
-Smothered Chicken char-grilled chicken breast with bacon, sautéed mushrooms and melted mozzarella 16
-Prime Rib Au Jus (limited quantities available) served after 5pm Friday, all day Saturday-Sunday 9 ounce 22 14 ounce 28
-
-SIDES
-Crispy Fries, Baked Potato, Steamed Broccoli, Sautéed Mushrooms, Country Style Green Beans 4
-Applesauce or Coleslaw 3`;
-      } else if (req.file.originalname.toLowerCase().includes('junction') || req.file.originalname.toLowerCase().includes('catering')) {
-        extractedText = `CATERING MENU - THE JUNCTION
-
-APPETIZERS & SMALL PLATES
-Crudité with house-made ranch 1.50 per person
-Fresh fruit tray 1.75 per person
-Cheese & fruit tray with crackers 2.50 per person
-Mini crab cakes with house remoulade 3.00 per piece
-Fried Virginia oysters with house cocktail sauce Market Price
-Hot crab dip with crackers 3.00 per person
-Spinach artichoke dip with tortilla chips 2.50 per person
-Smoked salmon dip with bagel chips 2.75 per person
-DPO chicken tenders with dipping sauce 2.25 per piece
-Pulled pork or smoked brisket sliders 4.00 per piece
-
-DESSERTS
-Brownie bite 30 pieces $30.00
-Lemon bars 20 pieces $35.00
-Assorted cheesecake bites 21 pieces $32.00`;
-      } else {
-        // Generic menu text for unknown PDFs
-        extractedText = "Unable to extract specific menu content. Please paste your menu text manually or upload a recognized menu format.";
+        res.json({ 
+          text: extractedText,
+          filename: req.file.originalname,
+          size: req.file.size,
+          pages: data.numpages,
+          message: "PDF text extracted successfully"
+        });
+      } catch (parseError) {
+        console.error("PDF parsing error:", parseError);
+        res.status(500).json({ 
+          error: "Failed to parse PDF content",
+          details: parseError instanceof Error ? parseError.message : String(parseError),
+          filename: req.file.originalname
+        });
       }
-
-      res.json({ 
-        text: extractedText,
-        filename: req.file.originalname,
-        size: req.file.size,
-        message: "PDF text extracted successfully"
-      });
     } catch (error) {
       console.error("Error processing PDF:", error);
       res.status(500).json({ error: "Failed to process PDF file" });
@@ -189,7 +132,7 @@ Assorted cheesecake bites 21 pieces $32.00`;
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
       }
-      res.status(400).json({ error: "Invalid update data", details: error.message });
+      res.status(400).json({ error: "Invalid update data", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
