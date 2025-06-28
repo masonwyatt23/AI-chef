@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Building, MapPin, ChefHat, Users, Target, AlertCircle, Utensils, Palette, TrendingUp, Wine, Menu } from "lucide-react";
+import { Edit, Building, MapPin, ChefHat, Users, Target, AlertCircle, Utensils, Palette, TrendingUp, Wine, Menu, Plus, X } from "lucide-react";
 import type { Restaurant, InsertRestaurant } from "@shared/schema";
 
 interface ComprehensiveRestaurantContextProps {
@@ -65,6 +65,97 @@ const MultiSelectField = ({ field, options, placeholder }: { field: any, options
           ))}
         </SelectContent>
       </Select>
+    </div>
+  );
+};
+
+// Category Selector Component
+const CategorySelector = ({ field }: { field: any }) => {
+  const [newCategory, setNewCategory] = useState("");
+  const categories = field.value || [];
+  
+  const commonCategories = [
+    "Appetizers", "Salads", "Soups", "Entrees", "Steaks", "Seafood", 
+    "Chicken", "Pasta", "Pizza", "Burgers", "Sandwiches", "Wraps",
+    "Desserts", "Beverages", "Wine", "Beer", "Cocktails", "Sides",
+    "Vegetarian", "Vegan", "Gluten-Free", "Kids Menu", "Specials",
+    "Breakfast", "Brunch", "Lunch", "Dinner", "Late Night"
+  ];
+  
+  const addCategory = (category: string) => {
+    if (category && !categories.includes(category)) {
+      field.onChange([...categories, category]);
+    }
+  };
+  
+  const removeCategory = (category: string) => {
+    field.onChange(categories.filter((c: string) => c !== category));
+  };
+  
+  const handleAddCustom = () => {
+    if (newCategory.trim()) {
+      addCategory(newCategory.trim());
+      setNewCategory("");
+    }
+  };
+  
+  return (
+    <div className="space-y-3">
+      {/* Selected Categories */}
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {categories.map((category: string) => (
+            <Badge key={category} variant="secondary" className="flex items-center gap-1">
+              {category}
+              <X 
+                className="h-3 w-3 cursor-pointer hover:text-red-500" 
+                onClick={() => removeCategory(category)}
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+      
+      {/* Common Categories */}
+      <div>
+        <p className="text-sm text-slate-600 mb-2">Common Categories:</p>
+        <div className="flex flex-wrap gap-2">
+          {commonCategories
+            .filter(cat => !categories.includes(cat))
+            .map((category) => (
+              <Button
+                key={category}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addCategory(category)}
+                className="h-8 text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                {category}
+              </Button>
+            ))}
+        </div>
+      </div>
+      
+      {/* Custom Category Input */}
+      <div className="flex gap-2">
+        <Input
+          placeholder="Add custom category..."
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustom())}
+          className="flex-1"
+        />
+        <Button 
+          type="button" 
+          onClick={handleAddCustom}
+          disabled={!newCategory.trim()}
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };
@@ -287,6 +378,8 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
     { value: "rotisserie", label: "Rotisserie" }
   ];
 
+;
+
   const challengesOptions = [
     { value: "high_food_costs", label: "High Food Costs" },
     { value: "staff_turnover", label: "Staff Turnover" },
@@ -393,16 +486,10 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
                         <FormItem>
                           <FormLabel>Menu Categories</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              {...field} 
-                              rows={3} 
-                              placeholder="Enter menu categories (one per line) e.g.&#10;Appetizers&#10;Entrees&#10;Desserts&#10;Beverages"
-                              value={Array.isArray(field.value) ? field.value.join('\n') : field.value || ''}
-                              onChange={(e) => field.onChange(e.target.value.split('\n').filter(Boolean))}
-                            />
+                            <CategorySelector field={field} />
                           </FormControl>
                           <FormDescription>
-                            List your main menu categories, one per line. These will be used for targeted menu generation.
+                            Select common categories or add your own custom categories. These will be used for targeted menu generation.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
