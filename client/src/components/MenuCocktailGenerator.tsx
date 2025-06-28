@@ -1655,7 +1655,7 @@ Ribeye Steak - 12oz premium cut $32
                             <div>
                               <h3 className="font-semibold text-lg mb-3">Instructions</h3>
                               <ol className="space-y-2">
-                                {(cocktail.instructions || []).map((step, i) => (
+                                {(Array.isArray(cocktail.instructions) ? cocktail.instructions : []).map((step, i) => (
                                   <li key={i} className="flex">
                                     <span className="font-semibold text-purple-600 mr-3 mt-1">{i + 1}.</span>
                                     <span className="text-sm leading-relaxed">{step}</span>
@@ -1704,7 +1704,7 @@ Ribeye Steak - 12oz premium cut $32
                                 <h4 className="font-semibold mb-3">Batch Preparation</h4>
                                 <div className="bg-blue-50 p-4 rounded-lg">
                                   <ol className="space-y-2">
-                                    {(cocktail.batchInstructions || []).map((instruction, i) => (
+                                    {(Array.isArray(cocktail.batchInstructions) ? cocktail.batchInstructions : []).map((instruction, i) => (
                                       <li key={i} className="flex">
                                         <span className="font-semibold text-blue-600 mr-3">{i + 1}.</span>
                                         <span className="text-sm">{instruction}</span>
@@ -1719,7 +1719,7 @@ Ribeye Steak - 12oz premium cut $32
                             <div className="flex justify-end space-x-2 pt-4 border-t">
                               <Button
                                 variant="outline"
-                                onClick={() => copyToClipboard(cocktail.instructions.join('\n'))}
+                                onClick={() => copyToClipboard(Array.isArray(cocktail.instructions) ? cocktail.instructions.join('\n') : cocktail.instructions || '')}
                               >
                                 <Copy className="h-4 w-4 mr-2" />
                                 Copy Instructions
