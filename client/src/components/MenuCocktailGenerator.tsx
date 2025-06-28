@@ -458,8 +458,6 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       const items: Array<{name: string; category: string; price?: number}> = [];
       let currentCategory = "";
       
-      console.log('Analyzing menu with', lines.length, 'lines');
-      
       lines.forEach((line, index) => {
         const trimmedLine = line.trim();
         
@@ -481,8 +479,6 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
             nextLineIsDashes
           );
         
-        console.log(`Line ${index}: "${trimmedLine}" - Category: ${isCategoryHeader}`);
-        
         if (isCategoryHeader) {
           // Clean up category name
           currentCategory = trimmedLine
@@ -493,7 +489,6 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
           
           if (!categories.includes(currentCategory)) {
             categories.push(currentCategory);
-            console.log('Found category:', currentCategory);
           }
         } 
         // Check if line is a menu item
@@ -523,14 +518,12 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
               price
             };
             items.push(item);
-            console.log('Found item:', item);
           }
         }
       });
       
       // Fallback: if no clear categories found, use common patterns
       if (categories.length === 0) {
-        console.log('No categories found, trying fallback patterns');
         const menuTextLower = menuText.toLowerCase();
         commonCategories.forEach(cat => {
           if (menuTextLower.includes(cat.toLowerCase())) {
@@ -538,8 +531,6 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
           }
         });
       }
-      
-      console.log('Final results:', { categories, itemCount: items.length });
       
       setParsedCategories(categories);
       setParsedMenuItems(items);
@@ -577,6 +568,10 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
 
   // Load Depot menu data
   const loadDepotMenu = () => {
+    // Clear previous parsed data first
+    setParsedCategories([]);
+    setParsedMenuItems([]);
+    
     const depotMenuText = `Appetizers
 Wings buffalo, BBQ, bourbon or dry rub 16
 Batter-Fried Mushrooms with ranch and horseradish sauce 12
@@ -646,6 +641,10 @@ Applesauce or Coleslaw 3`;
 
   // Load Junction Catering menu data
   const loadJunctionMenu = () => {
+    // Clear previous parsed data first
+    setParsedCategories([]);
+    setParsedMenuItems([]);
+    
     const junctionCateringMenuText = `THE JUNCTION CATERING MENU
 
 Food & Beverage Service
