@@ -278,10 +278,39 @@ You must respond with a JSON object containing a "cocktails" array. Each cocktai
 - estimatedCost: Total ingredient cost
 - suggestedPrice: Market-competitive pricing
 - profitMargin: Percentage profit margin
-- preparationTime: Minutes to prepare
+- preparationTime: Number only (e.g., 3, 5, 8)
 - batchInstructions: Large batch preparation method (optional)
 - variations: Alternative versions (optional)
 - foodPairings: Menu items that complement (optional)
+
+IMPORTANT COST GUIDELINES:
+- Calculate realistic ingredient costs: Premium spirits ($1.50-3.00/oz), House spirits ($0.75-1.50/oz), Liqueurs ($0.50-1.25/oz), Fresh juices ($0.25-0.50/oz), Mixers ($0.10-0.30/oz)
+- Each cocktail should have realistic total ingredient costs between $2.50-6.50
+- Price cocktails at 3.5-4x cost for proper margins (70-75% profit margin)
+- Example: If ingredients cost $3.50, price at $12-14
+
+Example format:
+{
+  "cocktails": [
+    {
+      "name": "Mountain Express Mule",
+      "description": "A train-themed twist on the classic Moscow Mule with bourbon and ginger beer.",
+      "category": "signature",
+      "ingredients": [
+        {"ingredient": "bourbon", "amount": "2 oz", "cost": 2.40},
+        {"ingredient": "ginger beer", "amount": "4 oz", "cost": 0.60},
+        {"ingredient": "lime juice", "amount": "0.5 oz", "cost": 0.25}
+      ],
+      "instructions": ["Add bourbon and lime juice to copper mug", "Fill with ice", "Top with ginger beer"],
+      "garnish": "Lime wheel and candied ginger",
+      "glassware": "Copper mug",
+      "estimatedCost": 3.25,
+      "suggestedPrice": 12.00,
+      "profitMargin": 73,
+      "preparationTime": 3
+    }
+  ]
+}
 
 Focus on:
 1. Theme-appropriate naming and presentation
@@ -289,7 +318,7 @@ Focus on:
 3. Scalable preparation methods
 4. Balanced flavor profiles
 5. Realistic execution for bar staff skill level
-6. Strong profit margins (65%+ target)`;
+6. Strong profit margins (65-75% target)`;
   }
 
   private buildMenuUserPrompt(request: MenuGenerationRequest): string {

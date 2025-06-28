@@ -1569,7 +1569,7 @@ Ribeye Steak - 12oz premium cut $32
                             </div>
                           </div>
                         </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={`cocktail-description-${index}`}>
                           <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-xl">
                               <Wine className="h-6 w-6 text-purple-600" />
@@ -1606,7 +1606,7 @@ Ribeye Steak - 12oz premium cut $32
                             {/* Description */}
                             <div>
                               <h3 className="font-semibold text-lg mb-2">Description</h3>
-                              <p className="text-slate-700">{cocktail.description}</p>
+                              <p id={`cocktail-description-${index}`} className="text-slate-700">{cocktail.description}</p>
                             </div>
 
                             {/* Financial Details */}
