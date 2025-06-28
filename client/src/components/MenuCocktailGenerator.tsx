@@ -39,13 +39,13 @@ interface MenuCocktailGeneratorProps {
 // Helper function to safely format currency
 const formatCurrency = (value: any): string => {
   const num = typeof value === 'number' ? value : parseFloat(value);
-  return isNaN(num) ? 'N/A' : `$${num.toFixed(2)}`;
+  return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
 };
 
 // Helper function to safely format percentage
 const formatPercentage = (value: any): string => {
   const num = typeof value === 'number' ? value : parseFloat(value);
-  return isNaN(num) ? 'N/A' : `${num.toFixed(1)}%`;
+  return isNaN(num) ? '0.0%' : `${num.toFixed(1)}%`;
 };
 
 interface GeneratedMenuItem {
@@ -1541,7 +1541,7 @@ Ribeye Steak - 12oz premium cut $32
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Star className="h-4 w-4 text-amber-600" />
-                                <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : cocktail.profitMargin || '0'}% margin</span>
+                                <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : '0'}% margin</span>
                               </div>
                             </div>
 
@@ -1597,7 +1597,7 @@ Ribeye Steak - 12oz premium cut $32
                               <div className="text-center">
                                 <div className="flex items-center justify-center space-x-1 text-amber-600 font-semibold">
                                   <Star className="h-5 w-5" />
-                                  <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : cocktail.profitMargin || '0'}%</span>
+                                  <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : '0'}%</span>
                                 </div>
                                 <p className="text-xs text-slate-500">Profit Margin</p>
                               </div>
@@ -1624,7 +1624,7 @@ Ribeye Steak - 12oz premium cut $32
                                   </div>
                                   <div className="flex justify-between font-semibold">
                                     <span>Profit Margin:</span>
-                                    <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : cocktail.profitMargin || '0'}%</span>
+                                    <span>{typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin.toFixed(0) : '0'}%</span>
                                   </div>
                                 </div>
                               </div>
