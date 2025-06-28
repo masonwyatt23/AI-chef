@@ -10,8 +10,50 @@ import {
   insertRecommendationSchema 
 } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+const pdfParse = require("pdf-parse");
+
+// Configure multer for PDF uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // PDF Upload and Parse route
+  app.post("/api/parse-menu-pdf", upload.single('menuPdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No PDF file uploaded" });
+      }
+
+      const pdfData = await pdfParse(req.file.buffer);
+      const extractedText = pdfData.text;
+
+      if (!extractedText || extractedText.trim().length === 0) {
+        return res.status(400).json({ error: "No text could be extracted from the PDF" });
+      }
+
+      res.json({ 
+        text: extractedText,
+        pages: pdfData.numpages,
+        info: pdfData.info
+      });
+    } catch (error) {
+      console.error("Error parsing PDF:", error);
+      res.status(500).json({ error: "Failed to parse PDF file" });
+    }
+  });
+
   // Restaurant routes
   app.post("/api/restaurants", async (req, res) => {
     try {
