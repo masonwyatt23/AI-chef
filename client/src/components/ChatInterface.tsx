@@ -166,14 +166,14 @@ export function ChatInterface({ restaurantId, conversationId, onConversationChan
 
   // Delete conversation mutation
   const deleteConversationMutation = useMutation({
-    mutationFn: async (conversationId: number) => {
-      const response = await apiRequest("DELETE", `/api/conversations/${conversationId}`);
+    mutationFn: async (conversationIdToDelete: number) => {
+      const response = await apiRequest("DELETE", `/api/conversations/${conversationIdToDelete}`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, conversationIdToDelete) => {
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/conversations`] });
       // If we just deleted the current conversation, switch to new chat
-      if (conversationId && conversations.find(c => c.id === conversationId)) {
+      if (conversationId === conversationIdToDelete) {
         onConversationChange(null);
       }
       toast({
