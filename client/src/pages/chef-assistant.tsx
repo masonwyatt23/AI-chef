@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Utensils, MessageSquare, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import jsPDF from 'jspdf';
 import type { Restaurant, Recommendation } from "@shared/schema";
 
 export default function ChefAssistant() {
@@ -34,27 +35,119 @@ export default function ChefAssistant() {
   const handleExport = async () => {
     if (!restaurant || !recommendations.length) return;
 
-    const exportData = {
-      restaurant: restaurant.name,
-      exportDate: new Date().toISOString(),
-      recommendations: recommendations.map(rec => ({
-        title: rec.title,
-        description: rec.description,
-        category: rec.category,
-        recipe: rec.recipe,
-        createdAt: rec.createdAt
-      }))
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - (margin * 2);
+    let yPosition = margin;
+
+    // Helper function to add text with word wrapping
+    const addText = (text: string, fontSize = 10, isBold = false) => {
+      pdf.setFont("helvetica", isBold ? "bold" : "normal");
+      pdf.setFontSize(fontSize);
+      
+      const lines = pdf.splitTextToSize(text, maxWidth);
+      for (const line of lines) {
+        if (yPosition > pdf.internal.pageSize.getHeight() - margin) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+        pdf.text(line, margin, yPosition);
+        yPosition += fontSize * 0.5;
+      }
+      yPosition += 5; // Add some space after text block
     };
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${restaurant.name.replace(/\s+/g, '_')}_recommendations.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Header
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(20);
+    pdf.text(`${restaurant.name} - AI Chef Recommendations`, margin, yPosition);
+    yPosition += 25;
+
+    // Date and summary
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition);
+    yPosition += 15;
+    pdf.text(`Total Recommendations: ${recommendations.length}`, margin, yPosition);
+    yPosition += 10;
+    pdf.text(`Implemented: ${stats.recommendationsUsed}`, margin, yPosition);
+    yPosition += 20;
+
+    // Group recommendations by category
+    const categorizedRecs = recommendations.reduce((acc, rec) => {
+      const category = rec.category || 'general';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(rec);
+      return acc;
+    }, {} as Record<string, typeof recommendations>);
+
+    // Add recommendations by category
+    for (const [category, recs] of Object.entries(categorizedRecs)) {
+      // Category header
+      addText(`${category.toUpperCase()} RECOMMENDATIONS`, 14, true);
+      
+      recs.forEach((rec, index) => {
+        // Recommendation title
+        addText(`${index + 1}. ${rec.title}`, 12, true);
+        
+        // Description
+        if (rec.description) {
+          addText(`Description: ${rec.description}`, 10);
+        }
+        
+        // Recipe details if available
+        if (rec.recipe) {
+          try {
+            const recipe = typeof rec.recipe === 'string' ? JSON.parse(rec.recipe) : rec.recipe;
+            
+            if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+              addText("Ingredients:", 10, true);
+              recipe.ingredients.forEach((ingredient: any) => {
+                const ingredientText = typeof ingredient === 'string' ? ingredient : 
+                  `${ingredient.ingredient || ingredient.name || ''}: ${ingredient.amount || ''}`;
+                addText(`• ${ingredientText}`, 10);
+              });
+            }
+            
+            if (recipe.instructions && Array.isArray(recipe.instructions)) {
+              addText("Instructions:", 10, true);
+              recipe.instructions.forEach((instruction: string, idx: number) => {
+                addText(`${idx + 1}. ${instruction}`, 10);
+              });
+            }
+            
+            if (recipe.prepInstructions && Array.isArray(recipe.prepInstructions)) {
+              addText("Preparation:", 10, true);
+              recipe.prepInstructions.forEach((instruction: string, idx: number) => {
+                addText(`${idx + 1}. ${instruction}`, 10);
+              });
+            }
+            
+            if (recipe.estimatedCost) {
+              addText(`Estimated Cost: $${recipe.estimatedCost}`, 10);
+            }
+            
+            if (recipe.suggestedPrice) {
+              addText(`Suggested Price: $${recipe.suggestedPrice}`, 10);
+            }
+          } catch (e) {
+            addText(`Recipe: ${rec.recipe}`, 10);
+          }
+        }
+        
+        // Implementation status
+        addText(`Status: ${rec.implemented ? 'Implemented ✓' : 'Pending'}`, 10, rec.implemented);
+        
+        yPosition += 10; // Space between recommendations
+      });
+      
+      yPosition += 10; // Extra space between categories
+    }
+
+    // Save the PDF
+    const fileName = `${restaurant.name.replace(/\s+/g, '_')}_AI_Chef_Recommendations.pdf`;
+    pdf.save(fileName);
   };
 
   const stats = {

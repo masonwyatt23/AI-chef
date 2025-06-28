@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Building, MapPin, ChefHat, Users, Target, AlertCircle, Utensils, Palette, TrendingUp, Wine, Menu, Plus, X } from "lucide-react";
+import { Edit, Building, MapPin, ChefHat, Users, Target, AlertCircle, Menu, Plus, X } from "lucide-react";
 import type { Restaurant, InsertRestaurant } from "@shared/schema";
 
 interface ComprehensiveRestaurantContextProps {
@@ -250,16 +250,6 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
     }
   });
 
-  const quickActionMutation = useMutation({
-    mutationFn: async (action: string) => {
-      // Implementation for quick actions
-      return { action };
-    },
-    onSuccess: () => {
-      toast({ title: "Quick action completed" });
-    }
-  });
-
   const onSubmit = (data: InsertRestaurant) => {
     console.log('Submitting restaurant data:', data);
     
@@ -290,10 +280,6 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
     
     console.log('Transformed data:', transformedData);
     updateMutation.mutate(transformedData);
-  };
-
-  const handleQuickAction = (action: string) => {
-    quickActionMutation.mutate(action);
   };
 
   // Options for multi-select fields
@@ -1384,75 +1370,6 @@ export function ComprehensiveRestaurantContext({ restaurant, restaurantId }: Com
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-auto p-4"
-              onClick={() => handleQuickAction('menu-suggestions')}
-              disabled={quickActionMutation.isPending}
-            >
-              <div className="flex items-center space-x-3">
-                <Utensils className="h-5 w-5 text-primary" />
-                <div className="text-left">
-                  <div className="font-medium">Menu Development</div>
-                  <div className="text-sm text-muted-foreground">Generate new menu items</div>
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-auto p-4"
-              onClick={() => handleQuickAction('flavor-pairing')}
-              disabled={quickActionMutation.isPending}
-            >
-              <div className="flex items-center space-x-3">
-                <Palette className="h-5 w-5 text-amber-600" />
-                <div className="text-left">
-                  <div className="font-medium">Flavor Pairing</div>
-                  <div className="text-sm text-muted-foreground">Get ingredient combinations</div>
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-auto p-4"
-              onClick={() => handleQuickAction('efficiency-analysis')}
-              disabled={quickActionMutation.isPending}
-            >
-              <div className="flex items-center space-x-3">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                <div className="text-left">
-                  <div className="font-medium">Efficiency Analysis</div>
-                  <div className="text-sm text-muted-foreground">Optimize operations</div>
-                </div>
-              </div>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-auto p-4"
-              onClick={() => handleQuickAction('cocktail-creation')}
-              disabled={quickActionMutation.isPending}
-            >
-              <div className="flex items-center space-x-3">
-                <Wine className="h-5 w-5 text-purple-600" />
-                <div className="text-left">
-                  <div className="font-medium">Cocktail & Drinks</div>
-                  <div className="text-sm text-muted-foreground">Create signature drinks</div>
-                </div>
-              </div>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
