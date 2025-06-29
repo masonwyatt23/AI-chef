@@ -11,43 +11,53 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
-// PDF parsing using pdfjs-dist with better error handling
+import { promises as fs } from "fs";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+
+// PDF text extraction using pdf-text-extract
 const extractTextFromPDF = async (buffer: Buffer): Promise<string> => {
   try {
-    // Dynamically import pdfjs-dist to avoid module resolution issues
-    const pdfjs: any = await import("pdfjs-dist");
+    // Import pdf-text-extract dynamically
+    const { extract } = await import("pdf-text-extract");
     
-    // Create Uint8Array from Buffer for pdfjs compatibility
-    const data = new Uint8Array(buffer);
+    // Create a temporary file since pdf-text-extract works with file paths
+    const tempDir = path.join(process.cwd(), 'temp');
+    await fs.mkdir(tempDir, { recursive: true });
     
-    // Load the PDF document
-    const loadingTask = pdfjs.getDocument({ data });
-    const pdf = await loadingTask.promise;
+    const tempFileName = `${uuidv4()}.pdf`;
+    const tempFilePath = path.join(tempDir, tempFileName);
     
-    let fullText = '';
-    
-    // Extract text from all pages
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      try {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        
-        // Combine text items from the page
-        const pageText = textContent.items
-          .map((item: any) => item.str || '')
-          .filter((text: string) => text.trim().length > 0)
-          .join(' ');
-        
-        if (pageText.trim()) {
-          fullText += pageText + '\n\n';
-        }
-      } catch (pageError) {
-        console.warn(`Error extracting text from page ${pageNum}:`, pageError);
-        // Continue with other pages even if one fails
-      }
+    try {
+      // Write buffer to temporary file
+      await fs.writeFile(tempFilePath, buffer);
+      
+      // Extract text using pdf-text-extract
+      return new Promise<string>((resolve, reject) => {
+        extract(tempFilePath, { splitPages: false }, (err: any, pages: string[]) => {
+          // Clean up temporary file
+          fs.unlink(tempFilePath).catch(console.error);
+          
+          if (err) {
+            reject(new Error(`PDF extraction failed: ${err.message || err}`));
+            return;
+          }
+          
+          if (!pages || pages.length === 0) {
+            resolve(''); // Empty PDF or no extractable text
+            return;
+          }
+          
+          // Join all pages into a single text
+          const fullText = pages.join('\n\n').trim();
+          resolve(fullText);
+        });
+      });
+    } catch (fileError) {
+      // Clean up temporary file in case of error
+      await fs.unlink(tempFilePath).catch(() => {});
+      throw fileError;
     }
-    
-    return fullText.trim();
   } catch (error) {
     console.error("PDF parsing error:", error);
     throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : String(error)}`);
