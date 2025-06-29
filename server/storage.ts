@@ -74,6 +74,14 @@ export class DatabaseStorage implements IStorage {
     return restaurant || undefined;
   }
 
+  async getRestaurantsByUser(userId: number): Promise<Restaurant[]> {
+    return await db
+      .select()
+      .from(restaurants)
+      .where(eq(restaurants.userId, userId))
+      .orderBy(restaurants.createdAt);
+  }
+
   async updateRestaurant(id: number, updateData: Partial<InsertRestaurant>): Promise<Restaurant | undefined> {
     const [updated] = await db
       .update(restaurants)
@@ -81,6 +89,31 @@ export class DatabaseStorage implements IStorage {
       .where(eq(restaurants.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  async deleteRestaurant(id: number): Promise<boolean> {
+    try {
+      // Get all conversations for this restaurant
+      const restaurantConversations = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.restaurantId, id));
+      
+      // Delete all data associated with this restaurant
+      for (const conversation of restaurantConversations) {
+        await this.deleteConversation(conversation.id);
+      }
+      
+      // Delete recommendations directly associated with restaurant
+      await db.delete(recommendations).where(eq(recommendations.restaurantId, id));
+      
+      // Finally delete the restaurant
+      await db.delete(restaurants).where(eq(restaurants.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting restaurant:', error);
+      return false;
+    }
   }
 
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
