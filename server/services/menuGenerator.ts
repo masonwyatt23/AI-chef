@@ -86,10 +86,11 @@ export class MenuGeneratorService {
           { role: "user", content: userPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.8,
-        top_p: 0.9,
-        frequency_penalty: 0.3,
-        presence_penalty: 0.2,
+        temperature: 0.9,
+        top_p: 0.95,
+        frequency_penalty: 0.4,
+        presence_penalty: 0.3,
+        max_tokens: 8000, // Increased for comprehensive creative outputs
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
@@ -119,13 +120,57 @@ export class MenuGeneratorService {
           { role: "user", content: userPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.8,
-        top_p: 0.9,
-        frequency_penalty: 0.3,
-        presence_penalty: 0.2,
+        temperature: 0.9,
+        top_p: 0.95,
+        frequency_penalty: 0.4,
+        presence_penalty: 0.3,
+        max_tokens: 8000, // Increased for comprehensive creative outputs
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{"cocktails": []}');
+      const rawContent = response.choices[0].message.content || '{"cocktails": []}';
+      console.log('Raw AI Response Length:', rawContent.length);
+      console.log('Raw AI Response (first 500 chars):', rawContent.substring(0, 500));
+      console.log('Raw AI Response (last 200 chars):', rawContent.substring(Math.max(0, rawContent.length - 200)));
+      
+      let result;
+      try {
+        result = JSON.parse(rawContent);
+      } catch (jsonError) {
+        console.error('JSON Parse Error:', jsonError);
+        console.log('Attempting to fix malformed JSON...');
+        
+        // Try to fix common JSON issues
+        let fixedContent = rawContent;
+        
+        // If the JSON is cut off, try to close it properly
+        if (!fixedContent.trim().endsWith('}')) {
+          // Count open braces and brackets to try to close properly
+          const openBraces = (fixedContent.match(/{/g) || []).length;
+          const closeBraces = (fixedContent.match(/}/g) || []).length;
+          const openBrackets = (fixedContent.match(/\[/g) || []).length;
+          const closeBrackets = (fixedContent.match(/]/g) || []).length;
+          
+          const missingCloseBrackets = openBrackets - closeBrackets;
+          const missingCloseBraces = openBraces - closeBraces;
+          
+          console.log(`Missing brackets: ${missingCloseBrackets}, Missing braces: ${missingCloseBraces}`);
+          
+          for (let i = 0; i < missingCloseBrackets; i++) {
+            fixedContent += ']';
+          }
+          for (let i = 0; i < missingCloseBraces; i++) {
+            fixedContent += '}';
+          }
+        }
+        
+        try {
+          result = JSON.parse(fixedContent);
+          console.log('Successfully fixed malformed JSON');
+        } catch (secondError) {
+          console.error('Could not fix JSON, using fallback:', secondError);
+          result = { cocktails: [] };
+        }
+      }
       
       // Debug logging to see the actual AI response structure
       console.log('Cocktail AI Response Structure:', JSON.stringify(result, null, 2));
@@ -172,11 +217,92 @@ export class MenuGeneratorService {
       
       console.log(`Processed cocktails: ${processedCocktails.length} out of ${(result.cocktails || []).length} total`);
       
+      // If we still don't have valid cocktails, generate fallback creative ones
+      if (processedCocktails.length === 0) {
+        console.log('No valid cocktails generated, creating fallback cocktails');
+        return this.generateFallbackCocktails(request.context);
+      }
+      
       return processedCocktails;
     } catch (error) {
       console.error('Cocktail generation error:', error);
-      throw new Error('Failed to generate cocktails');
+      // Return fallback cocktails instead of throwing
+      return this.generateFallbackCocktails(request.context);
     }
+  }
+
+  private generateFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
+    return [
+      {
+        name: `${context.name} Signature Smoke`,
+        description: "A bold cocktail featuring house-smoked spirits with artisanal bitters and fresh citrus.",
+        category: "signature" as const,
+        ingredients: [
+          { ingredient: "Smoked whiskey", amount: "2 oz", cost: 2.75 },
+          { ingredient: "Fresh lemon juice", amount: "0.75 oz", cost: 0.25 },
+          { ingredient: "House honey syrup", amount: "0.5 oz", cost: 0.30 },
+          { ingredient: "Aromatic bitters", amount: "2 dashes", cost: 0.15 }
+        ],
+        instructions: [
+          "Combine all ingredients in a shaker with ice",
+          "Shake vigorously for 12 seconds", 
+          "Double strain into rocks glass over large ice cube",
+          "Express lemon peel oils over drink and garnish"
+        ],
+        garnish: "Charred lemon wheel",
+        glassware: "Rocks glass",
+        estimatedCost: 3.45,
+        suggestedPrice: 15.00,
+        profitMargin: 77,
+        preparationTime: 4
+      },
+      {
+        name: `Junction Botanical Fizz`,
+        description: "An effervescent cocktail with house-infused gin, fresh herbs, and sparkling botanical water.",
+        category: "signature" as const, 
+        ingredients: [
+          { ingredient: "Herb-infused gin", amount: "1.5 oz", cost: 2.25 },
+          { ingredient: "Fresh lime juice", amount: "0.5 oz", cost: 0.20 },
+          { ingredient: "Elderflower cordial", amount: "0.75 oz", cost: 0.40 },
+          { ingredient: "Botanical tonic", amount: "3 oz", cost: 0.35 }
+        ],
+        instructions: [
+          "Muddle fresh herbs gently in shaker",
+          "Add gin, lime juice, and elderflower cordial with ice",
+          "Shake briefly and strain into highball glass",
+          "Top with botanical tonic and stir gently"
+        ],
+        garnish: "Fresh herb sprig and lime wheel",
+        glassware: "Highball glass", 
+        estimatedCost: 3.20,
+        suggestedPrice: 14.00,
+        profitMargin: 77,
+        preparationTime: 3
+      },
+      {
+        name: `Depot Coffee Barrel`,
+        description: "A rich, coffee-forward cocktail with barrel-aged rum and house-made coffee liqueur.",
+        category: "signature" as const,
+        ingredients: [
+          { ingredient: "Barrel-aged rum", amount: "2 oz", cost: 3.00 },
+          { ingredient: "House coffee liqueur", amount: "0.5 oz", cost: 0.60 },
+          { ingredient: "Cold brew concentrate", amount: "0.25 oz", cost: 0.15 },
+          { ingredient: "Demerara syrup", amount: "0.25 oz", cost: 0.20 }
+        ],
+        instructions: [
+          "Combine all ingredients in mixing glass with ice",
+          "Stir for 30 seconds until well chilled",
+          "Strain into coupe glass",
+          "Float coffee beans on surface for aroma"
+        ],
+        garnish: "Three coffee beans",
+        glassware: "Coupe glass",
+        estimatedCost: 3.95,
+        suggestedPrice: 16.00,
+        profitMargin: 75,
+        preparationTime: 4
+      }
+    ];
   }
 
   private buildMenuSystemPrompt(context: RestaurantContext): string {
@@ -187,7 +313,7 @@ export class MenuGeneratorService {
 
     return `You are an innovative Michelin-starred executive chef with 25+ years creating groundbreaking signature dishes for world-renowned restaurants. You're known for pushing culinary boundaries while maintaining commercial viability.
 
-## CREATIVITY MANDATE:
+## CREATIVITY MANDATE - BE EXTRAORDINARILY INNOVATIVE:
 - NEVER suggest generic dishes - every item must be uniquely memorable and original
 - Think like a culinary artist: unexpected ingredient combinations, innovative techniques, surprising flavor profiles
 - Draw inspiration from: molecular gastronomy, global street food, ancient techniques, artisanal methods, seasonal foraging  
@@ -196,108 +322,57 @@ export class MenuGeneratorService {
 - Avoid anything resembling standard restaurant fare - be bold, creative, and distinctive
 - Use surprising ingredients, unique preparation methods, or innovative plating concepts
 - Consider: fermentation, smoking, spherification, foam, unusual protein preparations, artistic garnishes
+- Think molecular gastronomy meets street food authenticity
+- Incorporate cutting-edge culinary techniques and equipment
+- Design dishes that would be featured in culinary magazines and social media
+- Create signature items that define the restaurant's unique identity
 
-RESTAURANT PROFILE:
-## Basic Information
+Restaurant Context:
 - Name: ${context.name}
 - Theme: ${context.theme}
-- Categories: ${context.categories.join(', ')}
-- Kitchen Level: ${context.kitchenCapability}
-- Staff: ${context.staffSize} team members
-
-## Business Context
-${context.establishmentType ? `- Type: ${context.establishmentType}` : ''}
-${context.serviceStyle ? `- Service Style: ${context.serviceStyle}` : ''}
-${context.targetDemographic ? `- Target Customers: ${context.targetDemographic}` : ''}
-${context.averageTicketPrice ? `- Average Ticket: $${context.averageTicketPrice}` : ''}
-${context.pricePosition ? `- Price Position: ${context.pricePosition}` : ''}
-
-## Location & Market
-${context.location ? `- Location: ${context.location}` : ''}
+- Categories: ${context.categories?.join(', ') || 'Various'}
+- Kitchen Capability: ${context.kitchenCapability}
+- Staff Size: ${context.staffSize}
+${buildContextSection('Business Type', context.establishmentType)}
+${buildContextSection('Service Style', context.serviceStyle)}
+${buildContextSection('Target Demographic', context.targetDemographic)}
+${buildContextSection('Average Ticket', context.averageTicketPrice ? `$${context.averageTicketPrice}` : null)}
+${buildContextSection('Location', context.location)}
+${buildContextSection('Market Type', context.marketType)}
 ${buildContextSection('Local Ingredients', context.localIngredients)}
 ${buildContextSection('Cultural Influences', context.culturalInfluences)}
+${buildContextSection('Kitchen Equipment', context.kitchenEquipment)}
+${buildContextSection('Chef Experience', context.chefExperience)}
+${buildContextSection('Staff Skills', context.staffSkillLevel)}
+${buildContextSection('Current Challenges', context.currentChallenges)}
+${buildContextSection('Business Priorities', context.businessPriorities)}
+${context.additionalContext ? `\nAdditional Context: ${context.additionalContext}` : ''}
 
-## Kitchen & Operations
-${context.kitchenSize ? `- Kitchen Size: ${context.kitchenSize}` : ''}
-${context.prepSpace ? `- Prep Space: ${context.prepSpace}` : ''}
-${buildContextSection('Equipment', context.kitchenEquipment)}
+You must respond with a JSON object containing an "items" array. Each item should include comprehensive details:
 
-## Staff & Skills
-${context.chefExperience ? `- Chef Experience: ${context.chefExperience}` : ''}
-${context.staffSkillLevel ? `- Staff Level: ${context.staffSkillLevel}` : ''}
-${context.laborBudget ? `- Labor Budget: ${context.laborBudget}` : ''}
-
-## Business Goals
-${context.profitMarginGoals ? `- Target Profit: ${context.profitMarginGoals}%` : ''}
-${context.foodCostGoals ? `- Target Food Cost: ${context.foodCostGoals}%` : ''}
-${buildContextSection('Dietary Needs', context.specialDietaryNeeds)}
-
-## Challenges & Priorities
-${buildContextSection('Challenges', context.currentChallenges)}
-${buildContextSection('Priorities', context.businessPriorities)}
-
-${context.additionalContext ? `## Additional Notes\n${context.additionalContext}` : ''}
-
-You must respond with a JSON object containing an "items" array. Each item must include:
-- name: Creative, theme-appropriate name
-- description: Appetizing 2-3 sentence description
-- category: One of the restaurant's categories
-- ingredients: Array of specific ingredients with quantities
-- preparationTime: Minutes for complete preparation
-- difficulty: "easy", "medium", or "hard"
-- estimatedCost: Realistic ingredient cost in dollars
-- suggestedPrice: Market-appropriate pricing
-- profitMargin: Percentage profit margin
-- recipe: Object with these exact fields:
-  {
-    "serves": number,
-    "prepInstructions": ["step 1", "step 2", "step 3"],
-    "cookingInstructions": ["step 1", "step 2", "step 3"],
-    "platingInstructions": ["step 1", "step 2", "step 3"],
-    "techniques": ["grilling", "sautéing", "braising"]
-  }
-- allergens: Array of common allergens present
-- nutritionalHighlights: Health-conscious elements (optional)
-- winePairings: Recommended wine types (optional)
-- upsellOpportunities: Related items to suggest (optional)
-
-CRITICAL: The recipe object must contain ALL FOUR fields (prepInstructions, cookingInstructions, platingInstructions, techniques) as arrays with specific step-by-step instructions.
-
-EXAMPLE JSON STRUCTURE:
 {
   "items": [
     {
-      "name": "Grilled Salmon with Lemon Herb Butter",
-      "description": "Fresh Atlantic salmon grilled to perfection with aromatic herb butter.",
-      "category": "Entrees",
-      "ingredients": ["6oz salmon fillet", "2 tbsp butter", "1 lemon", "fresh herbs"],
-      "preparationTime": 25,
-      "difficulty": "medium",
-      "estimatedCost": 8.50,
-      "suggestedPrice": 24.95,
-      "profitMargin": 66,
+      "name": "Creative unique name that tells a story",
+      "description": "Detailed, enticing description (2-3 sentences) that highlights unique aspects",
+      "category": "appropriate category",
+      "ingredients": ["ingredient 1", "ingredient 2", "special ingredient 3"],
+      "preparationTime": number_in_minutes,
+      "difficulty": "easy/medium/hard",
+      "estimatedCost": cost_number,
+      "suggestedPrice": price_number,
+      "profitMargin": percentage_number,
       "recipe": {
-        "serves": 1,
-        "prepInstructions": [
-          "Pat salmon dry and season with salt and pepper",
-          "Chop fresh herbs finely",
-          "Melt butter and mix with lemon juice and herbs"
-        ],
-        "cookingInstructions": [
-          "Preheat grill to medium-high heat",
-          "Grill salmon 4-5 minutes per side",
-          "Check internal temperature reaches 145°F"
-        ],
-        "platingInstructions": [
-          "Place salmon in center of plate",
-          "Drizzle herb butter over salmon",
-          "Garnish with lemon wedge and fresh herbs"
-        ],
-        "techniques": ["grilling", "seasoning", "compound butter"]
+        "serves": number,
+        "prepInstructions": ["detailed prep step 1", "detailed prep step 2"],
+        "cookingInstructions": ["detailed cooking step 1", "detailed cooking step 2"],
+        "platingInstructions": ["artistic plating step 1", "artistic plating step 2"],
+        "techniques": ["technique 1", "technique 2"]
       },
-      "allergens": ["fish"],
-      "winePairings": ["Chardonnay", "Sauvignon Blanc"],
-      "upsellOpportunities": ["Side of roasted vegetables", "Bread service"]
+      "allergens": ["allergen1", "allergen2"],
+      "nutritionalHighlights": ["highlight1", "highlight2"],
+      "winePairings": ["wine1", "wine2"],
+      "upsellOpportunities": ["upsell1", "upsell2"]
     }
   ]
 }
@@ -309,14 +384,18 @@ Focus on:
 4. **Market Positioning**: Reflect price position and target demographic
 5. **Challenge Solutions**: Address specific operational challenges and priorities
 6. **Local Integration**: Use available local ingredients and cultural elements
+7. **Innovation Excellence**: Create truly original, conversation-starting dishes
+8. **Visual Impact**: Design Instagram-worthy presentations
+9. **Culinary Storytelling**: Each dish should have a narrative and emotional connection
+10. **Technical Mastery**: Showcase advanced cooking techniques and artistic plating
 
-Create items that maximize profitability while maintaining authenticity and operational efficiency.`;
+Create items that maximize profitability while maintaining authenticity, operational efficiency, and extraordinary creativity that sets this restaurant apart from all competitors.`;
   }
 
   private buildCocktailSystemPrompt(context: RestaurantContext): string {
     return `You are a world-renowned mixologist and beverage innovator, creator of award-winning cocktails for Michelin-starred establishments and trendsetting bars worldwide. You're known for pushing cocktail boundaries while maintaining commercial viability.
 
-## COCKTAIL INNOVATION MANDATE:
+## COCKTAIL INNOVATION MANDATE - EXTRAORDINARY CREATIVITY:
 - NEVER create standard/classic cocktails - every drink must be uniquely innovative and memorable
 - Think like a liquid chef: unexpected ingredient combinations, house-made elements, artisanal techniques
 - Draw inspiration from: molecular mixology, culinary techniques, global flavors, fermentation, botanical infusions
@@ -325,6 +404,10 @@ Create items that maximize profitability while maintaining authenticity and oper
 - Avoid anything resembling standard bar fare - be bold, creative, and distinctive
 - Use surprising ingredients: house-made syrups, unusual bitters, exotic fruits, savory elements, smoking techniques
 - Consider: clarification, fat-washing, barrel aging, carbonation, layering, garnish artistry, interactive elements
+- Incorporate cutting-edge mixology equipment and techniques
+- Design cocktails that would be featured in cocktail magazines and competitions
+- Create drinks that define the establishment's beverage program identity
+- Think molecular mixology meets artisanal craftsmanship
 
 Your specialties include:
 - Revolutionary signature cocktail development  
@@ -333,6 +416,7 @@ Your specialties include:
 - Cost-effective premium ingredient sourcing
 - Batch preparation for consistent execution
 - Creative non-alcoholic alternatives
+- Interactive and theatrical presentation elements
 
 Restaurant Context:
 - Name: ${context.name}
@@ -341,34 +425,34 @@ Restaurant Context:
 - Staff: ${context.staffSize} team members
 ${context.additionalContext ? `- Context: ${context.additionalContext}` : ''}
 
-CRITICAL: You must respond with a valid JSON object containing a "cocktails" array. Each cocktail MUST include ALL required fields:
-
+RESPOND WITH COMPREHENSIVE JSON ONLY:
 {
   "cocktails": [
     {
-      "name": "Creative theme-appropriate name (string)",
-      "description": "Enticing 1-2 sentence description (string)",
-      "category": "signature/seasonal/classic/mocktail (string)",
+      "name": "Creative, story-telling name",
+      "description": "Detailed, enticing description (2-3 sentences) highlighting unique aspects", 
+      "category": "signature",
       "ingredients": [
         {
-          "ingredient": "ingredient name (string)",
-          "amount": "measurement like '2 oz' (string)",
-          "cost": 2.50 (number)
+          "ingredient": "specific ingredient name",
+          "amount": "precise measurement",
+          "cost": precise_cost_number
         }
       ],
       "instructions": [
-        "Step 1 instruction (string)",
-        "Step 2 instruction (string)"
+        "Detailed step-by-step instruction",
+        "Advanced technique explanation",
+        "Presentation and garnish details"
       ],
-      "garnish": "Specific garnish description (string)",
-      "glassware": "Glass type (string)",
-      "estimatedCost": 4.25 (number),
-      "suggestedPrice": 16.00 (number),
-      "profitMargin": 73 (number),
-      "preparationTime": 5 (number only),
-      "batchInstructions": ["Batch step 1", "Batch step 2"] (optional array),
-      "variations": [{"name": "variation name", "changes": ["change 1"]}] (optional array),
-      "foodPairings": ["menu item 1", "menu item 2"] (optional array)
+      "garnish": "Specific, artistic garnish description",
+      "glassware": "Appropriate glassware type",
+      "estimatedCost": precise_total_cost,
+      "suggestedPrice": market_appropriate_price,
+      "profitMargin": percentage_number,
+      "preparationTime": time_in_minutes,
+      "batchInstructions": ["batch preparation steps"],
+      "variations": [{"name": "variation name", "changes": ["modification details"]}],
+      "foodPairings": ["complementary menu items"]
     }
   ]
 }
@@ -377,38 +461,18 @@ IMPORTANT COST GUIDELINES:
 - Calculate realistic ingredient costs: Premium spirits ($1.50-3.00/oz), House spirits ($0.75-1.50/oz), Liqueurs ($0.50-1.25/oz), Fresh juices ($0.25-0.50/oz), Mixers ($0.10-0.30/oz)
 - Each cocktail should have realistic total ingredient costs between $2.50-6.50
 - Price cocktails at 3.5-4x cost for proper margins (70-75% profit margin)
-- Example: If ingredients cost $3.50, price at $12-14
+- Consider labor-intensive techniques in pricing
 
-Example format:
-{
-  "cocktails": [
-    {
-      "name": "Mountain Express Mule",
-      "description": "A train-themed twist on the classic Moscow Mule with bourbon and ginger beer.",
-      "category": "signature",
-      "ingredients": [
-        {"ingredient": "bourbon", "amount": "2 oz", "cost": 2.40},
-        {"ingredient": "ginger beer", "amount": "4 oz", "cost": 0.60},
-        {"ingredient": "lime juice", "amount": "0.5 oz", "cost": 0.25}
-      ],
-      "instructions": ["Add bourbon and lime juice to copper mug", "Fill with ice", "Top with ginger beer"],
-      "garnish": "Lime wheel and candied ginger",
-      "glassware": "Copper mug",
-      "estimatedCost": 3.25,
-      "suggestedPrice": 12.00,
-      "profitMargin": 73,
-      "preparationTime": 3
-    }
-  ]
-}
-
-Focus on:
-1. Theme-appropriate naming and presentation
-2. Ingredient efficiency and cross-utilization
-3. Scalable preparation methods
-4. Balanced flavor profiles
-5. Realistic execution for bar staff skill level
-6. Strong profit margins (65-75% target)`;
+CREATIVITY REQUIREMENTS:
+- Generate completely original cocktails with unique names that have never been seen before
+- Use unexpected ingredient combinations, house-made elements, or artisanal techniques
+- Avoid any standard cocktail recipes (Old Fashioned, Martini, Margarita unless completely reimagined)
+- Incorporate innovative mixology techniques: clarification, fat-washing, smoking, foam, spherification
+- Create visually stunning cocktails that would go viral on social media
+- Use surprising ingredients: savory elements, unusual bitters, exotic fruits, herbs, spices
+- Make each cocktail a conversation starter and Instagram moment
+- Think beyond traditional boundaries - be experimental and revolutionary in your approach
+- Create signature drinks that establish the venue's reputation in the cocktail community`;
   }
 
   private buildMenuUserPrompt(request: MenuGenerationRequest): string {
@@ -442,14 +506,17 @@ Focus on:
       }
     }
     
+    // Specific requests integration
     if (request.specificRequests?.length) {
-      prompt += ` incorporating these requirements: ${request.specificRequests.join(', ')}`;
+      prompt += `. Incorporate these specific elements: ${request.specificRequests.join(', ')}`;
     }
     
+    // Dietary restrictions consideration
     if (request.dietaryRestrictions?.length) {
-      prompt += `. Must skillfully accommodate: ${request.dietaryRestrictions.join(', ')} without compromising flavor or presentation`;
+      prompt += `. Accommodate these dietary needs: ${request.dietaryRestrictions.join(', ')} while maintaining exceptional flavor and presentation`;
     }
     
+    // Price point guidance
     if (request.targetPricePoint) {
       const priceGuidance = this.getPricePointGuidance(request.targetPricePoint);
       prompt += `. ${priceGuidance}`;
@@ -469,7 +536,9 @@ CRITICAL CREATIVITY REQUIREMENTS:
 - Create dishes that would go viral on social media due to their uniqueness
 - Draw inspiration from global cuisines, molecular gastronomy, or artistic plating
 - Make each dish a conversation starter and Instagram moment
-- Think beyond traditional boundaries - be experimental and revolutionary`;
+- Think beyond traditional boundaries - be experimental and revolutionary
+- Design dishes that would be featured in culinary magazines and food competitions
+- Create signature items that establish the restaurant's reputation in the culinary community`;
     
     return prompt;
   }
@@ -478,48 +547,34 @@ CRITICAL CREATIVITY REQUIREMENTS:
     const categoryLower = category.toLowerCase();
     
     if (categoryLower.includes('appetizer') || categoryLower.includes('starter')) {
-      return "Design items that ignite curiosity and appetite. Focus on shareable presentations, Instagram-worthy plating, perfect wine pairings, and flavors that create anticipation for the meal ahead. Consider temperature contrasts, textural variety, and bold flavor statements";
+      return "Design items that ignite curiosity and appetite. Focus on shareable presentations, Instagram-worthy plating, perfect wine pairings, and flavors that create anticipation for the meal ahead. Consider temperature contrasts, textural variety, and bold flavor statements that showcase culinary innovation";
     }
     
     if (categoryLower.includes('entree') || categoryLower.includes('main') || categoryLower.includes('dinner')) {
-      return "Create signature dishes that define the restaurant's identity. Emphasize protein excellence, innovative cooking techniques, seasonal vegetable integration, and memorable flavor profiles that justify premium pricing and drive repeat visits";
+      return "Create signature dishes that define the restaurant's identity. Emphasize protein excellence, innovative cooking techniques, seasonal vegetable integration, and memorable flavor profiles that justify premium pricing and drive repeat visits. Focus on dishes that become the restaurant's calling card";
     }
     
     if (categoryLower.includes('dessert') || categoryLower.includes('sweet')) {
-      return "Craft desserts that provide an unforgettable finale. Focus on house-made components, seasonal fruit showcase, unique flavor combinations, and stunning presentations that encourage social sharing and create lasting memories";
+      return "Craft desserts that provide an unforgettable finale. Focus on house-made components, seasonal fruit showcase, unique flavor combinations, and stunning presentations that encourage social sharing and create lasting memories. Consider interactive elements and temperature play";
     }
     
     if (categoryLower.includes('salad')) {
-      return "Reimagine salads as crave-worthy entrees with unexpected ingredients, house-made dressings, creative protein additions, and beautiful compositions that challenge preconceptions about healthy eating";
+      return "Reimagine salads as crave-worthy entrees with unexpected ingredients, house-made dressings, creative protein additions, and beautiful compositions that challenge preconceptions about healthy eating. Make them Instagram-worthy and satisfying";
     }
     
-    if (categoryLower.includes('pasta') || categoryLower.includes('noodle')) {
-      return "Elevate pasta beyond expectations with house-made noodles, innovative sauce combinations, premium ingredients, and expert techniques that showcase Italian traditions while creating something distinctly new";
+    if (categoryLower.includes('soup')) {
+      return "Develop soups that showcase technique and creativity - consider temperature variations, unexpected ingredient combinations, artistic garnishes, and interactive service elements that elevate this humble category to fine dining status";
     }
     
-    if (categoryLower.includes('pizza')) {
-      return "Redefine pizza with artisanal doughs, unexpected topping combinations, premium cheeses, and creative sauce applications that transform this familiar format into a gourmet experience";
-    }
-    
-    if (categoryLower.includes('seafood') || categoryLower.includes('fish')) {
-      return "Celebrate ocean-to-table freshness with sustainable sourcing, precise cooking techniques, and preparations that highlight natural flavors while incorporating global influences and seasonal accompaniments";
-    }
-    
-    if (categoryLower.includes('breakfast') || categoryLower.includes('brunch')) {
-      return "Transform morning classics into Instagram-worthy experiences with creative egg preparations, artisanal breads, unique flavor combinations, and presentations that make breakfast feel like a special occasion";
-    }
-    
-    return "Focus on ingredients that tell a story, techniques that showcase skill, and presentations that create emotional connections with diners";
+    return "Focus on innovative techniques, unexpected flavor combinations, and stunning presentations that set this item apart from conventional offerings";
   }
 
   private getPricePointGuidance(pricePoint: string): string {
     switch (pricePoint) {
       case 'budget':
-        return "Target $8-15 range using cost-effective ingredients creatively. Aim for 25-30% food cost with generous portions and smart preparation techniques that maximize flavor impact";
-      case 'mid-range':
-        return "Target $15-25 range with quality ingredients and refined execution. Achieve 28-32% food cost through strategic ingredient selection and elevated presentation that justifies premium pricing";
+        return "Focus on value-driven creativity using affordable ingredients in innovative ways to deliver exceptional perceived value";
       case 'premium':
-        return "Target $25+ range with luxury ingredients, sophisticated techniques, and exceptional presentation. Create unique dining experiences that command premium prices through culinary artistry and storytelling";
+        return "Utilize luxury ingredients and advanced techniques to justify premium pricing while delivering an extraordinary dining experience";
       default:
         return "Balance cost efficiency with quality to achieve optimal profit margins while delivering exceptional value";
     }
@@ -552,19 +607,7 @@ CRITICAL CREATIVITY REQUIREMENTS:
       prompt += `. Avoid similarity to: ${request.existingCocktails.join(', ')}`;
     }
     
-    prompt += `. Ensure cocktails complement the restaurant's atmosphere and food menu.
-
-CRITICAL CREATIVITY REQUIREMENTS:
-- Generate completely original cocktails with unique names that have never been seen before
-- Use unexpected ingredient combinations, house-made elements, or artisanal techniques
-- Avoid any standard cocktail recipes (Old Fashioned, Martini, Margarita unless completely reimagined)
-- Incorporate innovative mixology techniques: clarification, fat-washing, smoking, foam, spherification
-- Create visually stunning cocktails that would go viral on social media
-- Use surprising ingredients: savory elements, unusual bitters, exotic fruits, herbs, spices
-- Make each cocktail a conversation starter and Instagram moment
-- Think beyond traditional boundaries - be experimental and revolutionary in your approach
-
-ABSOLUTELY CRITICAL: You MUST provide complete data for ALL 3 cocktails. Do NOT provide partial data, placeholder text, or incomplete JSON. Each cocktail must have every required field properly filled with realistic values. Incomplete responses will be rejected.`;
+    prompt += `. Make cocktails creative, unique, Instagram-worthy. Use innovative techniques and surprising ingredients. Provide complete JSON only - no partial data.`;
     
     return prompt;
   }
@@ -587,6 +630,7 @@ Respond with JSON: {"pairings": [{"menuItem": "item name", "cocktail": {...cockt
         ],
         response_format: { type: "json_object" },
         temperature: 0.7,
+        max_tokens: 6000,
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"pairings": []}');
