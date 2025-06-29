@@ -92,6 +92,7 @@ The application uses the following main entities:
 
 ### Core Features
 - **Intelligent Menu Analysis**: Parse existing menus to understand current offerings and generate strategic improvements
+- **Professional PDF Upload**: Modern drag-and-drop interface with progress tracking, file validation (PDF only, 10MB limit), and automatic text extraction
 - **Category-Focused Generation**: Target specific menu categories (appetizers, entrees, desserts, etc.) with expert-level AI prompts
 - **Advanced Restaurant Context Display**: Beautiful, organized display of all restaurant profile data including business goals, market position, and operational details
 - **Strategic Menu Development**: AI-powered recommendations that analyze existing items and create complementary offerings
@@ -109,6 +110,7 @@ The application uses the following main entities:
 
 ```
 Changelog:
+- June 29, 2025: Enhanced PDF upload functionality - Replaced hardcoded sample menus with professional drag-and-drop PDF upload interface featuring progress tracking, file validation, and automatic text extraction
 - June 27, 2025: Major platform enhancement - Added database integration and comprehensive restaurant operations dashboard
 - June 27, 2025: Enhanced UI/UX with improved chat interface and fixed layout issues  
 - June 27, 2025: Initial setup
