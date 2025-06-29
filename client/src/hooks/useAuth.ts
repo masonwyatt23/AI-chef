@@ -15,9 +15,7 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("/api/auth/logout", {
-        method: "POST",
-      });
+      await apiRequest("POST", "/api/auth/logout");
     },
     onSuccess: () => {
       // Clear all queries when logging out

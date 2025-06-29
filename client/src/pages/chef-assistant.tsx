@@ -7,21 +7,19 @@ import { MenuCocktailGenerator } from "@/components/MenuCocktailGenerator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Utensils, MessageSquare, Settings } from "lucide-react";
+import { Download, Utensils, MessageSquare, Settings, ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import depotLogoPath from "@assets/depot logo_1751085413672.png";
 import jsPDF from 'jspdf';
 import type { Restaurant, Recommendation } from "@shared/schema";
 
-export default function ChefAssistant() {
-  const [restaurantId, setRestaurantId] = useState<number | null>(null);
-  const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
+interface ChefAssistantProps {
+  restaurantId: number;
+  onBackToDashboard: () => void;
+}
 
-  // Initialize with existing restaurant (ID 70)
-  useEffect(() => {
-    // Use the existing restaurant with full profile data
-    setRestaurantId(70);
-  }, []);
+export default function ChefAssistant({ restaurantId, onBackToDashboard }: ChefAssistantProps) {
+  const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
 
   const { data: restaurant } = useQuery<Restaurant>({
     queryKey: [`/api/restaurants/${restaurantId}`],
@@ -138,7 +136,7 @@ export default function ChefAssistant() {
         }
         
         // Implementation status
-        addText(`Status: ${rec.implemented ? 'Implemented ✓' : 'Pending'}`, 10, rec.implemented);
+        addText(`Status: ${rec.implemented ? 'Implemented ✓' : 'Pending'}`, 10, Boolean(rec.implemented));
         
         yPosition += 10; // Space between recommendations
       });
