@@ -113,6 +113,10 @@ export const insertRecommendationSchema = createInsertSchema(recommendations).om
   createdAt: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+});
+
 export type Restaurant = typeof restaurants.$inferSelect;
 export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
 export type Conversation = typeof conversations.$inferSelect;
@@ -123,4 +127,4 @@ export type Recommendation = typeof recommendations.$inferSelect;
 export type InsertRecommendation = z.infer<typeof insertRecommendationSchema>;
 
 export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;

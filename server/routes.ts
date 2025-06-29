@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiChefService } from "./services/aiChef";
 import { menuGenerator } from "./services/menuGenerator";
+import { configureSession, hashPassword, comparePassword, requireAuth } from "./auth";
 import { 
   insertRestaurantSchema, 
   insertConversationSchema, 
@@ -28,6 +29,86 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure session middleware
+  configureSession(app);
+
+  // Authentication routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      // Hash password and create user
+      const hashedPassword = await hashPassword(password);
+      const user = await storage.createUser({ username, password: hashedPassword });
+
+      // Set session
+      req.session.userId = user.id;
+      req.session.username = user.username;
+
+      res.json({ id: user.id, username: user.username });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Failed to register user" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      // Find user
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Check password
+      const isValid = await comparePassword(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Set session
+      req.session.userId = user.id;
+      req.session.username = user.username;
+
+      res.json({ id: user.id, username: user.username });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Failed to login" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy(() => {
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
+  app.get("/api/auth/me", (req, res) => {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    res.json({ 
+      id: req.session.userId, 
+      username: req.session.username 
+    });
+  });
   // PDF Upload route with text extraction
   app.post("/api/parse-menu-pdf", upload.single('menuPdf'), async (req, res) => {
     try {
@@ -62,9 +143,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Restaurant routes
-  app.post("/api/restaurants", async (req, res) => {
+  app.get("/api/restaurants", requireAuth, async (req, res) => {
     try {
-      const restaurantData = insertRestaurantSchema.parse(req.body);
+      const restaurants = await storage.getRestaurantsByUser(req.user!.id);
+      res.json(restaurants);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch restaurants" });
+    }
+  });
+
+  app.post("/api/restaurants", requireAuth, async (req, res) => {
+    try {
+      const restaurantData = insertRestaurantSchema.parse({
+        ...req.body,
+        userId: req.user!.id
+      });
       const restaurant = await storage.createRestaurant(restaurantData);
       res.json(restaurant);
     } catch (error) {
