@@ -105,6 +105,57 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const { data: savedMenus = [], refetch: refetchSavedMenus } = useQuery({
     queryKey: ['/api/restaurants', restaurantId, 'saved-menus'],
   });
+
+  // Save menu mutation
+  const saveMenuMutation = useMutation({
+    mutationFn: async (menuData: { name: string; menuText: string; menuType: string }) => {
+      return await apiRequest("POST", '/api/saved-menus', {
+        restaurantId,
+        name: menuData.name,
+        menuText: menuData.menuText,
+        menuType: menuData.menuType,
+      });
+    },
+    onSuccess: () => {
+      refetchSavedMenus();
+      setIsSavingMenu(false);
+      setShowSaveDialog(false);
+      setSaveMenuName("");
+      toast({
+        title: "Menu saved successfully",
+        description: "Your menu has been saved and can be loaded later",
+      });
+    },
+    onError: () => {
+      setIsSavingMenu(false);
+      toast({
+        title: "Error saving menu",
+        description: "Failed to save menu. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete saved menu mutation
+  const deleteMenuMutation = useMutation({
+    mutationFn: async (menuId: number) => {
+      return await apiRequest("DELETE", `/api/saved-menus/${menuId}`);
+    },
+    onSuccess: () => {
+      refetchSavedMenus();
+      toast({
+        title: "Menu deleted",
+        description: "Saved menu has been removed",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error deleting menu",
+        description: "Failed to delete menu. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
   
   // Menu generation state
   const [menuRequests, setMenuRequests] = useState<string[]>([]);
@@ -777,6 +828,77 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
       title: "Junction drink menu loaded",
       description: "Cocktail and drink menu content has been loaded",
     });
+  };
+
+  // Save current menu functions
+  const handleSaveMenu = () => {
+    if (!existingMenu.trim()) {
+      toast({
+        title: "No menu to save",
+        description: "Please paste or load a menu first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowSaveDialog(true);
+  };
+
+  const handleSaveCocktailMenu = () => {
+    if (!cocktailMenuText.trim()) {
+      toast({
+        title: "No cocktail menu to save",
+        description: "Please paste or load a cocktail menu first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowSaveDialog(true);
+  };
+
+  const confirmSaveMenu = () => {
+    if (!saveMenuName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for your saved menu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const menuText = activeTab === "menu" ? existingMenu : cocktailMenuText;
+    const menuType = activeTab === "menu" ? "food" : "cocktail";
+
+    setIsSavingMenu(true);
+    saveMenuMutation.mutate({
+      name: saveMenuName,
+      menuText,
+      menuType,
+    });
+  };
+
+  const loadSavedMenu = (savedMenu: SavedMenu) => {
+    if (savedMenu.menuType === "food") {
+      setExistingMenu(savedMenu.menuText);
+      setActiveTab("menu");
+      // Auto-analyze the menu text
+      setTimeout(() => {
+        analyzeMenuText(savedMenu.menuText);
+      }, 100);
+    } else {
+      setCocktailMenuText(savedMenu.menuText);
+      setActiveTab("cocktails");
+    }
+    
+    toast({
+      title: "Menu loaded",
+      description: `${savedMenu.name} has been loaded successfully`,
+    });
+  };
+  
+  const deleteSavedMenu = (menuId: number, menuName: string) => {
+    if (confirm(`Are you sure you want to delete "${menuName}"?`)) {
+      deleteMenuMutation.mutate(menuId);
+    }
   };
 
   // History management functions

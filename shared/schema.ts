@@ -98,6 +98,7 @@ export const savedMenus = pgTable("saved_menus", {
   restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
   name: text("name").notNull(),
   menuText: text("menu_text").notNull(),
+  menuType: text("menu_type").notNull().default("food"), // 'food' or 'cocktail'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
