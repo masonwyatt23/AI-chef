@@ -82,9 +82,10 @@ The application uses the following main entities:
 
 ## Recent Updates
 
-### Enhanced AI Chef Assistant with Advanced Menu Intelligence (June 27, 2025)
+### Enhanced AI Chef Assistant with Advanced Menu Intelligence & PDF Processing (June 29, 2025)
 - **Comprehensive Restaurant Profiling**: Enhanced detailed restaurant profile display showing all 50+ captured data points organized by categories
 - **Advanced Menu Parsing & Analysis**: Smart menu parsing that extracts categories and items from pasted text menus
+- **Professional PDF Upload Interface**: Drag-and-drop PDF upload with real-time progress tracking, file validation, and error handling
 - **Category-Specific AI Generation**: Engineered AI prompts for targeted menu item creation based on specific food categories
 - **Expert-Level AI Responses**: Sophisticated prompt engineering providing restaurant-quality culinary recommendations
 - **Enhanced Database Integration**: PostgreSQL persistence with comprehensive restaurant context saving and retrieval

@@ -27,7 +27,11 @@ import {
   Eye,
   AlertCircle,
   Trash2,
-  History
+  History,
+  CloudUpload,
+  X,
+  CheckCircle,
+  Loader2
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -119,6 +123,10 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   // PDF upload state
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cocktailMenuText, setCocktailMenuText] = useState("");
   
@@ -311,35 +319,64 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     }
   };
 
-  // Handle PDF upload
+  // Handle PDF upload with enhanced progress tracking
   const handlePdfUpload = async (file: File) => {
+    // Reset states
+    setUploadError(null);
+    setUploadSuccess(false);
+    setUploadProgress(0);
+
+    // Validate file type
     if (!file.type.includes('pdf')) {
+      const errorMsg = "Please upload a PDF file only";
+      setUploadError(errorMsg);
       toast({
         title: "Invalid file type",
-        description: "Please upload a PDF file",
+        description: errorMsg,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      const errorMsg = "File size must be less than 10MB";
+      setUploadError(errorMsg);
+      toast({
+        title: "File too large",
+        description: errorMsg,
         variant: "destructive"
       });
       return;
     }
 
     setIsUploading(true);
+    setUploadProgress(25);
+
     const formData = new FormData();
     formData.append('menuPdf', file);
 
     try {
+      setUploadProgress(50);
+      
       const response = await fetch('/api/parse-menu-pdf', {
         method: 'POST',
         body: formData,
       });
 
+      setUploadProgress(75);
+
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error(`Upload failed: ${response.statusText}`);
       }
 
       const result = await response.json();
+      setUploadProgress(100);
       
       if (result.text && result.text.trim()) {
         setExistingMenu(result.text);
+        setUploadSuccess(true);
         toast({
           title: "PDF uploaded successfully",
           description: `Extracted text from ${result.filename}`,
@@ -347,10 +384,10 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
         
         // Auto-analyze the extracted text after state update
         setTimeout(() => {
-          // Call the analysis function directly with the extracted text
           analyzeMenuText(result.text);
         }, 100);
       } else {
+        setUploadSuccess(true);
         toast({
           title: "PDF uploaded",
           description: result.message || "PDF uploaded but no text extracted yet",
@@ -358,9 +395,11 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       }
     } catch (error) {
       console.error('Upload error:', error);
+      const errorMsg = error instanceof Error ? error.message : "Failed to upload PDF. Please try again.";
+      setUploadError(errorMsg);
       toast({
         title: "Upload failed",
-        description: "Failed to upload PDF. Please try again.",
+        description: errorMsg,
         variant: "destructive"
       });
     } finally {
@@ -369,6 +408,13 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      
+      // Clear progress after delay
+      setTimeout(() => {
+        setUploadProgress(0);
+        setUploadSuccess(false);
+        setUploadError(null);
+      }, 3000);
     }
   };
 
@@ -379,6 +425,36 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       setUploadedFile(file);
       handlePdfUpload(file);
     }
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      setUploadedFile(file);
+      handlePdfUpload(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   // Handle cocktail PDF upload
@@ -1025,32 +1101,110 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                   <Label className="text-base font-semibold">Existing Menu Analysis</Label>
                   <p className="text-sm text-slate-600 mb-3">Upload a PDF menu or paste your current menu text to analyze categories and generate targeted improvements</p>
                   
-                  {/* Quick Menu Load */}
-                  <div className="mb-4 p-3 border rounded-lg bg-white">
-                    <Label className="text-sm font-medium mb-2 block">Load Sample Menus</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={loadDepotMenu}
-                        className="flex items-center flex-1"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Depot Menu
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={loadJunctionMenu}
-                        className="flex items-center flex-1"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Junction Catering
-                      </Button>
+                  {/* PDF Upload Interface */}
+                  <div className="mb-4">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept=".pdf"
+                      className="hidden"
+                    />
+                    
+                    <div
+                      className={`relative border-2 border-dashed rounded-lg p-6 transition-all duration-200 cursor-pointer ${
+                        isDragOver 
+                          ? 'border-blue-400 bg-blue-50 scale-105' 
+                          : isUploading
+                          ? 'border-blue-300 bg-blue-25'
+                          : uploadSuccess
+                          ? 'border-green-400 bg-green-50'
+                          : uploadError
+                          ? 'border-red-400 bg-red-50'
+                          : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={triggerFileInput}
+                    >
+                      <div className="text-center space-y-3">
+                        {isUploading ? (
+                          <>
+                            <div className="flex items-center justify-center">
+                              <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-blue-700 font-medium">Uploading PDF...</p>
+                              <div className="w-full bg-blue-100 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${uploadProgress}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-blue-600">{uploadProgress}% complete</p>
+                            </div>
+                          </>
+                        ) : uploadSuccess ? (
+                          <>
+                            <CheckCircle className="h-8 w-8 text-green-600 mx-auto" />
+                            <div>
+                              <p className="text-green-700 font-medium">PDF uploaded successfully!</p>
+                              <p className="text-xs text-green-600">Menu text extracted and ready for analysis</p>
+                            </div>
+                          </>
+                        ) : uploadError ? (
+                          <>
+                            <AlertCircle className="h-8 w-8 text-red-600 mx-auto" />
+                            <div>
+                              <p className="text-red-700 font-medium">Upload failed</p>
+                              <p className="text-xs text-red-600">{uploadError}</p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="mt-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setUploadError(null);
+                                  triggerFileInput();
+                                }}
+                              >
+                                Try Again
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-center">
+                              <CloudUpload className={`h-8 w-8 ${isDragOver ? 'text-blue-600' : 'text-gray-400'} transition-colors`} />
+                            </div>
+                            <div>
+                              <p className={`font-medium ${isDragOver ? 'text-blue-700' : 'text-gray-700'}`}>
+                                {isDragOver ? 'Drop your PDF here' : 'Upload your menu PDF'}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Drag and drop or click to browse • PDF only • Max 10MB
+                              </p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                triggerFileInput();
+                              }}
+                              className="mt-2"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Choose File
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="text-center text-sm text-gray-500 mb-3">or paste your own</div>
+                  <div className="text-center text-sm text-gray-500 mb-3">or paste your menu text below</div>
                   
                   <Textarea
                     placeholder="Paste your existing menu here...
