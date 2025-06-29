@@ -102,7 +102,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [activeTab, setActiveTab] = useState<"menu" | "cocktails">("menu");
 
   // Fetch saved menus
-  const { data: savedMenus = [], refetch: refetchSavedMenus } = useQuery({
+  const { data: savedMenus = [], refetch: refetchSavedMenus } = useQuery<SavedMenu[]>({
     queryKey: ['/api/restaurants', restaurantId, 'saved-menus'],
   });
 
@@ -1182,6 +1182,59 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                       </Button>
                     </div>
                   </div>
+
+                  {/* Saved Menus */}
+                  <div className="mb-4 p-3 border rounded-lg bg-white">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-sm font-medium">Your Saved Menus</Label>
+                      <Button
+                        onClick={handleSaveMenu}
+                        size="sm"
+                        variant="outline"
+                        disabled={!existingMenu.trim()}
+                        className="flex items-center"
+                      >
+                        <History className="h-4 w-4 mr-1" />
+                        Save Current
+                      </Button>
+                    </div>
+                    
+                    {savedMenus.filter(menu => menu.menuType === 'food').length === 0 ? (
+                      <p className="text-sm text-gray-500 italic">No saved food menus yet</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {savedMenus.filter(menu => menu.menuType === 'food').map((menu) => (
+                          <div key={menu.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{menu.name}</p>
+                              <p className="text-xs text-gray-500">
+                                Saved {new Date(menu.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                onClick={() => loadSavedMenu(menu)}
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                Load
+                              </Button>
+                              <Button
+                                onClick={() => deleteSavedMenu(menu.id, menu.name)}
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   
                   <div className="text-center text-sm text-gray-500 mb-3">or paste your own</div>
                   
@@ -1735,6 +1788,59 @@ Ribeye Steak - 12oz premium cut $32
                       Junction Drink Menu
                     </Button>
                   </div>
+                </div>
+
+                {/* Saved Cocktail Menus */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <Label>Your Saved Cocktail Menus</Label>
+                    <Button
+                      onClick={handleSaveCocktailMenu}
+                      size="sm"
+                      variant="outline"
+                      disabled={!cocktailMenuText.trim()}
+                      className="flex items-center"
+                    >
+                      <History className="h-4 w-4 mr-1" />
+                      Save Current
+                    </Button>
+                  </div>
+                  
+                  {savedMenus.filter(menu => menu.menuType === 'cocktail').length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">No saved cocktail menus yet</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {savedMenus.filter(menu => menu.menuType === 'cocktail').map((menu) => (
+                        <div key={menu.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{menu.name}</p>
+                            <p className="text-xs text-gray-500">
+                              Saved {new Date(menu.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              onClick={() => loadSavedMenu(menu)}
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Load
+                            </Button>
+                            <Button
+                              onClick={() => deleteSavedMenu(menu.id, menu.name)}
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {cocktailMenuText && (
                     <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded">
                       <p className="text-sm text-green-700 mb-2 font-medium">✓ Drink menu loaded successfully</p>
@@ -2426,6 +2532,38 @@ Ribeye Steak - 12oz premium cut $32
           </Card>
         </div>
       )}
+
+      {/* Save Menu Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Menu</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="menu-name">Menu Name</Label>
+              <Input
+                id="menu-name"
+                placeholder="Enter a name for this menu"
+                value={saveMenuName}
+                onChange={(e) => setSaveMenuName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && confirmSaveMenu()}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmSaveMenu}
+                disabled={isSavingMenu || !saveMenuName.trim()}
+              >
+                {isSavingMenu ? "Saving..." : "Save Menu"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
