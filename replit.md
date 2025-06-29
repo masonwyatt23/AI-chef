@@ -82,17 +82,15 @@ The application uses the following main entities:
 
 ## Recent Updates
 
-### Enhanced AI Chef Assistant with Advanced Menu Intelligence & PDF Processing (June 29, 2025)
+### Enhanced AI Chef Assistant with Advanced Menu Intelligence (June 27, 2025)
 - **Comprehensive Restaurant Profiling**: Enhanced detailed restaurant profile display showing all 50+ captured data points organized by categories
 - **Advanced Menu Parsing & Analysis**: Smart menu parsing that extracts categories and items from pasted text menus
-- **Professional PDF Upload Interface**: Drag-and-drop PDF upload with real-time progress tracking, file validation, and error handling
 - **Category-Specific AI Generation**: Engineered AI prompts for targeted menu item creation based on specific food categories
 - **Expert-Level AI Responses**: Sophisticated prompt engineering providing restaurant-quality culinary recommendations
 - **Enhanced Database Integration**: PostgreSQL persistence with comprehensive restaurant context saving and retrieval
 
 ### Core Features
 - **Intelligent Menu Analysis**: Parse existing menus to understand current offerings and generate strategic improvements
-- **Professional PDF Upload**: Modern drag-and-drop interface with progress tracking, file validation (PDF only, 10MB limit), and automatic text extraction
 - **Category-Focused Generation**: Target specific menu categories (appetizers, entrees, desserts, etc.) with expert-level AI prompts
 - **Advanced Restaurant Context Display**: Beautiful, organized display of all restaurant profile data including business goals, market position, and operational details
 - **Strategic Menu Development**: AI-powered recommendations that analyze existing items and create complementary offerings
@@ -110,8 +108,6 @@ The application uses the following main entities:
 
 ```
 Changelog:
-- June 29, 2025: Removed PDF upload functionality - Eliminated problematic PDF parsing due to library compatibility issues; Enhanced text input guidance with comprehensive tips and formatting examples for better user experience
-- June 29, 2025: Enhanced PDF upload functionality - Replaced hardcoded sample menus with professional drag-and-drop PDF upload interface featuring progress tracking, file validation, and automatic text extraction
 - June 27, 2025: Major platform enhancement - Added database integration and comprehensive restaurant operations dashboard
 - June 27, 2025: Enhanced UI/UX with improved chat interface and fixed layout issues  
 - June 27, 2025: Initial setup
