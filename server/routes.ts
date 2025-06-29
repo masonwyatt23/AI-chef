@@ -11,21 +11,27 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
-// PDF text extraction using pdf-parse with try-catch fallback
+
+// PDF text extraction using dynamic import to handle pdf-parse
 const extractTextFromPDF = async (buffer: Buffer): Promise<string> => {
   try {
-    // Try to import and use pdf-parse
-    const pdfParse = require('pdf-parse');
+    // Use dynamic import for pdf-parse
+    const pdfParse = (await import('pdf-parse')).default;
     const data = await pdfParse(buffer);
-    return data.text.trim();
+    
+    if (data.text && data.text.trim().length > 0) {
+      return data.text.trim();
+    } else {
+      throw new Error("No text content found in PDF");
+    }
   } catch (error) {
     console.error("PDF parsing error:", error);
     
     // If PDF parsing fails, return a helpful message with manual extraction instructions
     throw new Error(`PDF text extraction failed. This could be due to:
-    
+
 • PDF contains scanned images instead of text
-• PDF is password protected
+• PDF is password protected  
 • PDF uses complex formatting
 
 Please copy the menu text manually from your PDF and paste it into the text area below.`);
