@@ -18,8 +18,9 @@ export function useAuth() {
       await apiRequest("POST", "/api/auth/logout");
     },
     onSuccess: () => {
-      // Clear all queries when logging out
+      // Clear all queries and force a page reload to ensure clean logout
       queryClient.clear();
+      window.location.href = "/";
     },
   });
 
