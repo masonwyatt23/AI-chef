@@ -1504,7 +1504,7 @@ Ribeye Steak - 12oz premium cut $32
                               </Button>
                             </div>
 
-                            {item.allergens.length > 0 && (
+                            {item.allergens && item.allergens.length > 0 && (
                               <div>
                                 <p className="text-xs text-slate-500 mb-1">Allergens:</p>
                                 <div className="flex flex-wrap gap-1">
@@ -1669,7 +1669,7 @@ Ribeye Steak - 12oz premium cut $32
                                 </div>
                               </div>
                               
-                              {item.allergens.length > 0 && (
+                              {item.allergens && item.allergens.length > 0 && (
                                 <div>
                                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                                     <AlertCircle className="h-4 w-4 text-red-500" />

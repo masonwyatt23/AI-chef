@@ -254,102 +254,38 @@ export class MenuGeneratorService {
         return cleanCocktail;
       }).filter((cocktail: any) => {
         // Only keep cocktails with valid, non-generic names and descriptions
-        return cocktail.name && 
-               cocktail.description && 
-               cocktail.name !== "Creative House Cocktail" &&
-               cocktail.name !== "Signature House Cocktail" &&
-               !cocktail.name.includes("*") &&
-               cocktail.description.length > 20; // Ensure meaningful descriptions
+        const hasValidName = cocktail.name && 
+                            cocktail.name !== "Creative House Cocktail" &&
+                            cocktail.name !== "Signature House Cocktail" &&
+                            !cocktail.name.toLowerCase().includes("signature") &&
+                            !cocktail.name.toLowerCase().includes("house") &&
+                            !cocktail.name.toLowerCase().includes("classic") &&
+                            !cocktail.name.includes("*") &&
+                            cocktail.name.length > 5;
+                            
+        const hasValidDescription = cocktail.description && 
+                                  cocktail.description.length > 30 && // Increased minimum length
+                                  !cocktail.description.includes("*") &&
+                                  cocktail.description.toLowerCase().includes("cocktail") === false; // Force creative descriptions
+                                  
+        return hasValidName && hasValidDescription;
       });
       
       console.log(`Processed cocktails: ${processedCocktails.length} out of ${(result.cocktails || []).length} total`);
       
-      // If we don't have enough quality cocktails, return fallbacks
+      // Return only AI-generated cocktails - no fallbacks
       if (processedCocktails.length === 0) {
-        console.log('No valid cocktails generated, using creative fallbacks');
-        return this.generateFallbackCocktails(request.context);
+        throw new Error('AI failed to generate valid cocktails. Please try again with different parameters.');
       }
       
       return processedCocktails;
     } catch (error) {
       console.error('Cocktail generation error:', error);
-      return this.generateFallbackCocktails(request.context);
+      throw new Error('Failed to generate cocktails. Please try again with different parameters.');
     }
   }
 
-  private generateFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
-    return [
-      {
-        name: `${context.name} Signature Smoke`,
-        description: "A bold cocktail featuring house-smoked spirits with artisanal bitters and fresh citrus.",
-        category: "signature" as const,
-        ingredients: [
-          { ingredient: "Smoked whiskey", amount: "2 oz", cost: 2.75 },
-          { ingredient: "Fresh lemon juice", amount: "0.75 oz", cost: 0.25 },
-          { ingredient: "House honey syrup", amount: "0.5 oz", cost: 0.30 },
-          { ingredient: "Aromatic bitters", amount: "2 dashes", cost: 0.15 }
-        ],
-        instructions: [
-          "Combine all ingredients in a shaker with ice",
-          "Shake vigorously for 12 seconds", 
-          "Double strain into rocks glass over large ice cube",
-          "Express lemon peel oils over drink and garnish"
-        ],
-        garnish: "Charred lemon wheel",
-        glassware: "Rocks glass",
-        estimatedCost: 3.45,
-        suggestedPrice: 15.00,
-        profitMargin: 77,
-        preparationTime: 4
-      },
-      {
-        name: `Junction Botanical Fizz`,
-        description: "An effervescent cocktail with house-infused gin, fresh herbs, and sparkling botanical water.",
-        category: "signature" as const, 
-        ingredients: [
-          { ingredient: "Herb-infused gin", amount: "1.5 oz", cost: 2.25 },
-          { ingredient: "Fresh lime juice", amount: "0.5 oz", cost: 0.20 },
-          { ingredient: "Elderflower cordial", amount: "0.75 oz", cost: 0.40 },
-          { ingredient: "Botanical tonic", amount: "3 oz", cost: 0.35 }
-        ],
-        instructions: [
-          "Muddle fresh herbs gently in shaker",
-          "Add gin, lime juice, and elderflower cordial with ice",
-          "Shake briefly and strain into highball glass",
-          "Top with botanical tonic and stir gently"
-        ],
-        garnish: "Fresh herb sprig and lime wheel",
-        glassware: "Highball glass", 
-        estimatedCost: 3.20,
-        suggestedPrice: 14.00,
-        profitMargin: 77,
-        preparationTime: 3
-      },
-      {
-        name: `Depot Coffee Barrel`,
-        description: "A rich, coffee-forward cocktail with barrel-aged rum and house-made coffee liqueur.",
-        category: "signature" as const,
-        ingredients: [
-          { ingredient: "Barrel-aged rum", amount: "2 oz", cost: 3.00 },
-          { ingredient: "House coffee liqueur", amount: "0.5 oz", cost: 0.60 },
-          { ingredient: "Cold brew concentrate", amount: "0.25 oz", cost: 0.15 },
-          { ingredient: "Demerara syrup", amount: "0.25 oz", cost: 0.20 }
-        ],
-        instructions: [
-          "Combine all ingredients in mixing glass with ice",
-          "Stir for 30 seconds until well chilled",
-          "Strain into coupe glass",
-          "Float coffee beans on surface for aroma"
-        ],
-        garnish: "Three coffee beans",
-        glassware: "Coupe glass",
-        estimatedCost: 3.95,
-        suggestedPrice: 16.00,
-        profitMargin: 75,
-        preparationTime: 4
-      }
-    ];
-  }
+
 
   private buildMenuSystemPrompt(context: RestaurantContext): string {
     const buildContextSection = (title: string, items: any) => {
@@ -402,26 +338,36 @@ Restaurant Context:
 - Kitchen Level: ${context.kitchenCapability}
 - Staff: ${context.staffSize} team members
 
-RESPOND WITH VALID JSON ONLY:
+MANDATORY JSON FORMAT - NO EXCEPTIONS:
 {
   "cocktails": [
     {
-      "name": "Creative unique name",
-      "description": "Detailed enticing description (2-3 sentences)", 
+      "name": "Unique creative name (NO generic terms like 'signature' or 'house')",
+      "description": "Detailed enticing description explaining the unique concept and flavors", 
       "category": "signature",
-      "ingredients": [{"ingredient": "spirit name", "amount": "2 oz", "cost": 2.50}],
-      "instructions": ["Step 1", "Step 2", "Step 3"],
-      "garnish": "Specific garnish description",
-      "glassware": "Glass type",
-      "estimatedCost": 4.25,
-      "suggestedPrice": 16.00,
-      "profitMargin": 73,
-      "preparationTime": 5
+      "ingredients": [
+        {"ingredient": "specific ingredient name", "amount": "exact measurement", "cost": numeric_value}
+      ],
+      "instructions": ["Detailed step 1", "Detailed step 2", "Detailed step 3", "Detailed step 4"],
+      "garnish": "Specific creative garnish description",
+      "glassware": "Specific glass type",
+      "estimatedCost": numeric_value_only,
+      "suggestedPrice": numeric_value_only,
+      "profitMargin": numeric_percentage_only,
+      "preparationTime": numeric_minutes_only
     }
   ]
 }
 
-CRITICAL: Generate exactly 3 complete cocktails with ALL fields properly filled. No partial data, no asterisks, no formatting errors.`;
+ABSOLUTE REQUIREMENTS:
+1. Generate exactly 3 complete cocktails
+2. Each name must be unique, creative, and memorable (NO generic names)
+3. Each description must be detailed and compelling (minimum 30 words)
+4. All numeric fields must contain ONLY numbers (no $, %, or other symbols)
+5. ALL fields must be complete - no partial data, no asterisks, no formatting errors
+6. JSON must be perfectly formatted and parseable
+
+FAILURE TO FOLLOW THESE REQUIREMENTS EXACTLY WILL RESULT IN REJECTION.`;
   }
 
   private buildMenuUserPrompt(request: MenuGenerationRequest): string {
