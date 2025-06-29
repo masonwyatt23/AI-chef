@@ -123,7 +123,7 @@ export class MenuGeneratorService {
         top_p: 0.95,
         frequency_penalty: 0.4,
         presence_penalty: 0.3,
-        max_tokens: 8000,
+        max_tokens: 12000,
       });
 
       const rawContent = response.choices[0].message.content || '{"items": []}';
@@ -141,6 +141,11 @@ export class MenuGeneratorService {
         
         // Remove asterisks and malformed field markers
         fixedContent = fixedContent.replace(/\*[^*]*\*/g, '');
+        
+        // Fix backtick issues (replace with proper quotes)
+        fixedContent = fixedContent.replace(/`/g, '"');
+        fixedContent = fixedContent.replace(/`([^`]*)`/g, '"$1"');
+        fixedContent = fixedContent.replace(/:\s*`([^`]*)`/g, ': "$1"');
         
         // Fix common malformations
         fixedContent = fixedContent.replace(/:\s*\*([^*]+)\*/g, ': "$1"');
@@ -173,6 +178,11 @@ export class MenuGeneratorService {
       }
       
       console.log('Menu AI Response Structure:', JSON.stringify(result, null, 2));
+      
+      // Ensure we have exactly 4 items - if not, log error and pad with generated items
+      if (!result.items || result.items.length < 4) {
+        console.error(`Expected 4 menu items, got ${result.items?.length || 0}. Will process available items.`);
+      }
       
       // Clean and validate menu items
       const processedItems = (result.items || []).map((item: any) => {
@@ -414,7 +424,170 @@ ${buildContextSection('Market Type', context.marketType)}
 ${buildContextSection('Local Ingredients', context.localIngredients)}
 ${buildContextSection('Cultural Influences', context.culturalInfluences)}
 
-You must respond with a JSON object containing an "items" array with comprehensive details.`;
+## MANDATORY COMPREHENSIVE RECIPE DETAILS:
+
+**INGREDIENTS** - Provide DETAILED ingredient lists with exact measurements:
+- Use professional measurements (oz, grams, cups, tablespoons, etc.)
+- Include brand preferences for premium items when relevant
+- Specify preparation notes (julienned, brunoise, rough chopped, etc.)
+- List specialized ingredients and techniques
+- Example: "8 oz wild-caught Atlantic salmon fillet, skin removed, pin bones checked", "2 tbsp Maldon sea salt flakes", "1/4 cup micro cilantro for garnish"
+
+**PREPARATION INSTRUCTIONS** - Provide step-by-step prep work:
+- Advance preparation tasks (day before, morning of)
+- Mise en place organization
+- Sauce/component preparation
+- Example: "Day before: Cure duck breast with salt, thyme, orange zest for 24 hours", "Morning: Prepare duck fat confit at 140°F"
+
+**COOKING INSTRUCTIONS** - Detailed cooking process:
+- Exact temperatures, times, and techniques
+- Professional cooking methods and equipment
+- Doneness indicators and quality checks
+- Example: "Sear duck breast skin-side down in cold pan, render fat slowly for 8 minutes until golden", "Flip and cook 3 minutes to 135°F internal temperature"
+
+**PLATING INSTRUCTIONS** - Restaurant-quality presentation:
+- Detailed plating techniques and visual composition
+- Garnish placement and sauce application
+- Temperature and timing considerations
+- Example: "Warm plates to 140°F", "Place duck breast at 2 o'clock, fan slices to reveal pink interior", "Drizzle reduction in teardrop pattern"
+
+**COOKING TECHNIQUES** - Professional methods used:
+- Specific culinary techniques (sous-vide, confit, brunoise, etc.)
+- Equipment requirements
+- Advanced methods (molecular gastronomy, fermentation, etc.)
+- Example: "Sous-vide", "Duck fat confit", "Gastrique reduction", "Microplane zesting"
+
+## MANDATORY OUTPUT REQUIREMENTS:
+- Generate EXACTLY 4 menu items
+- NO backticks anywhere in JSON - use only proper double quotes
+- Each ingredient MUST include exact measurements and specifications
+- Every recipe section MUST be comprehensive and professional
+
+RESPOND WITH VALID JSON (NO BACKTICKS):
+{
+  "items": [
+    {
+      "name": "Unique dish name",
+      "description": "Compelling description explaining concept and flavors",
+      "category": "Category name",
+      "ingredients": [
+        "8 oz wild-caught Atlantic salmon fillet, skin removed, pin bones checked",
+        "2 tbsp Maldon sea salt flakes",
+        "1/4 cup micro cilantro for garnish",
+        "3 tbsp extra virgin olive oil (premium grade)",
+        "1 lemon, zested and juiced",
+        "2 cloves garlic, minced fine",
+        "1 tsp freshly cracked black pepper"
+      ],
+      "preparationTime": 45,
+      "difficulty": "medium",
+      "estimatedCost": 12.50,
+      "suggestedPrice": 32.00,
+      "profitMargin": 61,
+      "recipe": {
+        "serves": 1,
+        "prepInstructions": [
+          "Day before: Cure salmon with salt mixture and herbs for 24 hours in refrigerator",
+          "Morning of service: Prepare lemon-herb oil by combining olive oil, lemon zest, and minced garlic",
+          "2 hours before service: Remove salmon from refrigeration to reach room temperature",
+          "30 minutes before: Prepare garnish components and warm serving plates"
+        ],
+        "cookingInstructions": [
+          "Preheat oven to 400°F and heat cast iron pan over medium-high heat for 3 minutes",
+          "Pat salmon completely dry and season with fresh cracked pepper",
+          "Sear salmon flesh-side down for 4-5 minutes until golden crust forms and easily releases",
+          "Flip carefully and transfer pan to oven for 8-10 minutes until internal temperature reaches 135°F",
+          "Rest salmon for 2 minutes before plating to allow juices to redistribute"
+        ],
+        "platingInstructions": [
+          "Warm plates to 140°F in oven for proper temperature retention",
+          "Place salmon at center of plate, slightly off-center for visual appeal",
+          "Drizzle lemon-herb oil in artistic teardrop pattern around the fish",
+          "Garnish with micro cilantro placed delicately on top and around plate",
+          "Finish with a few flakes of Maldon salt for texture and visual contrast"
+        ],
+        "techniques": ["Dry-curing", "Pan-searing", "Oven-finishing", "Oil infusion", "Temperature monitoring"]
+      },
+      "allergens": ["Fish", "Garlic"],
+      "nutritionalHighlights": ["High in omega-3 fatty acids", "Lean protein source"],
+      "winePairings": ["Sauvignon Blanc", "Light Pinot Noir"],
+      "upsellOpportunities": ["Add truffle oil drizzle +$8", "Pair with house white wine +$12"]
+    },
+    {
+      "name": "Second dish name",
+      "description": "Second dish description",
+      "category": "Different category",
+      "ingredients": ["Detailed ingredient list with measurements"],
+      "preparationTime": 35,
+      "difficulty": "hard",
+      "estimatedCost": 15.75,
+      "suggestedPrice": 38.00,
+      "profitMargin": 59,
+      "recipe": {
+        "serves": 1,
+        "prepInstructions": ["Detailed prep steps"],
+        "cookingInstructions": ["Detailed cooking steps"],
+        "platingInstructions": ["Detailed plating steps"],
+        "techniques": ["Professional techniques used"]
+      },
+      "allergens": ["List allergens"],
+      "nutritionalHighlights": ["Nutritional benefits"],
+      "winePairings": ["Wine suggestions"],
+      "upsellOpportunities": ["Upsell options"]
+    },
+    {
+      "name": "Third dish name",
+      "description": "Third dish description", 
+      "category": "Third category",
+      "ingredients": ["Detailed ingredients with measurements"],
+      "preparationTime": 40,
+      "difficulty": "medium",
+      "estimatedCost": 10.25,
+      "suggestedPrice": 28.00,
+      "profitMargin": 63,
+      "recipe": {
+        "serves": 1,
+        "prepInstructions": ["Comprehensive prep instructions"],
+        "cookingInstructions": ["Detailed cooking process"],
+        "platingInstructions": ["Professional plating techniques"],
+        "techniques": ["Culinary methods used"]
+      },
+      "allergens": ["Allergen list"],
+      "nutritionalHighlights": ["Health benefits"],
+      "winePairings": ["Wine pairings"],
+      "upsellOpportunities": ["Additional options"]
+    },
+    {
+      "name": "Fourth dish name",
+      "description": "Fourth dish description",
+      "category": "Fourth category", 
+      "ingredients": ["Complete ingredient specifications"],
+      "preparationTime": 50,
+      "difficulty": "hard",
+      "estimatedCost": 18.00,
+      "suggestedPrice": 42.00,
+      "profitMargin": 57,
+      "recipe": {
+        "serves": 1,
+        "prepInstructions": ["Thorough preparation steps"],
+        "cookingInstructions": ["Professional cooking instructions"],
+        "platingInstructions": ["Restaurant-quality plating"],
+        "techniques": ["Advanced culinary techniques"]
+      },
+      "allergens": ["Complete allergen information"],
+      "nutritionalHighlights": ["Nutritional advantages"],
+      "winePairings": ["Recommended wines"],
+      "upsellOpportunities": ["Revenue enhancement options"]
+    }
+  ]
+}
+
+CRITICAL REQUIREMENTS:
+- EXACTLY 4 complete menu items
+- NO backticks (`) - only double quotes (")
+- Detailed ingredients with exact measurements
+- Comprehensive recipe instructions for all sections
+- Professional restaurant-quality details throughout`;
   }
 
   private buildCocktailSystemPrompt(context: RestaurantContext): string {
@@ -470,14 +643,14 @@ FAILURE TO FOLLOW THESE REQUIREMENTS EXACTLY WILL RESULT IN REJECTION.`;
     let prompt = "";
     
     if (request.focusCategory) {
-      prompt = `Create 3-4 exceptional ${request.focusCategory.toLowerCase()} items that will elevate this category and drive customer excitement`;
+      prompt = `Create EXACTLY 4 exceptional ${request.focusCategory.toLowerCase()} items that will elevate this category and drive customer excitement`;
       
       const categoryGuidance = this.getCategorySpecificGuidance(request.focusCategory);
       if (categoryGuidance) {
         prompt += `. ${categoryGuidance}`;
       }
     } else {
-      prompt = `Create 3-4 innovative menu items across different categories that showcase culinary excellence`;
+      prompt = `Create EXACTLY 4 innovative menu items across different categories that showcase culinary excellence`;
     }
     
     if (request.currentMenu?.length) {
@@ -503,6 +676,23 @@ FAILURE TO FOLLOW THESE REQUIREMENTS EXACTLY WILL RESULT IN REJECTION.`;
     }
     
     prompt += `. Each item should demonstrate culinary mastery, tell a story, and position this restaurant as a destination for exceptional food.`;
+    
+    // Add comprehensive recipe requirements
+    prompt += `
+
+## CRITICAL REQUIREMENTS FOR COMPREHENSIVE RECIPES:
+
+**INGREDIENTS**: Provide detailed ingredient lists with precise measurements, preparation notes, and quality specifications. Include exact quantities, brand preferences for premium items, and prep details like "brunoise," "julienned," etc.
+
+**PREPARATION INSTRUCTIONS**: Include advance prep work, mise en place organization, sauce preparation, and timing considerations. Detail what can be done day-before vs. day-of service.
+
+**COOKING INSTRUCTIONS**: Provide exact temperatures, cooking times, professional techniques, and doneness indicators. Include equipment specifications and quality checks throughout the process.
+
+**PLATING INSTRUCTIONS**: Detail restaurant-quality presentation with specific plating techniques, garnish placement, sauce application, and visual composition guidelines.
+
+**COOKING TECHNIQUES**: List all professional culinary methods used, including specialized equipment, molecular gastronomy techniques, and advanced preparation methods.
+
+Generate recipes with the detail and precision of a Michelin-starred restaurant kitchen manual. Each recipe should be comprehensive enough for a professional chef to execute flawlessly.`;
     
     return prompt;
   }
