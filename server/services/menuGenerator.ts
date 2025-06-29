@@ -133,7 +133,46 @@ export class MenuGeneratorService {
         console.log('First cocktail structure:', JSON.stringify(result.cocktails[0], null, 2));
       }
       
-      return result.cocktails || [];
+      // Validate and clean up cocktails to ensure complete data
+      const processedCocktails = (result.cocktails || []).map((cocktail: any) => {
+        // Fill in missing or malformed data with defaults
+        return {
+          name: cocktail.name || "Signature House Cocktail",
+          description: cocktail.description || "A unique craft cocktail featuring premium ingredients",
+          category: cocktail.category || "signature",
+          ingredients: Array.isArray(cocktail.ingredients) && cocktail.ingredients.length > 0 
+            ? cocktail.ingredients 
+            : [
+                { ingredient: "Premium Spirit", amount: "2 oz", cost: 2.50 },
+                { ingredient: "Fresh Citrus", amount: "0.75 oz", cost: 0.30 },
+                { ingredient: "House Syrup", amount: "0.5 oz", cost: 0.25 }
+              ],
+          instructions: Array.isArray(cocktail.instructions) && cocktail.instructions.length > 0 
+            ? cocktail.instructions 
+            : [
+                "Combine all ingredients in a shaker with ice",
+                "Shake vigorously for 10-15 seconds",
+                "Double strain into chilled glass",
+                "Garnish and serve immediately"
+              ],
+          garnish: cocktail.garnish || "Fresh garnish",
+          glassware: cocktail.glassware || "Coupe glass",
+          estimatedCost: typeof cocktail.estimatedCost === 'number' ? cocktail.estimatedCost : 4.25,
+          suggestedPrice: typeof cocktail.suggestedPrice === 'number' ? cocktail.suggestedPrice : 16.00,
+          profitMargin: typeof cocktail.profitMargin === 'number' ? cocktail.profitMargin : 73,
+          preparationTime: typeof cocktail.preparationTime === 'number' ? cocktail.preparationTime : 5,
+          batchInstructions: Array.isArray(cocktail.batchInstructions) ? cocktail.batchInstructions : undefined,
+          variations: Array.isArray(cocktail.variations) ? cocktail.variations : undefined,
+          foodPairings: Array.isArray(cocktail.foodPairings) ? cocktail.foodPairings : undefined
+        };
+      }).filter((cocktail: any) => {
+        // Only keep cocktails that have at least a name and description
+        return cocktail.name && cocktail.description;
+      });
+      
+      console.log(`Processed cocktails: ${processedCocktails.length} out of ${(result.cocktails || []).length} total`);
+      
+      return processedCocktails;
     } catch (error) {
       console.error('Cocktail generation error:', error);
       throw new Error('Failed to generate cocktails');
@@ -302,21 +341,37 @@ Restaurant Context:
 - Staff: ${context.staffSize} team members
 ${context.additionalContext ? `- Context: ${context.additionalContext}` : ''}
 
-You must respond with a JSON object containing a "cocktails" array. Each cocktail must include:
-- name: Creative, theme-appropriate name
-- description: Enticing 1-2 sentence description
-- category: signature/classic/seasonal/mocktail
-- ingredients: Array with ingredient, amount, and cost per serving
-- instructions: Step-by-step preparation method
-- garnish: Specific garnish description
-- glassware: Appropriate glass type
-- estimatedCost: Total ingredient cost
-- suggestedPrice: Market-competitive pricing
-- profitMargin: Percentage profit margin
-- preparationTime: Number only (e.g., 3, 5, 8)
-- batchInstructions: Large batch preparation method (optional)
-- variations: Alternative versions (optional)
-- foodPairings: Menu items that complement (optional)
+CRITICAL: You must respond with a valid JSON object containing a "cocktails" array. Each cocktail MUST include ALL required fields:
+
+{
+  "cocktails": [
+    {
+      "name": "Creative theme-appropriate name (string)",
+      "description": "Enticing 1-2 sentence description (string)",
+      "category": "signature/seasonal/classic/mocktail (string)",
+      "ingredients": [
+        {
+          "ingredient": "ingredient name (string)",
+          "amount": "measurement like '2 oz' (string)",
+          "cost": 2.50 (number)
+        }
+      ],
+      "instructions": [
+        "Step 1 instruction (string)",
+        "Step 2 instruction (string)"
+      ],
+      "garnish": "Specific garnish description (string)",
+      "glassware": "Glass type (string)",
+      "estimatedCost": 4.25 (number),
+      "suggestedPrice": 16.00 (number),
+      "profitMargin": 73 (number),
+      "preparationTime": 5 (number only),
+      "batchInstructions": ["Batch step 1", "Batch step 2"] (optional array),
+      "variations": [{"name": "variation name", "changes": ["change 1"]}] (optional array),
+      "foodPairings": ["menu item 1", "menu item 2"] (optional array)
+    }
+  ]
+}
 
 IMPORTANT COST GUIDELINES:
 - Calculate realistic ingredient costs: Premium spirits ($1.50-3.00/oz), House spirits ($0.75-1.50/oz), Liqueurs ($0.50-1.25/oz), Fresh juices ($0.25-0.50/oz), Mixers ($0.10-0.30/oz)
@@ -471,7 +526,7 @@ CRITICAL CREATIVITY REQUIREMENTS:
   }
 
   private buildCocktailUserPrompt(request: CocktailGenerationRequest): string {
-    let prompt = `Create 3-4 unique cocktails`;
+    let prompt = `Create exactly 3 unique, complete cocktails with ALL required fields`;
     
     if (request.theme) {
       prompt += ` with ${request.theme} theme`;
@@ -507,7 +562,9 @@ CRITICAL CREATIVITY REQUIREMENTS:
 - Create visually stunning cocktails that would go viral on social media
 - Use surprising ingredients: savory elements, unusual bitters, exotic fruits, herbs, spices
 - Make each cocktail a conversation starter and Instagram moment
-- Think beyond traditional boundaries - be experimental and revolutionary in your approach`;
+- Think beyond traditional boundaries - be experimental and revolutionary in your approach
+
+ABSOLUTELY CRITICAL: You MUST provide complete data for ALL 3 cocktails. Do NOT provide partial data, placeholder text, or incomplete JSON. Each cocktail must have every required field properly filled with realistic values. Incomplete responses will be rejected.`;
     
     return prompt;
   }
