@@ -11,55 +11,24 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
-import { promises as fs } from "fs";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
-
-import pdfExtract from "pdf-text-extract";
-
-// PDF text extraction using pdf-text-extract
+// PDF text extraction using pdf-parse with try-catch fallback
 const extractTextFromPDF = async (buffer: Buffer): Promise<string> => {
   try {
-    // Create a temporary file since pdf-text-extract works with file paths
-    const tempDir = path.join(process.cwd(), 'temp');
-    await fs.mkdir(tempDir, { recursive: true });
-    
-    const tempFileName = `${uuidv4()}.pdf`;
-    const tempFilePath = path.join(tempDir, tempFileName);
-    
-    try {
-      // Write buffer to temporary file
-      await fs.writeFile(tempFilePath, buffer);
-      
-      // Extract text using pdf-text-extract
-      return new Promise<string>((resolve, reject) => {
-        pdfExtract(tempFilePath, { splitPages: false }, (err: any, pages: string[]) => {
-          // Clean up temporary file
-          fs.unlink(tempFilePath).catch(console.error);
-          
-          if (err) {
-            reject(new Error(`PDF extraction failed: ${err.message || err}`));
-            return;
-          }
-          
-          if (!pages || pages.length === 0) {
-            resolve(''); // Empty PDF or no extractable text
-            return;
-          }
-          
-          // Join all pages into a single text
-          const fullText = pages.join('\n\n').trim();
-          resolve(fullText);
-        });
-      });
-    } catch (fileError) {
-      // Clean up temporary file in case of error
-      await fs.unlink(tempFilePath).catch(() => {});
-      throw fileError;
-    }
+    // Try to import and use pdf-parse
+    const pdfParse = require('pdf-parse');
+    const data = await pdfParse(buffer);
+    return data.text.trim();
   } catch (error) {
     console.error("PDF parsing error:", error);
-    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : String(error)}`);
+    
+    // If PDF parsing fails, return a helpful message with manual extraction instructions
+    throw new Error(`PDF text extraction failed. This could be due to:
+    
+• PDF contains scanned images instead of text
+• PDF is password protected
+• PDF uses complex formatting
+
+Please copy the menu text manually from your PDF and paste it into the text area below.`);
   }
 };
 
