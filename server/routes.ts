@@ -11,34 +11,46 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
-// PDF parsing using pdfjs-dist
+// PDF parsing using pdfjs-dist with better error handling
 const extractTextFromPDF = async (buffer: Buffer): Promise<string> => {
   try {
-    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.js");
+    // Dynamically import pdfjs-dist to avoid module resolution issues
+    const pdfjs: any = await import("pdfjs-dist");
+    
+    // Create Uint8Array from Buffer for pdfjs compatibility
+    const data = new Uint8Array(buffer);
     
     // Load the PDF document
-    const loadingTask = pdfjs.getDocument({ data: buffer });
+    const loadingTask = pdfjs.getDocument({ data });
     const pdf = await loadingTask.promise;
     
     let fullText = '';
     
     // Extract text from all pages
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
-      
-      // Combine text items from the page
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      
-      fullText += pageText + '\n';
+      try {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Combine text items from the page
+        const pageText = textContent.items
+          .map((item: any) => item.str || '')
+          .filter((text: string) => text.trim().length > 0)
+          .join(' ');
+        
+        if (pageText.trim()) {
+          fullText += pageText + '\n\n';
+        }
+      } catch (pageError) {
+        console.warn(`Error extracting text from page ${pageNum}:`, pageError);
+        // Continue with other pages even if one fails
+      }
     }
     
     return fullText.trim();
   } catch (error) {
     console.error("PDF parsing error:", error);
-    throw new Error("Failed to extract text from PDF file");
+    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 
