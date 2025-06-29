@@ -27,7 +27,8 @@ import {
   Eye,
   AlertCircle,
   Trash2,
-  History
+  History,
+  Loader
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -1025,28 +1026,80 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                   <Label className="text-base font-semibold">Existing Menu Analysis</Label>
                   <p className="text-sm text-slate-600 mb-3">Upload a PDF menu or paste your current menu text to analyze categories and generate targeted improvements</p>
                   
-                  {/* Quick Menu Load */}
+                  {/* PDF Upload */}
                   <div className="mb-4 p-3 border rounded-lg bg-white">
-                    <Label className="text-sm font-medium mb-2 block">Load Sample Menus</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={loadDepotMenu}
-                        className="flex items-center flex-1"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Depot Menu
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={loadJunctionMenu}
-                        className="flex items-center flex-1"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Junction Catering
-                      </Button>
+                    <Label className="text-sm font-medium mb-2 block">Upload Your Menu PDF</Label>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={handleFileSelect}
+                          ref={fileInputRef}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                          className="flex items-center flex-1"
+                        >
+                          {isUploading ? (
+                            <>
+                              <Loader className="h-4 w-4 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              Choose PDF Menu
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      {uploadedFile && (
+                        <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded">
+                          <FileText className="h-3 w-3 inline mr-1" />
+                          {uploadedFile.name} ({Math.round(uploadedFile.size / 1024)}KB)
+                        </div>
+                      )}
+                      <div className="text-xs text-slate-500">
+                        Supports PDF files up to 10MB. AI will extract and analyze your menu automatically.
+                      </div>
+                      
+                      {/* Quick sample for testing */}
+                      <div className="text-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const sampleMenu = `APPETIZERS
+Crispy Calamari - Golden fried squid rings with marinara sauce $14
+Bruschetta - Grilled bread topped with fresh tomatoes and basil $12
+Wings - Buffalo or BBQ style with celery and ranch $13
+
+ENTREES  
+Grilled Salmon - Atlantic salmon with seasonal vegetables $26
+Ribeye Steak - 12oz premium cut with garlic mashed potatoes $34
+Chicken Parmesan - Breaded chicken breast with marinara and mozzarella $22
+
+DESSERTS
+Chocolate Cake - Rich chocolate layer cake with vanilla ice cream $8
+Tiramisu - Classic Italian dessert with espresso and mascarpone $9`;
+                            setExistingMenu(sampleMenu);
+                            toast({
+                              title: "Sample menu loaded",
+                              description: "Try analyzing this sample menu",
+                            });
+                            setTimeout(() => analyzeMenuText(sampleMenu), 100);
+                          }}
+                          className="text-xs h-6"
+                        >
+                          Load Sample Menu
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   

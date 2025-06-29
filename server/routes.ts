@@ -46,6 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true,
           filename: req.file.originalname,
           size: req.file.size,
+          text: parsedData.cleanedText || parsedData.extractedText,
           extractedText: parsedData.extractedText,
           cleanedText: parsedData.cleanedText,
           categories: parsedData.categories,
