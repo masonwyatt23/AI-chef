@@ -10,95 +10,9 @@ import {
   insertRecommendationSchema 
 } from "@shared/schema";
 import { z } from "zod";
-import multer from "multer";
 
-// PDF handling with graceful fallback to manual entry
-const handlePDFUpload = async (buffer: Buffer, filename: string): Promise<{ text: string; message: string; requiresManualEntry: boolean }> => {
-  try {
-    // For now, provide helpful guidance for manual text extraction
-    // PDF parsing libraries have compatibility issues in this environment
-    
-    const helpText = `PDF "${filename}" uploaded successfully.
-
-To extract your menu content:
-
-1. Open the PDF file on your computer
-2. Select all text (Ctrl+A or Cmd+A)
-3. Copy the text (Ctrl+C or Cmd+C)  
-4. Paste it into the text area below
-5. Click "Analyze Menu" to process your content
-
-This ensures accurate menu information for AI analysis and avoids formatting issues.`;
-
-    return {
-      text: helpText,
-      message: "PDF received - manual text extraction recommended for best results",
-      requiresManualEntry: true
-    };
-  } catch (error) {
-    console.error("PDF handling error:", error);
-    return {
-      text: `Error processing PDF "${filename}". Please copy the menu text manually from your PDF and paste it into the text area below.`,
-      message: "PDF processing failed - manual entry required",
-      requiresManualEntry: true
-    };
-  }
-};
-
-// Configure multer for PDF uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF files are allowed'));
-    }
-  }
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // PDF Upload route with text extraction
-  app.post("/api/parse-menu-pdf", upload.single('menuPdf'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No PDF file uploaded" });
-      }
-
-      try {
-        const filename = req.file.originalname;
-        console.log(`PDF uploaded: ${filename} (${req.file.size} bytes)`);
-        
-        // Handle PDF upload with graceful fallback
-        const result = await handlePDFUpload(req.file.buffer, filename);
-        
-        console.log(`PDF uploaded: ${filename} (${req.file.size} bytes) - ${result.message}`);
-        
-        res.json({ 
-          text: result.text,
-          filename: filename,
-          size: req.file.size,
-          uploaded: true,
-          message: result.message,
-          requiresManualEntry: result.requiresManualEntry
-        });
-      } catch (error) {
-        console.error("Error extracting text from PDF:", error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        res.status(500).json({ 
-          error: "Failed to extract text from PDF",
-          details: errorMessage,
-          text: `Error processing PDF "${req.file.originalname}".\n\nError: ${errorMessage}\n\nPlease try:\n1. Using a different PDF file\n2. Copying the menu text manually\n3. Ensuring the PDF is not corrupted or password protected`
-        });
-      }
-    } catch (error) {
-      console.error("Error processing PDF:", error);
-      res.status(500).json({ error: "Failed to process PDF file" });
-    }
-  });
 
   // Restaurant routes
   app.post("/api/restaurants", async (req, res) => {

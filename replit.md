@@ -110,6 +110,7 @@ The application uses the following main entities:
 
 ```
 Changelog:
+- June 29, 2025: Removed PDF upload functionality - Eliminated problematic PDF parsing due to library compatibility issues; Enhanced text input guidance with comprehensive tips and formatting examples for better user experience
 - June 29, 2025: Enhanced PDF upload functionality - Replaced hardcoded sample menus with professional drag-and-drop PDF upload interface featuring progress tracking, file validation, and automatic text extraction
 - June 27, 2025: Major platform enhancement - Added database integration and comprehensive restaurant operations dashboard
 - June 27, 2025: Enhanced UI/UX with improved chat interface and fixed layout issues  
