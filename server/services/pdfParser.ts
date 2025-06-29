@@ -20,28 +20,50 @@ export interface ParsedMenuData {
 export class PDFParserService {
   async parsePDFBuffer(buffer: Buffer): Promise<string> {
     try {
-      console.log(`Parsing PDF buffer of size: ${buffer.length} bytes`);
+      console.log(`Processing PDF buffer of size: ${buffer.length} bytes`);
       
-      // Parse PDF and extract text
-      const data = await pdfParse(buffer);
-      const extractedText = data.text.trim();
+      // Attempt basic PDF text extraction by looking for text strings
+      const pdfString = buffer.toString('latin1');
       
-      console.log(`Successfully extracted ${extractedText.length} characters from PDF`);
+      // Basic regex patterns to extract text from PDF structure
+      const textMatches = pdfString.match(/\((.*?)\)/g) || [];
+      const streamMatches = pdfString.match(/stream\s*(.*?)\s*endstream/gs) || [];
+      
+      let extractedText = '';
+      
+      // Extract text from parentheses (common PDF text format)
+      for (const match of textMatches) {
+        const text = match.slice(1, -1); // Remove parentheses
+        if (text.length > 2 && /[a-zA-Z]/.test(text)) {
+          extractedText += text + ' ';
+        }
+      }
+      
+      // If we didn't get much text, try extracting from streams
+      if (extractedText.length < 100) {
+        for (const stream of streamMatches) {
+          const streamContent = stream.replace(/^stream\s*|\s*endstream$/g, '');
+          // Look for readable text in streams
+          const readableText = streamContent.match(/[A-Za-z][A-Za-z0-9\s,.\-$()]{3,}/g) || [];
+          extractedText += readableText.join(' ') + ' ';
+        }
+      }
+      
+      extractedText = extractedText.trim().replace(/\s+/g, ' ');
+      
+      console.log(`Extracted ${extractedText.length} characters from PDF`);
       
       if (extractedText.length < 50) {
-        // If extracted text is too short, it might be an image-based PDF
-        return `PDF processed (${(buffer.length / 1024).toFixed(1)}KB) but contains minimal text.
+        return `PDF processed (${(buffer.length / 1024).toFixed(1)}KB) but text extraction was limited.
 
-This might be an image-based PDF. Please try:
-1. Opening your PDF and copying the text manually
-2. Using a text-based PDF version
-3. Pasting your menu text directly below`;
+This might be an image-based PDF or have complex formatting. 
+Please copy your menu text and paste it below for accurate analysis.`;
       }
       
       return extractedText;
       
     } catch (error) {
-      console.error('PDF parsing error:', error);
+      console.error('PDF processing error:', error);
       return `PDF received (${(buffer.length / 1024).toFixed(1)}KB) but text extraction failed.
 
 Please copy your menu text and paste it below for analysis.`;
