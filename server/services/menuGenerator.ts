@@ -86,10 +86,10 @@ export class MenuGeneratorService {
           { role: "user", content: userPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.95,
+        temperature: 0.8,
         top_p: 0.9,
-        frequency_penalty: 0.5,
-        presence_penalty: 0.3,
+        frequency_penalty: 0.3,
+        presence_penalty: 0.2,
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
@@ -119,13 +119,20 @@ export class MenuGeneratorService {
           { role: "user", content: userPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.95,
+        temperature: 0.8,
         top_p: 0.9,
-        frequency_penalty: 0.5,
-        presence_penalty: 0.3,
+        frequency_penalty: 0.3,
+        presence_penalty: 0.2,
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"cocktails": []}');
+      
+      // Debug logging to see the actual AI response structure
+      console.log('Cocktail AI Response Structure:', JSON.stringify(result, null, 2));
+      if (result.cocktails && result.cocktails.length > 0) {
+        console.log('First cocktail structure:', JSON.stringify(result.cocktails[0], null, 2));
+      }
+      
       return result.cocktails || [];
     } catch (error) {
       console.error('Cocktail generation error:', error);
