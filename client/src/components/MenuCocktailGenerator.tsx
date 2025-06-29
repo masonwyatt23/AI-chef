@@ -103,7 +103,7 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
 
   // Fetch saved menus
   const { data: savedMenus = [], refetch: refetchSavedMenus } = useQuery<SavedMenu[]>({
-    queryKey: ['/api/restaurants', restaurantId, 'saved-menus'],
+    queryKey: [`/api/restaurants/${restaurantId}/saved-menus`],
   });
 
   // Save menu mutation
