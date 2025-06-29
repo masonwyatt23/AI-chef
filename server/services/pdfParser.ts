@@ -19,19 +19,33 @@ export interface ParsedMenuData {
 
 export class PDFParserService {
   async parsePDFBuffer(buffer: Buffer): Promise<string> {
-    // For maximum reliability and accuracy, we guide users to paste their menu text
-    // This ensures perfect menu parsing and AI analysis
-    console.log(`PDF uploaded: ${(buffer.length / 1024).toFixed(1)}KB`);
-    
-    return `✅ PDF uploaded successfully (${(buffer.length / 1024).toFixed(1)}KB)
+    try {
+      console.log(`Parsing PDF buffer of size: ${buffer.length} bytes`);
+      
+      // Parse PDF and extract text
+      const data = await pdfParse(buffer);
+      const extractedText = data.text.trim();
+      
+      console.log(`Successfully extracted ${extractedText.length} characters from PDF`);
+      
+      if (extractedText.length < 50) {
+        // If extracted text is too short, it might be an image-based PDF
+        return `PDF processed (${(buffer.length / 1024).toFixed(1)}KB) but contains minimal text.
 
-📋 To get the best AI analysis:
-1. Open your PDF menu in any PDF viewer
-2. Select and copy all the menu text (Ctrl+A, then Ctrl+C)
-3. Paste it in the text area below
-4. Click "Analyze Menu" for intelligent parsing
+This might be an image-based PDF. Please try:
+1. Opening your PDF and copying the text manually
+2. Using a text-based PDF version
+3. Pasting your menu text directly below`;
+      }
+      
+      return extractedText;
+      
+    } catch (error) {
+      console.error('PDF parsing error:', error);
+      return `PDF received (${(buffer.length / 1024).toFixed(1)}KB) but text extraction failed.
 
-This approach ensures 100% accuracy for menu analysis and AI recommendations.`;
+Please copy your menu text and paste it below for analysis.`;
+    }
   }
 
   async intelligentMenuParsing(extractedText: string): Promise<ParsedMenuData> {

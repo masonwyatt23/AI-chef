@@ -342,19 +342,23 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       if (result.text && result.text.trim()) {
         setExistingMenu(result.text);
         
-        // Check if it's a guidance message (contains instructions)
-        if (result.text.includes('PDF uploaded successfully') && result.text.includes('Open your PDF menu')) {
+        // Check if it's an error/guidance message
+        if (result.text.includes('text extraction failed') || 
+            result.text.includes('contains minimal text') ||
+            result.text.includes('image-based PDF')) {
           toast({
-            title: "PDF received!",
-            description: "Please copy your menu text and paste it below for AI analysis",
+            title: "PDF processed",
+            description: "Please paste your menu text below for analysis",
+            variant: "default"
           });
         } else {
+          // Successfully extracted text
           toast({
             title: "PDF text extracted!",
-            description: `Ready for AI analysis from ${result.filename}`,
+            description: `Extracted menu text from ${result.filename}`,
           });
           
-          // Auto-analyze if we have actual menu text
+          // Auto-analyze the extracted text
           setTimeout(() => {
             analyzeMenuText(result.text);
           }, 100);
@@ -1032,7 +1036,7 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                 {/* Existing Menu Analysis */}
                 <div className="border rounded-lg p-4 bg-slate-50">
                   <Label className="text-base font-semibold">Existing Menu Analysis</Label>
-                  <p className="text-sm text-slate-600 mb-3">Upload a PDF menu or paste your current menu text to analyze categories and generate targeted improvements</p>
+                  <p className="text-sm text-slate-600 mb-3">Upload a PDF menu for automatic text extraction, or paste your current menu text to analyze categories and generate targeted improvements</p>
                   
                   {/* PDF Upload */}
                   <div className="mb-4 p-3 border rounded-lg bg-white">
@@ -1073,7 +1077,7 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                         </div>
                       )}
                       <div className="text-xs text-slate-500 text-center">
-                        Supports PDF files up to 10MB • Works with any restaurant menu
+                        Supports PDF files up to 10MB • Automatic text extraction • Works with any restaurant menu
                       </div>
                       
                       {/* Quick sample for testing */}
