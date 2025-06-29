@@ -82,13 +82,6 @@ The application uses the following main entities:
 
 ## Recent Updates
 
-### Universal PDF Menu Processing System (December 29, 2025)
-- **PDF Upload Integration**: Replaced hardcoded sample menus with universal PDF upload system supporting any restaurant
-- **AI-Powered Menu Extraction**: Intelligent PDF processing with xAI integration for automatic text extraction and analysis
-- **Enhanced User Experience**: Clean upload interface with drag-and-drop, file validation, and processing status
-- **Scalable Architecture**: Backend PDF parsing service with proper error handling and file size limits (10MB)
-- **Universal Restaurant Support**: App now works for any restaurant that can upload their menu PDF
-
 ### Enhanced AI Chef Assistant with Advanced Menu Intelligence (June 27, 2025)
 - **Comprehensive Restaurant Profiling**: Enhanced detailed restaurant profile display showing all 50+ captured data points organized by categories
 - **Advanced Menu Parsing & Analysis**: Smart menu parsing that extracts categories and items from pasted text menus

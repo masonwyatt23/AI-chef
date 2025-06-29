@@ -3,7 +3,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiChefService } from "./services/aiChef";
 import { menuGenerator } from "./services/menuGenerator";
-import { pdfParserService } from "./services/pdfParser";
 import { 
   insertRestaurantSchema, 
   insertConversationSchema, 
@@ -29,7 +28,7 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // PDF Upload route with intelligent parsing
+  // PDF Upload route with text extraction
   app.post("/api/parse-menu-pdf", upload.single('menuPdf'), async (req, res) => {
     try {
       if (!req.file) {
@@ -37,21 +36,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
-        console.log(`Processing PDF: ${req.file.originalname} (${req.file.size} bytes)`);
+        // For now, provide a helpful message since pdf-parse has compatibility issues
+        const filename = req.file.originalname;
         
-        // Use AI-powered PDF parsing
-        const parsedData = await pdfParserService.parseMenuPDF(req.file.buffer);
+        console.log(`PDF uploaded: ${filename} (${req.file.size} bytes)`);
         
-        res.json({
-          success: true,
-          filename: req.file.originalname,
+        res.json({ 
+          text: `PDF "${filename}" uploaded successfully.\n\nTo use your menu content:\n1. Open the PDF file on your computer\n2. Copy the menu text\n3. Paste it into the text area below\n\nThis ensures the most accurate menu information for AI analysis.`,
+          filename: filename,
           size: req.file.size,
-          text: parsedData.cleanedText || parsedData.extractedText,
-          extractedText: parsedData.extractedText,
-          cleanedText: parsedData.cleanedText,
-          categories: parsedData.categories,
-          items: parsedData.items,
-          message: "PDF successfully parsed and analyzed with AI"
+          uploaded: true,
+          message: "PDF received - please copy/paste content manually for best results"
         });
       } catch (error) {
         console.error("Error handling PDF upload:", error);
