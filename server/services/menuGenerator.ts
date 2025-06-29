@@ -86,7 +86,10 @@ export class MenuGeneratorService {
           { role: "user", content: userPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.8,
+        temperature: 0.95,
+        top_p: 0.9,
+        frequency_penalty: 0.5,
+        presence_penalty: 0.3,
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
@@ -116,7 +119,10 @@ export class MenuGeneratorService {
           { role: "user", content: userPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.8,
+        temperature: 0.95,
+        top_p: 0.9,
+        frequency_penalty: 0.5,
+        presence_penalty: 0.3,
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"cocktails": []}');
@@ -366,7 +372,7 @@ Focus on:
       
       if (request.focusCategory) {
         const categoryItems = request.currentMenu.filter(item => 
-          item.category.toLowerCase().includes(request.focusCategory.toLowerCase())
+          item.category.toLowerCase().includes(request.focusCategory!.toLowerCase())
         );
         if (categoryItems.length > 0) {
           prompt += `. Current ${request.focusCategory} offerings: ${categoryItems.map(item => item.name).join(', ')}. Design items that surpass these in creativity and appeal`;
@@ -391,7 +397,17 @@ Focus on:
       prompt += `. Highlight ${request.seasonalFocus} seasonal ingredients with innovative flavor combinations that create memorable dining experiences`;
     }
     
-    prompt += `. Each item should demonstrate culinary mastery, tell a story, and position this restaurant as a destination for exceptional food.`;
+    prompt += `. Each item should demonstrate culinary mastery, tell a story, and position this restaurant as a destination for exceptional food.
+
+CRITICAL CREATIVITY REQUIREMENTS:
+- Generate completely original dishes with unique names that have never been seen before
+- Use unexpected ingredient combinations that surprise and delight
+- Avoid any standard restaurant items (burgers, steaks, pasta unless reimagined dramatically)
+- Incorporate innovative cooking techniques, unusual presentations, or artistic elements
+- Create dishes that would go viral on social media due to their uniqueness
+- Draw inspiration from global cuisines, molecular gastronomy, or artistic plating
+- Make each dish a conversation starter and Instagram moment
+- Think beyond traditional boundaries - be experimental and revolutionary`;
     
     return prompt;
   }
@@ -474,7 +490,17 @@ Focus on:
       prompt += `. Avoid similarity to: ${request.existingCocktails.join(', ')}`;
     }
     
-    prompt += `. Ensure cocktails complement the restaurant's atmosphere and food menu.`;
+    prompt += `. Ensure cocktails complement the restaurant's atmosphere and food menu.
+
+CRITICAL CREATIVITY REQUIREMENTS:
+- Generate completely original cocktails with unique names that have never been seen before
+- Use unexpected ingredient combinations, house-made elements, or artisanal techniques
+- Avoid any standard cocktail recipes (Old Fashioned, Martini, Margarita unless completely reimagined)
+- Incorporate innovative mixology techniques: clarification, fat-washing, smoking, foam, spherification
+- Create visually stunning cocktails that would go viral on social media
+- Use surprising ingredients: savory elements, unusual bitters, exotic fruits, herbs, spices
+- Make each cocktail a conversation starter and Instagram moment
+- Think beyond traditional boundaries - be experimental and revolutionary in your approach`;
     
     return prompt;
   }
