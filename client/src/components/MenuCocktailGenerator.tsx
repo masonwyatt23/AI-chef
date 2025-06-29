@@ -1158,30 +1158,7 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                   <Label className="text-base font-semibold">Existing Menu Analysis</Label>
                   <p className="text-sm text-slate-600 mb-3">Upload a PDF menu or paste your current menu text to analyze categories and generate targeted improvements</p>
                   
-                  {/* Quick Menu Load */}
-                  <div className="mb-4 p-3 border rounded-lg bg-white">
-                    <Label className="text-sm font-medium mb-2 block">Load Sample Menus</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={loadDepotMenu}
-                        className="flex items-center flex-1"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Depot Menu
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={loadJunctionMenu}
-                        className="flex items-center flex-1"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Junction Catering
-                      </Button>
-                    </div>
-                  </div>
+
 
                   {/* Saved Menus */}
                   <div className="mb-4 p-3 border rounded-lg bg-white">
@@ -1774,21 +1751,7 @@ Ribeye Steak - 12oz premium cut $32
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Load Sample Drink Menus */}
-                <div>
-                  <Label>Load Sample Drink Menu</Label>
-                  <div className="mt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={loadJunctionCocktailMenu}
-                      className="flex items-center w-full"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Junction Drink Menu
-                    </Button>
-                  </div>
-                </div>
+
 
                 {/* Saved Cocktail Menus */}
                 <div>
