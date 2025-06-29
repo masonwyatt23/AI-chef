@@ -65,7 +65,6 @@ function Router() {
         {() => (
           <ChefAssistant 
             restaurantId={selectedRestaurantId}
-            onBackToDashboard={() => setSelectedRestaurantId(null)}
           />
         )}
       </Route>
