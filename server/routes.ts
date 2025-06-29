@@ -165,12 +165,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/restaurants/:id", async (req, res) => {
+  app.get("/api/restaurants/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const restaurant = await storage.getRestaurant(id);
       if (!restaurant) {
         return res.status(404).json({ error: "Restaurant not found" });
+      }
+      // Check ownership
+      if (restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
       }
       res.json(restaurant);
     } catch (error) {
@@ -178,49 +182,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/restaurants/:id", async (req, res) => {
+  app.put("/api/restaurants/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const updateData = insertRestaurantSchema.partial().parse(req.body);
-      const restaurant = await storage.updateRestaurant(id, updateData);
+      const restaurant = await storage.getRestaurant(id);
       if (!restaurant) {
         return res.status(404).json({ error: "Restaurant not found" });
       }
-      res.json(restaurant);
+      // Check ownership
+      if (restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const updateData = insertRestaurantSchema.partial().parse(req.body);
+      const updatedRestaurant = await storage.updateRestaurant(id, updateData);
+      res.json(updatedRestaurant);
     } catch (error) {
       res.status(400).json({ error: "Invalid update data" });
     }
   });
 
-  app.patch("/api/restaurants/:id", async (req, res) => {
+  app.patch("/api/restaurants/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      console.log('PATCH request data:', JSON.stringify(req.body, null, 2));
-      
-      const updateData = insertRestaurantSchema.partial().parse(req.body);
-      console.log('Parsed update data:', JSON.stringify(updateData, null, 2));
-      
-      const restaurant = await storage.updateRestaurant(id, updateData);
+      const restaurant = await storage.getRestaurant(id);
       if (!restaurant) {
         return res.status(404).json({ error: "Restaurant not found" });
       }
-      
-      console.log('Updated restaurant:', JSON.stringify(restaurant, null, 2));
-      res.json(restaurant);
-    } catch (error) {
-      console.error('Restaurant update error:', error);
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
+      // Check ownership
+      if (restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
       }
+      
+      const updateData = insertRestaurantSchema.partial().parse(req.body);
+      const updatedRestaurant = await storage.updateRestaurant(id, updateData);
+      res.json(updatedRestaurant);
+    } catch (error) {
       res.status(400).json({ error: "Invalid update data", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
   // Conversation routes
-  app.post("/api/conversations", async (req, res) => {
+  app.post("/api/conversations", requireAuth, async (req, res) => {
     try {
       const conversationData = insertConversationSchema.parse(req.body);
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(conversationData.restaurantId);
+      if (!restaurant || restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       const conversation = await storage.createConversation(conversationData);
       res.json(conversation);
     } catch (error) {
@@ -228,9 +237,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/restaurants/:id/conversations", async (req, res) => {
+  app.get("/api/restaurants/:id/conversations", requireAuth, async (req, res) => {
     try {
       const restaurantId = parseInt(req.params.id);
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       const conversations = await storage.getConversationsByRestaurant(restaurantId);
       res.json(conversations);
     } catch (error) {
@@ -238,9 +252,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/conversations/:id/messages", async (req, res) => {
+  app.get("/api/conversations/:id/messages", requireAuth, async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
+      // Verify conversation access through restaurant ownership
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+      const restaurant = await storage.getRestaurant(conversation.restaurantId);
+      if (!restaurant || restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       const messages = await storage.getMessagesByConversation(conversationId);
       res.json(messages);
     } catch (error) {
@@ -248,7 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/conversations/:id", async (req, res) => {
+  app.delete("/api/conversations/:id", requireAuth, async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
       const success = await storage.deleteConversation(conversationId);
@@ -532,9 +555,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Recommendations routes
-  app.get("/api/restaurants/:id/recommendations", async (req, res) => {
+  app.get("/api/restaurants/:id/recommendations", requireAuth, async (req, res) => {
     try {
       const restaurantId = parseInt(req.params.id);
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       const recommendations = await storage.getRecommendationsByRestaurant(restaurantId);
       res.json(recommendations);
     } catch (error) {
