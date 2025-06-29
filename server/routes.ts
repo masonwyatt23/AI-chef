@@ -77,7 +77,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check password
+      console.log('Login attempt:', { username, passwordLength: password.length });
+      console.log('User found:', { id: user.id, username: user.username, hasPassword: !!user.password });
       const isValid = await comparePassword(password, user.password);
+      console.log('Password validation result:', isValid);
       if (!isValid) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
