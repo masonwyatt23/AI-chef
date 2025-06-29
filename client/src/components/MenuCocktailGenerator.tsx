@@ -341,16 +341,24 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       
       if (result.text && result.text.trim()) {
         setExistingMenu(result.text);
-        toast({
-          title: "PDF uploaded successfully",
-          description: `Extracted text from ${result.filename}`,
-        });
         
-        // Auto-analyze the extracted text after state update
-        setTimeout(() => {
-          // Call the analysis function directly with the extracted text
-          analyzeMenuText(result.text);
-        }, 100);
+        // Check if it's a guidance message (contains instructions)
+        if (result.text.includes('PDF uploaded successfully') && result.text.includes('Open your PDF menu')) {
+          toast({
+            title: "PDF received!",
+            description: "Please copy your menu text and paste it below for AI analysis",
+          });
+        } else {
+          toast({
+            title: "PDF text extracted!",
+            description: `Ready for AI analysis from ${result.filename}`,
+          });
+          
+          // Auto-analyze if we have actual menu text
+          setTimeout(() => {
+            analyzeMenuText(result.text);
+          }, 100);
+        }
       } else {
         toast({
           title: "PDF uploaded",
@@ -1064,8 +1072,8 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
                           {uploadedFile.name} ({Math.round(uploadedFile.size / 1024)}KB)
                         </div>
                       )}
-                      <div className="text-xs text-slate-500">
-                        Supports PDF files up to 10MB. AI will extract and analyze your menu automatically.
+                      <div className="text-xs text-slate-500 text-center">
+                        Supports PDF files up to 10MB • Works with any restaurant menu
                       </div>
                       
                       {/* Quick sample for testing */}
