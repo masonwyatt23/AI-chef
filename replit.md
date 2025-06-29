@@ -82,6 +82,14 @@ The application uses the following main entities:
 
 ## Recent Updates
 
+### Multi-User Authentication System Implementation (June 29, 2025)
+- **User Authentication**: Implemented secure session-based authentication with bcrypt password hashing
+- **Multi-Restaurant Management**: Users can now create and manage multiple restaurant profiles from a centralized dashboard
+- **Protected Routes**: All restaurant data and AI interactions are now user-specific and protected by authentication
+- **Existing Data Preservation**: Successfully migrated existing "Depot Grille" data to default user account (username: depot_owner, password: password)
+- **Restaurant Dashboard**: Beautiful interface for selecting and managing multiple restaurant accounts
+- **Seamless User Experience**: Login/register flow with automatic redirects and session management
+
 ### Enhanced AI Chef Assistant with Advanced Menu Intelligence (June 27, 2025)
 - **Comprehensive Restaurant Profiling**: Enhanced detailed restaurant profile display showing all 50+ captured data points organized by categories
 - **Advanced Menu Parsing & Analysis**: Smart menu parsing that extracts categories and items from pasted text menus
