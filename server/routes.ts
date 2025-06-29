@@ -585,6 +585,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Saved Menus routes
+  app.post("/api/saved-menus", requireAuth, async (req, res) => {
+    try {
+      const savedMenuData = insertSavedMenuSchema.parse(req.body);
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(savedMenuData.restaurantId);
+      if (!restaurant || restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const savedMenu = await storage.createSavedMenu(savedMenuData);
+      res.json(savedMenu);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid saved menu data" });
+    }
+  });
+
+  app.get("/api/restaurants/:id/saved-menus", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const savedMenus = await storage.getSavedMenusByRestaurant(restaurantId);
+      res.json(savedMenus);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch saved menus" });
+    }
+  });
+
+  app.delete("/api/saved-menus/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Get the saved menu to verify ownership
+      const savedMenu = await storage.getSavedMenu(id);
+      if (!savedMenu) {
+        return res.status(404).json({ error: "Saved menu not found" });
+      }
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(savedMenu.restaurantId);
+      if (!restaurant || restaurant.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const success = await storage.deleteSavedMenu(id);
+      if (!success) {
+        return res.status(500).json({ error: "Failed to delete saved menu" });
+      }
+      res.json({ message: "Saved menu deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete saved menu" });
+    }
+  });
+
   // Enhanced Menu Generation API
   app.post("/api/generate/menu-items", async (req, res) => {
     try {

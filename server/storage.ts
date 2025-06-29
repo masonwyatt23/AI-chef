@@ -46,6 +46,7 @@ export interface IStorage {
   
   createSavedMenu(savedMenu: InsertSavedMenu): Promise<SavedMenu>;
   getSavedMenusByRestaurant(restaurantId: number): Promise<SavedMenu[]>;
+  getSavedMenu(id: number): Promise<SavedMenu | undefined>;
   deleteSavedMenu(id: number): Promise<boolean>;
 }
 
@@ -225,6 +226,14 @@ export class DatabaseStorage implements IStorage {
       .from(savedMenus)
       .where(eq(savedMenus.restaurantId, restaurantId))
       .orderBy(savedMenus.createdAt);
+  }
+
+  async getSavedMenu(id: number): Promise<SavedMenu | undefined> {
+    const [savedMenu] = await db
+      .select()
+      .from(savedMenus)
+      .where(eq(savedMenus.id, id));
+    return savedMenu || undefined;
   }
 
   async deleteSavedMenu(id: number): Promise<boolean> {

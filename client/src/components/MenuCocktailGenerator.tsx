@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,9 +29,10 @@ import {
   Trash2,
   History
 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
+import type { SavedMenu } from "@shared/schema";
 
 interface MenuCocktailGeneratorProps {
   restaurantId: number;
@@ -99,6 +100,11 @@ interface GeneratedCocktail {
 export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"menu" | "cocktails">("menu");
+
+  // Fetch saved menus
+  const { data: savedMenus = [], refetch: refetchSavedMenus } = useQuery({
+    queryKey: ['/api/restaurants', restaurantId, 'saved-menus'],
+  });
   
   // Menu generation state
   const [menuRequests, setMenuRequests] = useState<string[]>([]);
@@ -121,6 +127,11 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cocktailMenuText, setCocktailMenuText] = useState("");
+  
+  // Saved menu state
+  const [saveMenuName, setSaveMenuName] = useState("");
+  const [isSavingMenu, setIsSavingMenu] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
   
   // History state for previously generated items with localStorage persistence
   const [menuHistory, setMenuHistory] = useState<GeneratedMenuItem[]>(() => {
