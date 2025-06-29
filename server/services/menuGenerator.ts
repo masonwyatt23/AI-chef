@@ -126,14 +126,110 @@ export class MenuGeneratorService {
         max_tokens: 8000,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
+      const rawContent = response.choices[0].message.content || '{"items": []}';
+      console.log('Raw Menu AI Response Length:', rawContent.length);
       
-      console.log('AI Response Structure:', JSON.stringify(result, null, 2));
-      if (result.items && result.items.length > 0) {
-        console.log('First item recipe structure:', JSON.stringify(result.items[0].recipe, null, 2));
+      let result;
+      try {
+        result = JSON.parse(rawContent);
+      } catch (jsonError) {
+        console.error('Menu JSON Parse Error:', jsonError);
+        console.log('Attempting to repair malformed menu JSON...');
+        
+        // Enhanced JSON repair logic for menu items
+        let fixedContent = rawContent;
+        
+        // Remove asterisks and malformed field markers
+        fixedContent = fixedContent.replace(/\*[^*]*\*/g, '');
+        
+        // Fix common malformations
+        fixedContent = fixedContent.replace(/:\s*\*([^*]+)\*/g, ': "$1"');
+        fixedContent = fixedContent.replace(/,\s*,/g, ',');
+        fixedContent = fixedContent.replace(/{\s*,/g, '{');
+        fixedContent = fixedContent.replace(/,\s*}/g, '}');
+        
+        // If the JSON is cut off, try to close it properly
+        if (!fixedContent.trim().endsWith('}')) {
+          const openBraces = (fixedContent.match(/{/g) || []).length;
+          const closeBraces = (fixedContent.match(/}/g) || []).length;
+          const openBrackets = (fixedContent.match(/\[/g) || []).length;
+          const closeBrackets = (fixedContent.match(/]/g) || []).length;
+          
+          for (let i = 0; i < (openBrackets - closeBrackets); i++) {
+            fixedContent += ']';
+          }
+          for (let i = 0; i < (openBraces - closeBraces); i++) {
+            fixedContent += '}';
+          }
+        }
+        
+        try {
+          result = JSON.parse(fixedContent);
+          console.log('Successfully repaired malformed menu JSON');
+        } catch (secondError) {
+          console.error('Could not repair menu JSON:', secondError);
+          result = { items: [] };
+        }
       }
       
-      return result.items || [];
+      console.log('Menu AI Response Structure:', JSON.stringify(result, null, 2));
+      
+      // Clean and validate menu items
+      const processedItems = (result.items || []).map((item: any) => {
+        const cleanItem = {
+          name: this.cleanField(item.name) || "Signature Dish",
+          description: this.cleanField(item.description) || "A carefully crafted dish featuring premium ingredients",
+          category: this.cleanField(item.category) || "Entree",
+          ingredients: Array.isArray(item.ingredients) ? 
+            item.ingredients.map((ing: any) => this.cleanField(ing)).filter(Boolean) : 
+            ["Premium ingredients"],
+          preparationTime: this.extractNumber(item.preparationTime) || 20,
+          difficulty: (item.difficulty === 'easy' || item.difficulty === 'medium' || item.difficulty === 'hard') ? 
+            item.difficulty : 'medium',
+          estimatedCost: this.extractNumber(item.estimatedCost) || 8.50,
+          suggestedPrice: this.extractNumber(item.suggestedPrice) || 24.00,
+          profitMargin: this.extractNumber(item.profitMargin) || 65,
+          recipe: {
+            serves: this.extractNumber(item.recipe?.serves) || 1,
+            prepInstructions: Array.isArray(item.recipe?.prepInstructions) ? 
+              item.recipe.prepInstructions.map((inst: any) => this.cleanField(inst)).filter(Boolean) : 
+              ["Prepare ingredients according to specification"],
+            cookingInstructions: Array.isArray(item.recipe?.cookingInstructions) ? 
+              item.recipe.cookingInstructions.map((inst: any) => this.cleanField(inst)).filter(Boolean) : 
+              ["Cook according to technique"],
+            platingInstructions: Array.isArray(item.recipe?.platingInstructions) ? 
+              item.recipe.platingInstructions.map((inst: any) => this.cleanField(inst)).filter(Boolean) : 
+              ["Plate with care and attention to presentation"],
+            techniques: Array.isArray(item.recipe?.techniques) ? 
+              item.recipe.techniques.map((tech: any) => this.cleanField(tech)).filter(Boolean) : 
+              ["Traditional cooking methods"]
+          },
+          allergens: Array.isArray(item.allergens) ? 
+            item.allergens.map((all: any) => this.cleanField(all)).filter(Boolean) : [],
+          nutritionalHighlights: Array.isArray(item.nutritionalHighlights) ? 
+            item.nutritionalHighlights.map((nh: any) => this.cleanField(nh)).filter(Boolean) : undefined,
+          winePairings: Array.isArray(item.winePairings) ? 
+            item.winePairings.map((wp: any) => this.cleanField(wp)).filter(Boolean) : undefined,
+          upsellOpportunities: Array.isArray(item.upsellOpportunities) ? 
+            item.upsellOpportunities.map((up: any) => this.cleanField(up)).filter(Boolean) : undefined
+        };
+        
+        return cleanItem;
+      }).filter((item: any) => {
+        // Only keep items with valid, non-generic names and descriptions
+        return item.name && 
+               item.description && 
+               item.name !== "Signature Dish" &&
+               item.description !== "A carefully crafted dish featuring premium ingredients";
+      });
+      
+      console.log(`Processed menu items: ${processedItems.length} out of ${(result.items || []).length} total`);
+      
+      if (processedItems.length === 0) {
+        throw new Error('AI failed to generate valid menu items. Please try again with different parameters.');
+      }
+      
+      return processedItems;
     } catch (error) {
       console.error('Menu generation error:', error);
       throw new Error('Failed to generate menu items');
