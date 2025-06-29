@@ -1819,6 +1819,56 @@ Ribeye Steak - 12oz premium cut $32
                   )}
                 </div>
 
+                <div className="text-center text-sm text-gray-500 mb-3">or paste your own</div>
+                
+                {/* Drink Menu Text Input */}
+                <div className="border rounded-lg p-4 bg-slate-50">
+                  <Label className="text-base font-semibold">Existing Drink Menu Analysis</Label>
+                  <p className="text-sm text-slate-600 mb-3">Paste your current drink menu text to analyze and generate complementary cocktails</p>
+                  
+                  <Textarea
+                    placeholder="Paste your existing drink menu here...
+COCKTAILS
+---
+Old Fashioned - Whiskey, bitters, sugar $12
+Margarita - Tequila, lime, triple sec $10
+
+WINE
+---
+Chardonnay - California $8/28
+Cabernet - Napa Valley $12/42
+..."
+                    value={cocktailMenuText}
+                    onChange={(e) => setCocktailMenuText(e.target.value)}
+                    rows={6}
+                    className="mb-3"
+                  />
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => {
+                        // You can add analysis logic here later if needed
+                        if (cocktailMenuText.trim()) {
+                          toast({
+                            title: "Menu loaded",
+                            description: "Drink menu text has been loaded for analysis",
+                          });
+                        }
+                      }} 
+                      disabled={!cocktailMenuText.trim()}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Load Menu Text
+                    </Button>
+                    {cocktailMenuText && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        Menu text loaded
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
                 {/* Theme */}
                 <div>
                   <Label>Theme or Concept</Label>
