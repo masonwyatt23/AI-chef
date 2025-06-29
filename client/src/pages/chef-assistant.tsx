@@ -7,8 +7,9 @@ import { MenuCocktailGenerator } from "@/components/MenuCocktailGenerator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Utensils, MessageSquare, Settings, ArrowLeft } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { Download, Utensils, MessageSquare, Settings, ArrowLeft, LogOut } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import depotLogoPath from "@assets/depot logo_1751085413672.png";
 import jsPDF from 'jspdf';
 import type { Restaurant, Recommendation } from "@shared/schema";
@@ -20,6 +21,7 @@ interface ChefAssistantProps {
 
 export default function ChefAssistant({ restaurantId, onBackToDashboard }: ChefAssistantProps) {
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
+  const { logout } = useAuth();
 
   const { data: restaurant } = useQuery<Restaurant>({
     queryKey: [`/api/restaurants/${restaurantId}`],
@@ -30,6 +32,11 @@ export default function ChefAssistant({ restaurantId, onBackToDashboard }: ChefA
     queryKey: [`/api/restaurants/${restaurantId}/recommendations`],
     enabled: !!restaurantId,
   });
+
+  const handleLogout = () => {
+    logout();
+    queryClient.clear();
+  };
 
   const handleExport = async () => {
     if (!restaurant || !recommendations.length) return;
@@ -198,6 +205,14 @@ export default function ChefAssistant({ restaurantId, onBackToDashboard }: ChefA
             >
               <Download className="h-4 w-4 mr-2" />
               Export
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
             </Button>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center overflow-hidden border border-slate-200">
