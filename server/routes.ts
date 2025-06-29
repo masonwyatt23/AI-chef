@@ -15,12 +15,11 @@ import { promises as fs } from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 
+import pdfExtract from "pdf-text-extract";
+
 // PDF text extraction using pdf-text-extract
 const extractTextFromPDF = async (buffer: Buffer): Promise<string> => {
   try {
-    // Import pdf-text-extract dynamically
-    const { extract } = await import("pdf-text-extract");
-    
     // Create a temporary file since pdf-text-extract works with file paths
     const tempDir = path.join(process.cwd(), 'temp');
     await fs.mkdir(tempDir, { recursive: true });
@@ -34,7 +33,7 @@ const extractTextFromPDF = async (buffer: Buffer): Promise<string> => {
       
       // Extract text using pdf-text-extract
       return new Promise<string>((resolve, reject) => {
-        extract(tempFilePath, { splitPages: false }, (err: any, pages: string[]) => {
+        pdfExtract(tempFilePath, { splitPages: false }, (err: any, pages: string[]) => {
           // Clean up temporary file
           fs.unlink(tempFilePath).catch(console.error);
           
