@@ -11,6 +11,36 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
+// PDF parsing using pdfjs-dist
+const extractTextFromPDF = async (buffer: Buffer): Promise<string> => {
+  try {
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.js");
+    
+    // Load the PDF document
+    const loadingTask = pdfjs.getDocument({ data: buffer });
+    const pdf = await loadingTask.promise;
+    
+    let fullText = '';
+    
+    // Extract text from all pages
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      
+      // Combine text items from the page
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      
+      fullText += pageText + '\n';
+    }
+    
+    return fullText.trim();
+  } catch (error) {
+    console.error("PDF parsing error:", error);
+    throw new Error("Failed to extract text from PDF file");
+  }
+};
 
 // Configure multer for PDF uploads
 const upload = multer({
@@ -36,23 +66,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
-        // For now, provide a helpful message since pdf-parse has compatibility issues
         const filename = req.file.originalname;
-        
         console.log(`PDF uploaded: ${filename} (${req.file.size} bytes)`);
         
-        res.json({ 
-          text: `PDF "${filename}" uploaded successfully.\n\nTo use your menu content:\n1. Open the PDF file on your computer\n2. Copy the menu text\n3. Paste it into the text area below\n\nThis ensures the most accurate menu information for AI analysis.`,
-          filename: filename,
-          size: req.file.size,
-          uploaded: true,
-          message: "PDF received - please copy/paste content manually for best results"
-        });
+        // Extract text from PDF using pdfjs-dist
+        const extractedText = await extractTextFromPDF(req.file.buffer);
+        
+        if (extractedText && extractedText.length > 0) {
+          console.log(`PDF text extracted successfully: ${extractedText.length} characters`);
+          res.json({ 
+            text: extractedText,
+            filename: filename,
+            size: req.file.size,
+            uploaded: true,
+            message: "PDF text extracted successfully"
+          });
+        } else {
+          console.log("PDF uploaded but no text could be extracted");
+          res.json({ 
+            text: `PDF "${filename}" uploaded but no text could be extracted.\n\nPossible reasons:\n- PDF contains only images/scanned content\n- PDF is password protected\n- PDF uses non-standard encoding\n\nPlease try:\n1. Opening the PDF and copying the text manually\n2. Converting to a text-based PDF if it's image-based\n3. Using a different PDF file`,
+            filename: filename,
+            size: req.file.size,
+            uploaded: true,
+            message: "PDF uploaded but no extractable text found"
+          });
+        }
       } catch (error) {
-        console.error("Error handling PDF upload:", error);
+        console.error("Error extracting text from PDF:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         res.status(500).json({ 
-          error: "Failed to process PDF upload",
-          details: error instanceof Error ? error.message : String(error)
+          error: "Failed to extract text from PDF",
+          details: errorMessage,
+          text: `Error processing PDF "${req.file.originalname}".\n\nError: ${errorMessage}\n\nPlease try:\n1. Using a different PDF file\n2. Copying the menu text manually\n3. Ensuring the PDF is not corrupted or password protected`
         });
       }
     } catch (error) {
