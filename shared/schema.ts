@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -93,6 +93,14 @@ export const recommendations = pgTable("recommendations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const savedMenus = pgTable("saved_menus", {
+  id: serial("id").primaryKey(),
+  restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
+  name: text("name").notNull(),
+  menuText: text("menu_text").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertRestaurantSchema = createInsertSchema(restaurants).omit({
   id: true,
   createdAt: true,
@@ -113,6 +121,11 @@ export const insertRecommendationSchema = createInsertSchema(recommendations).om
   createdAt: true,
 });
 
+export const insertSavedMenuSchema = createInsertSchema(savedMenus).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
@@ -125,6 +138,9 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Recommendation = typeof recommendations.$inferSelect;
 export type InsertRecommendation = z.infer<typeof insertRecommendationSchema>;
+
+export type SavedMenu = typeof savedMenus.$inferSelect;
+export type InsertSavedMenu = z.infer<typeof insertSavedMenuSchema>;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
