@@ -4,6 +4,7 @@ import {
   conversations, 
   messages, 
   recommendations,
+  savedMenus,
   type User, 
   type InsertUser,
   type Restaurant,
@@ -13,7 +14,9 @@ import {
   type Message,
   type InsertMessage,
   type Recommendation,
-  type InsertRecommendation
+  type InsertRecommendation,
+  type SavedMenu,
+  type InsertSavedMenu
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -40,6 +43,10 @@ export interface IStorage {
   createRecommendation(recommendation: InsertRecommendation): Promise<Recommendation>;
   getRecommendationsByRestaurant(restaurantId: number): Promise<Recommendation[]>;
   updateRecommendation(id: number, recommendation: Partial<InsertRecommendation>): Promise<Recommendation | undefined>;
+  
+  createSavedMenu(savedMenu: InsertSavedMenu): Promise<SavedMenu>;
+  getSavedMenusByRestaurant(restaurantId: number): Promise<SavedMenu[]>;
+  deleteSavedMenu(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -202,6 +209,32 @@ export class DatabaseStorage implements IStorage {
       .where(eq(recommendations.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  async createSavedMenu(insertSavedMenu: InsertSavedMenu): Promise<SavedMenu> {
+    const [savedMenu] = await db
+      .insert(savedMenus)
+      .values(insertSavedMenu)
+      .returning();
+    return savedMenu;
+  }
+
+  async getSavedMenusByRestaurant(restaurantId: number): Promise<SavedMenu[]> {
+    return await db
+      .select()
+      .from(savedMenus)
+      .where(eq(savedMenus.restaurantId, restaurantId))
+      .orderBy(savedMenus.createdAt);
+  }
+
+  async deleteSavedMenu(id: number): Promise<boolean> {
+    try {
+      await db.delete(savedMenus).where(eq(savedMenus.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting saved menu:", error);
+      return false;
+    }
   }
 }
 

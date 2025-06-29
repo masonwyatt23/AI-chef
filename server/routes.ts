@@ -8,7 +8,8 @@ import {
   insertRestaurantSchema, 
   insertConversationSchema, 
   insertMessageSchema,
-  insertRecommendationSchema 
+  insertRecommendationSchema,
+  insertSavedMenuSchema
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
