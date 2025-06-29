@@ -25,7 +25,9 @@ export interface IStorage {
   
   createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
   getRestaurant(id: number): Promise<Restaurant | undefined>;
+  getRestaurantsByUser(userId: number): Promise<Restaurant[]>;
   updateRestaurant(id: number, restaurant: Partial<InsertRestaurant>): Promise<Restaurant | undefined>;
+  deleteRestaurant(id: number): Promise<boolean>;
   
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   getConversationsByRestaurant(restaurantId: number): Promise<Conversation[]>;

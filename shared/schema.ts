@@ -10,6 +10,7 @@ export const users = pgTable("users", {
 
 export const restaurants = pgTable("restaurants", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
   theme: text("theme").notNull(),
   categories: text("categories").array().notNull().default([]),
