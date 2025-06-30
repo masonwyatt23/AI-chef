@@ -861,11 +861,11 @@ CRITICAL: Generate exactly 4 unique cocktails. NO placeholders, NO template text
               result = { cocktails: cocktailFragments };
             } else {
               console.log('Cocktail fragment reconstruction failed, using comprehensive fallback');
-              result = this.generateFallbackCocktails(request.context);
+              result = { cocktails: this.generateFallbackCocktails(request.context) };
             }
           } else {
             console.log('No valid cocktail fragments found, using comprehensive fallback');
-            result = this.generateFallbackCocktails(request.context);
+            result = { cocktails: this.generateFallbackCocktails(request.context) };
           }
         }
       }
@@ -966,23 +966,44 @@ CRITICAL: Generate exactly 4 unique cocktails. NO placeholders, NO template text
   private generateFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
     console.log('Generating creative fallback cocktails');
     
-    // Create dynamic elements for uniqueness without showing technical details
-    const timestamp = Date.now();
-    const randomSeed = Math.floor(Math.random() * 1000);
+    // Define cocktail variations with unique names
+    const fallbackCocktails = [
+      {
+        name: "Artisan Garden Mist",
+        prefix: "Artisan",
+        base: "Garden Mist",
+        spirit: "Premium gin",
+        modifier: "Botanical cordial"
+      },
+      {
+        name: "Heritage Sunset Ridge", 
+        prefix: "Heritage",
+        base: "Sunset Ridge",
+        spirit: "Aged whiskey",
+        modifier: "House bitters"
+      },
+      {
+        name: "Elevated Mountain Air",
+        prefix: "Elevated", 
+        base: "Mountain Air",
+        spirit: "Artisanal vodka",
+        modifier: "Fresh herbs"
+      },
+      {
+        name: "Signature Crystal Falls",
+        prefix: "Signature",
+        base: "Crystal Falls", 
+        spirit: "Premium rum",
+        modifier: "Citrus blend"
+      }
+    ];
     
-    const creativePrefixes = ["Artisan", "Heritage", "Elevated", "Signature", "Premiere", "Handcrafted", "Refined"];
-    const creativeAdjectives = ["Smoky", "Botanical", "Citrus", "Barrel-Aged", "Herbal", "Spiced", "Crystalline"];
-    const cocktailTypes = ["Elixir", "Libation", "Potion", "Essence", "Creation", "Fusion", "Symphony"];
-    const cocktailNames = ["Garden Mist", "Sunset Ridge", "Mountain Air", "Ocean Breeze", "Forest Path", "Crystal Falls", "Golden Hour"];
     const glasswareOptions = ["Coupe", "Rocks glass", "Nick & Nora", "Martini glass", "Highball"];
-    const garnishOptions = ["Torched citrus wheel", "Fresh herb sprig", "Dehydrated fruit", "Smoked salt rim", "Aromatic oil mist"];
-    
-    const getRandomElement = (arr: string[]) => arr[timestamp % arr.length];
-    const getRandomPrice = (base: number) => base + (timestamp % 10);
+    const garnishOptions = ["Torched citrus wheel", "Fresh herb sprig", "Dehydrated fruit", "Smoked salt rim", "Edible flower"];
     
     return [
       {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
+        name: `${getRandomElement(creativePrefixes, 0)} ${getRandomElement(cocktailNames, 0)}`,
         description: `An innovative cocktail creation featuring contemporary mixology techniques and premium ingredients, perfectly crafted for ${context.name}.`,
         category: "signature" as const,
         ingredients: [
@@ -1000,12 +1021,12 @@ CRITICAL: Generate exactly 4 unique cocktails. NO placeholders, NO template text
         garnish: getRandomElement(garnishOptions),
         glassware: getRandomElement(glasswareOptions),
         estimatedCost: 3.00 + (timestamp % 8) * 0.1,
-        suggestedPrice: getRandomPrice(12),
+        suggestedPrice: getRandomPrice(12, 0),
         profitMargin: 65 + (timestamp % 15),
         preparationTime: 3 + (timestamp % 5)
       },
       {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
+        name: `${getRandomElement(creativePrefixes, 1)} ${getRandomElement(cocktailNames, 1)}`,
         description: `A refreshing effervescent cocktail with innovative botanical elements and artisanal touches, crafted to complement ${context.name}'s atmosphere.`,
         category: "signature" as const, 
         ingredients: [
