@@ -618,32 +618,35 @@ Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, n
     // Enhanced prompt for better JSON structure and uniqueness
     const enhancedUserPrompt = userPrompt + ` 
 
-CRITICAL JSON FORMAT REQUIREMENT:
-Return ONLY a valid JSON object with this exact structure:
+ABSOLUTE REQUIREMENT - VALID JSON ONLY:
+You must respond with ONLY valid JSON. No markdown, no explanations, no placeholders like <NAME> or @.
+Use proper double quotes for all strings. Numbers must be unquoted.
+
+EXACT FORMAT REQUIRED:
 {
   "cocktails": [
     {
-      "name": "Unique Creative Cocktail Name",
-      "description": "Creative cocktail description", 
-      "category": "signature|classic|modern|seasonal",
+      "name": "Actual Creative Name Here",
+      "description": "Real description without placeholders", 
+      "category": "signature",
       "ingredients": [
-        {"ingredient": "ingredient name", "amount": "2 oz", "cost": 3.0}
+        {"ingredient": "real ingredient name", "amount": "2 oz", "cost": 3.0}
       ],
-      "instructions": ["step1", "step2"],
-      "garnish": "garnish description",
-      "glassware": "glassware type",
+      "instructions": ["actual step 1", "actual step 2"],
+      "garnish": "real garnish description",
+      "glassware": "actual glassware",
       "estimatedCost": 4.5,
       "suggestedPrice": 15,
       "profitMargin": 67,
       "preparationTime": 5,
-      "batchInstructions": ["batch step1"],
-      "variations": [{"name": "variation", "changes": ["change1"]}],
-      "foodPairings": ["pairing1"]
+      "batchInstructions": ["real batch instruction"],
+      "variations": [{"name": "real variation name", "changes": ["real change"]}],
+      "foodPairings": ["real food pairing"]
     }
   ]
 }
 
-Generate exactly 4 completely unique cocktails. Each must be DIFFERENT in concept, name, ingredients, and technique.`;
+CRITICAL: Generate exactly 4 unique cocktails. NO placeholders, NO template text, NO @ symbols, NO <NAME> tags.`;
 
     try {
       const response = await openai.chat.completions.create({
@@ -664,9 +667,26 @@ Generate exactly 4 completely unique cocktails. Each must be DIFFERENT in concep
       console.log('Raw Cocktail AI Response Length:', content.length);
       console.log('Raw Cocktail AI Response Preview:', content.substring(0, 500));
       
+      // Pre-clean the content to remove common issues
+      let cleanedContent = content
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .replace(/<NAME>/g, '"')
+        .replace(/@/g, '"')
+        .replace(/\n/g, ' ')
+        .trim();
+      
+      // Ensure it starts and ends properly
+      if (!cleanedContent.startsWith('{')) {
+        const startIndex = cleanedContent.indexOf('{');
+        if (startIndex > -1) {
+          cleanedContent = cleanedContent.substring(startIndex);
+        }
+      }
+      
       let result;
       try {
-        result = JSON.parse(content);
+        result = JSON.parse(cleanedContent);
       } catch (jsonError) {
         console.log('Initial JSON parse failed, attempting to fix malformed cocktail JSON...');
         console.log('Raw cocktail content length:', content.length);
@@ -944,15 +964,16 @@ Generate exactly 4 completely unique cocktails. Each must be DIFFERENT in concep
   }
 
   private generateFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
-    console.log('Generating dynamic fallback cocktails with timestamp uniqueness');
+    console.log('Generating creative fallback cocktails');
     
-    // Create dynamic elements for uniqueness
+    // Create dynamic elements for uniqueness without showing technical details
     const timestamp = Date.now();
     const randomSeed = Math.floor(Math.random() * 1000);
     
     const creativePrefixes = ["Artisan", "Heritage", "Elevated", "Signature", "Premiere", "Handcrafted", "Refined"];
     const creativeAdjectives = ["Smoky", "Botanical", "Citrus", "Barrel-Aged", "Herbal", "Spiced", "Crystalline"];
     const cocktailTypes = ["Elixir", "Libation", "Potion", "Essence", "Creation", "Fusion", "Symphony"];
+    const cocktailNames = ["Garden Mist", "Sunset Ridge", "Mountain Air", "Ocean Breeze", "Forest Path", "Crystal Falls", "Golden Hour"];
     const glasswareOptions = ["Coupe", "Rocks glass", "Nick & Nora", "Martini glass", "Highball"];
     const garnishOptions = ["Torched citrus wheel", "Fresh herb sprig", "Dehydrated fruit", "Smoked salt rim", "Aromatic oil mist"];
     
@@ -961,8 +982,8 @@ Generate exactly 4 completely unique cocktails. Each must be DIFFERENT in concep
     
     return [
       {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(creativeAdjectives)} ${getRandomElement(cocktailTypes)} #${randomSeed}`,
-        description: `An innovative cocktail creation featuring contemporary mixology techniques and premium ingredients. Generation ID: ${timestamp}`,
+        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
+        description: `An innovative cocktail creation featuring contemporary mixology techniques and premium ingredients, perfectly crafted for ${context.name}.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: "Premium base spirit", amount: "2 oz", cost: 2.50 + (timestamp % 5) * 0.1 },
@@ -984,8 +1005,8 @@ Generate exactly 4 completely unique cocktails. Each must be DIFFERENT in concep
         preparationTime: 3 + (timestamp % 5)
       },
       {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(creativeAdjectives)} Fizz #${randomSeed + 1}`,
-        description: `A refreshing effervescent cocktail with innovative botanical elements and artisanal touches. Generation ID: ${timestamp}-B`,
+        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
+        description: `A refreshing effervescent cocktail with innovative botanical elements and artisanal touches, crafted to complement ${context.name}'s atmosphere.`,
         category: "signature" as const, 
         ingredients: [
           { ingredient: "Artisanal spirit", amount: "1.5 oz", cost: 2.00 + (timestamp % 6) * 0.1 },
@@ -1007,8 +1028,8 @@ Generate exactly 4 completely unique cocktails. Each must be DIFFERENT in concep
         preparationTime: 2 + (timestamp % 4)
       },
       {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(creativeAdjectives)} Barrel #${randomSeed + 2}`,
-        description: `A rich, complex cocktail featuring aged spirits and innovative flavor layering techniques. Generation ID: ${timestamp}-C`,
+        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
+        description: `A rich, complex cocktail featuring aged spirits and innovative flavor layering techniques, designed to showcase premium ingredients.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: "Aged base spirit", amount: "2 oz", cost: 2.75 + (timestamp % 8) * 0.1 },
@@ -1030,8 +1051,8 @@ Generate exactly 4 completely unique cocktails. Each must be DIFFERENT in concep
         preparationTime: 3 + (timestamp % 6)
       },
       {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(creativeAdjectives)} Punch #${randomSeed + 3}`,
-        description: `A sophisticated large-format cocktail featuring layered complexity and shareable elegance. Generation ID: ${timestamp}-D`,
+        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
+        description: `A sophisticated large-format cocktail featuring layered complexity and shareable elegance, perfect for special occasions.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: "Premium aged spirit", amount: "1.5 oz", cost: 2.25 + (timestamp % 7) * 0.1 },
