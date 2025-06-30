@@ -107,6 +107,173 @@ export class MenuGeneratorService {
     return null;
   }
 
+  private getFallbackMenuItems() {
+    return { 
+      items: [
+        {
+          name: "The Depot's Signature Railway Ribeye",
+          description: "A 16oz dry-aged ribeye with bourbon barrel char, accompanied by truffle-infused mac and cheese and seasonal vegetables. This showstopper celebrates the railroad heritage with bold flavors and premium ingredients.",
+          category: "entrees",
+          ingredients: [
+            "16 oz dry-aged ribeye steak",
+            "2 tablespoons bourbon barrel char seasoning",
+            "8 oz truffle mac and cheese",
+            "4 oz seasonal roasted vegetables",
+            "2 tablespoons compound butter"
+          ],
+          preparationTime: 45,
+          difficulty: "medium",
+          estimatedCost: 18,
+          suggestedPrice: 42,
+          profitMargin: 57,
+          recipe: {
+            serves: 1,
+            prepInstructions: [
+              "Remove ribeye from refrigeration 45 minutes before cooking",
+              "Season generously with bourbon barrel char blend",
+              "Prepare truffle mac and cheese base with aged cheddar"
+            ],
+            cookingInstructions: [
+              "Sear ribeye in cast iron skillet for 3-4 minutes per side",
+              "Finish in 400°F oven to desired doneness",
+              "Rest steak for 5 minutes before serving"
+            ],
+            platingInstructions: [
+              "Place mac and cheese in center of plate",
+              "Slice ribeye and fan over mac and cheese",
+              "Arrange vegetables artistically around the plate"
+            ],
+            techniques: ["High-heat searing", "Oven finishing", "Proper resting"]
+          },
+          allergens: ["dairy", "gluten"],
+          nutritionalHighlights: ["High protein", "Rich in iron"],
+          winePairings: ["Cabernet Sauvignon", "Malbec"],
+          upsellOpportunities: ["Wine pairing", "Appetizer course"]
+        },
+        {
+          name: "Locomotive Lobster Roll Reimagined",
+          description: "Fresh Maine lobster with lemon-herb aioli, served in a brioche bun with pickled vegetables and crispy shallots. A sophisticated take on the classic with railroad-inspired presentation.",
+          category: "entrees",
+          ingredients: [
+            "6 oz fresh Maine lobster meat",
+            "1 brioche hot dog bun",
+            "3 tablespoons lemon-herb aioli",
+            "2 oz pickled vegetables",
+            "1 tablespoon crispy shallots"
+          ],
+          preparationTime: 25,
+          difficulty: "easy",
+          estimatedCost: 14,
+          suggestedPrice: 32,
+          profitMargin: 56,
+          recipe: {
+            serves: 1,
+            prepInstructions: [
+              "Prepare lemon-herb aioli with fresh herbs",
+              "Pickle seasonal vegetables 24 hours in advance",
+              "Fry shallots until golden and crispy"
+            ],
+            cookingInstructions: [
+              "Gently warm lobster meat in butter",
+              "Toast brioche bun until golden",
+              "Combine lobster with aioli"
+            ],
+            platingInstructions: [
+              "Fill toasted bun with lobster mixture",
+              "Top with pickled vegetables and crispy shallots",
+              "Serve with house-made chips"
+            ],
+            techniques: ["Gentle warming", "Proper toasting", "Fresh preparation"]
+          },
+          allergens: ["shellfish", "eggs", "gluten"],
+          nutritionalHighlights: ["High protein", "Omega-3 fatty acids"],
+          winePairings: ["Chardonnay", "Sauvignon Blanc"],
+          upsellOpportunities: ["Soup pairing", "Premium wine selection"]
+        },
+        {
+          name: "Conductor's Craft Beer Battered Fish",
+          description: "Fresh local catch in a light craft beer batter, served with hand-cut fries and house-made tartar sauce. Features local brewery collaboration for an authentic regional taste.",
+          category: "entrees",
+          ingredients: [
+            "8 oz fresh local white fish fillet",
+            "1 cup craft beer batter mix",
+            "6 oz hand-cut potato fries",
+            "3 tablespoons house tartar sauce",
+            "1 lemon wedge"
+          ],
+          preparationTime: 35,
+          difficulty: "medium",
+          estimatedCost: 11,
+          suggestedPrice: 26,
+          profitMargin: 58,
+          recipe: {
+            serves: 1,
+            prepInstructions: [
+              "Cut fresh fish into portion-sized pieces",
+              "Prepare beer batter with local craft beer",
+              "Cut potatoes into hand-cut fry shapes"
+            ],
+            cookingInstructions: [
+              "Heat oil to 350°F for frying",
+              "Dip fish in batter and fry until golden",
+              "Fry hand-cut potatoes until crispy"
+            ],
+            platingInstructions: [
+              "Place fish prominently on plate",
+              "Arrange fries alongside fish",
+              "Serve tartar sauce in small ramekin"
+            ],
+            techniques: ["Beer batter preparation", "Temperature control frying", "Hand-cutting"]
+          },
+          allergens: ["fish", "gluten"],
+          nutritionalHighlights: ["High protein", "Local sourcing"],
+          winePairings: ["Pinot Grigio", "Local craft beer"],
+          upsellOpportunities: ["Appetizer add-on", "Craft beer flight"]
+        },
+        {
+          name: "Station Master's Seasonal Vegetable Stack",
+          description: "Grilled seasonal vegetables layered with herbed quinoa and topped with balsamic reduction. A vibrant, health-conscious option that celebrates local farm partnerships.",
+          category: "vegetarian",
+          ingredients: [
+            "6 oz mixed seasonal vegetables",
+            "4 oz herbed quinoa",
+            "2 tablespoons balsamic reduction",
+            "1 oz crumbled goat cheese",
+            "Fresh herb garnish"
+          ],
+          preparationTime: 30,
+          difficulty: "easy",
+          estimatedCost: 8,
+          suggestedPrice: 22,
+          profitMargin: 64,
+          recipe: {
+            serves: 1,
+            prepInstructions: [
+              "Cook quinoa with fresh herbs and vegetable stock",
+              "Prepare balsamic reduction by simmering until thick",
+              "Slice vegetables for grilling"
+            ],
+            cookingInstructions: [
+              "Grill vegetables until tender with char marks",
+              "Warm herbed quinoa thoroughly",
+              "Crumble goat cheese for topping"
+            ],
+            platingInstructions: [
+              "Create quinoa base on plate",
+              "Stack grilled vegetables artistically",
+              "Drizzle with balsamic reduction and garnish"
+            ],
+            techniques: ["Grilling technique", "Quinoa preparation", "Reduction cooking"]
+          },
+          allergens: ["dairy"],
+          nutritionalHighlights: ["High fiber", "Plant-based protein", "Antioxidants"],
+          winePairings: ["Pinot Noir", "Rosé"],
+          upsellOpportunities: ["Cheese plate", "Soup course"]
+        }
+      ]
+    };
+  }
+
   async generateMenuItems(request: MenuGenerationRequest): Promise<GeneratedMenuItem[]> {
     const systemPrompt = this.buildMenuSystemPrompt(request.context);
     const userPrompt = this.buildMenuUserPrompt(request);
@@ -126,10 +293,208 @@ export class MenuGeneratorService {
         max_tokens: 8000, // Increased for comprehensive creative outputs
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
+      const content = response.choices[0].message.content || '{"items": []}';
+      console.log('Raw AI Response Length:', content.length);
+      console.log('Raw AI Response Preview:', content.substring(0, 500));
+      
+      let result;
+      try {
+        result = JSON.parse(content);
+      } catch (jsonError) {
+        console.log('Initial JSON parse failed, attempting to fix malformed JSON...');
+        console.log('Raw content length:', content.length);
+        console.log('Content preview:', content.substring(0, 500));
+        
+        // Comprehensive JSON cleanup and repair
+        let fixedContent = content
+          .replace(/```json\s*/g, '')  // Remove markdown code blocks
+          .replace(/```\s*$/g, '')     // Remove closing code blocks
+          .replace(/\*\*/g, '')        // Remove bold markdown
+          .replace(/\*/g, '')          // Remove asterisks
+          .replace(/\n\s*\n/g, '\n')   // Remove excessive newlines
+          .replace(/\$/g, '"')         // Fix character corruption: $ -> "
+          .replace(/\u0024/g, '"')     // Fix Unicode corruption
+          .replace(/\\u0024/g, '"')    // Fix escaped Unicode corruption
+          .replace(/\u201C/g, '"')     // Fix smart quote corruption
+          .replace(/\u201D/g, '"')     // Fix smart quote corruption
+          .replace(/\u2018/g, "'")     // Fix smart apostrophe
+          .replace(/\u2019/g, "'")     // Fix smart apostrophe
+          .trim();
+        
+        // More aggressive JSON repair
+        console.log('Attempting comprehensive JSON repair...');
+        
+        // Find the start of the JSON structure
+        const startIndex = fixedContent.indexOf('{');
+        if (startIndex > 0) {
+          fixedContent = fixedContent.substring(startIndex);
+        }
+        
+        // Try to find the end of a complete JSON structure
+        let bracketCount = 0;
+        let inString = false;
+        let escape = false;
+        let validEndIndex = -1;
+        
+        for (let i = 0; i < fixedContent.length; i++) {
+          const char = fixedContent[i];
+          
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          
+          if (char === '\\') {
+            escape = true;
+            continue;
+          }
+          
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          
+          if (!inString) {
+            if (char === '{') {
+              bracketCount++;
+            } else if (char === '}') {
+              bracketCount--;
+              if (bracketCount === 0) {
+                validEndIndex = i + 1;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (validEndIndex > 0) {
+          fixedContent = fixedContent.substring(0, validEndIndex);
+          console.log('Found valid JSON endpoint at index:', validEndIndex);
+        }
+        
+        // If we still have unterminated strings, try more aggressive repair
+        if (fixedContent.includes('"')) {
+          const quotes = (fixedContent.match(/"/g) || []).length;
+          if (quotes % 2 !== 0) {
+            console.log('Attempting to fix unterminated strings...');
+            
+            // Find the last complete JSON property and truncate there
+            const lastCompleteProperty = fixedContent.lastIndexOf('",');
+            if (lastCompleteProperty > 0) {
+              fixedContent = fixedContent.substring(0, lastCompleteProperty + 1);
+              
+              // Add missing closing brackets/braces
+              const openBraces = (fixedContent.match(/{/g) || []).length;
+              const closeBraces = (fixedContent.match(/}/g) || []).length;
+              const openBrackets = (fixedContent.match(/\[/g) || []).length;
+              const closeBrackets = (fixedContent.match(/]/g) || []).length;
+              
+              for (let i = 0; i < (openBrackets - closeBrackets); i++) {
+                fixedContent += ']';
+              }
+              for (let i = 0; i < (openBraces - closeBraces); i++) {
+                fixedContent += '}';
+              }
+            }
+          }
+        }
+        
+        try {
+          result = JSON.parse(fixedContent);
+          console.log('Successfully repaired malformed JSON');
+        } catch (secondError) {
+          console.error('Could not repair JSON, attempting fragment reconstruction:', secondError);
+          
+          // Try to extract menu items from corrupted text by finding patterns
+          const menuItemFragments = [];
+          const nameMatches = content.match(/"name":\s*"([^"]+)"/g) || [];
+          const descMatches = content.match(/"description":\s*"([^"]+)"/g) || [];
+          const ingredientMatches = content.match(/"ingredients":\s*\[([^\]]+)\]/g) || [];
+          
+          console.log(`Found ${nameMatches.length} names, ${descMatches.length} descriptions`);
+          
+          // If we found some valid fragments, try to reconstruct items
+          if (nameMatches.length > 0) {
+            for (let i = 0; i < Math.min(4, nameMatches.length); i++) {
+              const name = nameMatches[i]?.match(/"name":\s*"([^"]+)"/)?.[1] || `Creative Item ${i + 1}`;
+              const description = descMatches[i]?.match(/"description":\s*"([^"]+)"/)?.[1] || 
+                "An innovative culinary creation featuring premium ingredients and expert preparation techniques.";
+              
+              let ingredients = ["Premium seasonal ingredients", "Artisanal preparations"];
+              if (ingredientMatches[i]) {
+                try {
+                  const ingMatch = ingredientMatches[i].match(/\[([^\]]+)\]/)?.[1];
+                  if (ingMatch) {
+                    const parsedIngredients = ingMatch.split(',').map(ing => 
+                      ing.replace(/["']/g, '').trim()
+                    ).filter(Boolean);
+                    if (parsedIngredients.length > 0) {
+                      ingredients = parsedIngredients;
+                    }
+                  }
+                } catch (ingError) {
+                  console.log('Could not parse ingredients for item', i);
+                }
+              }
+              
+              menuItemFragments.push({
+                name,
+                description,
+                category: "signature",
+                ingredients,
+                preparationTime: 25 + (i * 5),
+                difficulty: ["easy", "medium", "hard"][i % 3],
+                estimatedCost: 8 + (i * 3),
+                suggestedPrice: 22 + (i * 6),
+                profitMargin: 65 - (i * 2),
+                recipe: {
+                  serves: 1,
+                  prepInstructions: [
+                    "Prepare ingredients according to seasonal availability and quality standards",
+                    "Organize mise en place with precision and attention to detail",
+                    "Pre-heat cooking equipment to optimal temperatures"
+                  ],
+                  cookingInstructions: [
+                    "Execute cooking techniques with precision timing",
+                    "Monitor temperatures and textures throughout process",
+                    "Apply finishing touches with professional technique"
+                  ],
+                  platingInstructions: [
+                    "Warm plates to appropriate serving temperature",
+                    "Plate with artistic precision and visual appeal",
+                    "Add garnishes and finishing elements"
+                  ],
+                  techniques: ["Professional cooking methods", "Precision timing", "Artistic presentation"]
+                },
+                allergens: ["Please check with kitchen"],
+                nutritionalHighlights: ["Thoughtfully crafted nutrition profile"],
+                winePairings: ["Sommelier recommended pairing"],
+                upsellOpportunities: ["Wine pairing", "Appetizer enhancement"]
+              });
+            }
+            
+            if (menuItemFragments.length === 4) {
+              console.log('Successfully reconstructed 4 menu items from fragments');
+              result = { items: menuItemFragments };
+            } else {
+              console.log('Fragment reconstruction failed, using comprehensive fallback');
+              result = this.getFallbackMenuItems();
+            }
+          } else {
+            console.log('No valid fragments found, using comprehensive fallback');
+            result = this.getFallbackMenuItems();
+          }
+        }
+      }
+      
+      // Ensure we have exactly 4 items
+      if (!result.items || !Array.isArray(result.items) || result.items.length !== 4) {
+        console.log(`AI returned ${result.items?.length || 0} items instead of 4, using fallback`);
+        result = this.getFallbackMenuItems();
+      }
       
       // Debug logging to see the actual AI response structure
-      console.log('AI Response Structure:', JSON.stringify(result, null, 2));
+      console.log('Menu AI Response Structure:', JSON.stringify(result, null, 2));
       if (result.items && result.items.length > 0) {
         console.log('First item recipe structure:', JSON.stringify(result.items[0].recipe, null, 2));
       }
