@@ -293,53 +293,41 @@ export class MenuGeneratorService {
     const systemPrompt = this.buildMenuSystemPrompt(request.context);
     const userPrompt = this.buildMenuUserPrompt(request);
 
-    // Enhanced prompt for better JSON structure and uniqueness
-    const enhancedUserPrompt = userPrompt + ` 
+    // Simplified prompt for clean JSON output
+    const enhancedUserPrompt = `Create 4 menu items for ${request.context.name}.
 
-CRITICAL JSON FORMAT REQUIREMENT:
-Return ONLY a valid JSON object with this exact structure:
+JSON format:
 {
   "items": [
     {
-      "name": "Unique Creative Name",
-      "description": "Creative description", 
-      "category": "entrees|appetizers|desserts|vegetarian",
+      "name": "Item Name",
+      "description": "Brief description",
+      "category": "entrees",
       "ingredients": ["ingredient1", "ingredient2"],
       "preparationTime": 30,
-      "difficulty": "easy|medium|hard",
+      "difficulty": "medium",
       "estimatedCost": 12,
       "suggestedPrice": 28,
       "profitMargin": 57,
-      "recipe": {
-        "serves": 1,
-        "prepInstructions": ["step1", "step2"],
-        "cookingInstructions": ["step1", "step2"], 
-        "platingInstructions": ["step1", "step2"],
-        "techniques": ["technique1", "technique2"]
-      },
+      "recipe": {"serves": 1, "prepInstructions": ["step1"], "cookingInstructions": ["step1"], "platingInstructions": ["step1"], "techniques": ["technique1"]},
       "allergens": ["allergen1"],
       "nutritionalHighlights": ["highlight1"],
       "winePairings": ["wine1"],
       "upsellOpportunities": ["upsell1"]
     }
   ]
-}
-
-Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, name, and preparation.`;
+}`;
 
     try {
       const response = await openai.chat.completions.create({
         model: "grok-2-1212",
         messages: [
-          { role: "system", content: systemPrompt + "\n\nIMPORTANT: Respond with clean, valid JSON only. No markdown formatting or extra text." },
+          { role: "system", content: "Create menu items in simple, clean JSON format. No extra text or formatting." },
           { role: "user", content: enhancedUserPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.85, // Slightly reduced for better structure consistency
-        top_p: 0.9,
-        frequency_penalty: 0.5, // Higher to prevent repetition
-        presence_penalty: 0.4,
-        max_tokens: 7000, // Optimized for 4 complete items
+        temperature: 0.3, // Lower for cleaner, more predictable output
+        max_tokens: 2000, // Much smaller to force simplicity
       });
 
       const content = response.choices[0].message.content || '{"items": []}';
@@ -348,192 +336,12 @@ Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, n
       
       let result;
       try {
-        result = JSON.parse(content);
+        // Simple clean and parse
+        const cleanContent = content.replace(/```json|```/g, '').trim();
+        result = JSON.parse(cleanContent);
       } catch (jsonError) {
-        console.log('Initial JSON parse failed, attempting to fix malformed JSON...');
-        console.log('Raw content length:', content.length);
-        console.log('Content preview:', content.substring(0, 500));
-        
-        // Comprehensive JSON cleanup and repair
-        let fixedContent = content
-          .replace(/```json\s*/g, '')  // Remove markdown code blocks
-          .replace(/```\s*$/g, '')     // Remove closing code blocks
-          .replace(/\*\*/g, '')        // Remove bold markdown
-          .replace(/\*/g, '')          // Remove asterisks
-          .replace(/\n\s*\n/g, '\n')   // Remove excessive newlines
-          .replace(/\$/g, '"')         // Fix character corruption: $ -> "
-          .replace(/\u0024/g, '"')     // Fix Unicode corruption
-          .replace(/\\u0024/g, '"')    // Fix escaped Unicode corruption
-          .replace(/\u201C/g, '"')     // Fix smart quote corruption
-          .replace(/\u201D/g, '"')     // Fix smart quote corruption
-          .replace(/\u2018/g, "'")     // Fix smart apostrophe
-          .replace(/\u2019/g, "'")     // Fix smart apostrophe
-          .trim();
-        
-        // More aggressive JSON repair
-        console.log('Attempting comprehensive JSON repair...');
-        
-        // Find the start of the JSON structure
-        const startIndex = fixedContent.indexOf('{');
-        if (startIndex > 0) {
-          fixedContent = fixedContent.substring(startIndex);
-        }
-        
-        // Try to find the end of a complete JSON structure
-        let bracketCount = 0;
-        let inString = false;
-        let escape = false;
-        let validEndIndex = -1;
-        
-        for (let i = 0; i < fixedContent.length; i++) {
-          const char = fixedContent[i];
-          
-          if (escape) {
-            escape = false;
-            continue;
-          }
-          
-          if (char === '\\') {
-            escape = true;
-            continue;
-          }
-          
-          if (char === '"') {
-            inString = !inString;
-            continue;
-          }
-          
-          if (!inString) {
-            if (char === '{') {
-              bracketCount++;
-            } else if (char === '}') {
-              bracketCount--;
-              if (bracketCount === 0) {
-                validEndIndex = i + 1;
-                break;
-              }
-            }
-          }
-        }
-        
-        if (validEndIndex > 0) {
-          fixedContent = fixedContent.substring(0, validEndIndex);
-          console.log('Found valid JSON endpoint at index:', validEndIndex);
-        }
-        
-        // If we still have unterminated strings, try more aggressive repair
-        if (fixedContent.includes('"')) {
-          const quotes = (fixedContent.match(/"/g) || []).length;
-          if (quotes % 2 !== 0) {
-            console.log('Attempting to fix unterminated strings...');
-            
-            // Find the last complete JSON property and truncate there
-            const lastCompleteProperty = fixedContent.lastIndexOf('",');
-            if (lastCompleteProperty > 0) {
-              fixedContent = fixedContent.substring(0, lastCompleteProperty + 1);
-              
-              // Add missing closing brackets/braces
-              const openBraces = (fixedContent.match(/{/g) || []).length;
-              const closeBraces = (fixedContent.match(/}/g) || []).length;
-              const openBrackets = (fixedContent.match(/\[/g) || []).length;
-              const closeBrackets = (fixedContent.match(/]/g) || []).length;
-              
-              for (let i = 0; i < (openBrackets - closeBrackets); i++) {
-                fixedContent += ']';
-              }
-              for (let i = 0; i < (openBraces - closeBraces); i++) {
-                fixedContent += '}';
-              }
-            }
-          }
-        }
-        
-        try {
-          result = JSON.parse(fixedContent);
-          console.log('Successfully repaired malformed JSON');
-        } catch (secondError) {
-          console.error('Could not repair JSON, attempting fragment reconstruction:', secondError);
-          
-          // Try to extract menu items from corrupted text by finding patterns
-          const menuItemFragments = [];
-          const nameMatches = content.match(/"name":\s*"([^"]+)"/g) || [];
-          const descMatches = content.match(/"description":\s*"([^"]+)"/g) || [];
-          const ingredientMatches = content.match(/"ingredients":\s*\[([^\]]+)\]/g) || [];
-          
-          console.log(`Found ${nameMatches.length} names, ${descMatches.length} descriptions`);
-          
-          // If we found some valid fragments, try to reconstruct items
-          if (nameMatches.length > 0) {
-            for (let i = 0; i < Math.min(4, nameMatches.length); i++) {
-              const name = nameMatches[i]?.match(/"name":\s*"([^"]+)"/)?.[1] || `Creative Item ${i + 1}`;
-              const description = descMatches[i]?.match(/"description":\s*"([^"]+)"/)?.[1] || 
-                "An innovative culinary creation featuring premium ingredients and expert preparation techniques.";
-              
-              let ingredients = ["Premium seasonal ingredients", "Artisanal preparations"];
-              if (ingredientMatches[i]) {
-                try {
-                  const ingMatch = ingredientMatches[i].match(/\[([^\]]+)\]/)?.[1];
-                  if (ingMatch) {
-                    const parsedIngredients = ingMatch.split(',').map(ing => 
-                      ing.replace(/["']/g, '').trim()
-                    ).filter(Boolean);
-                    if (parsedIngredients.length > 0) {
-                      ingredients = parsedIngredients;
-                    }
-                  }
-                } catch (ingError) {
-                  console.log('Could not parse ingredients for item', i);
-                }
-              }
-              
-              menuItemFragments.push({
-                name,
-                description,
-                category: "signature",
-                ingredients,
-                preparationTime: 25 + (i * 5),
-                difficulty: ["easy", "medium", "hard"][i % 3],
-                estimatedCost: 8 + (i * 3),
-                suggestedPrice: 22 + (i * 6),
-                profitMargin: 65 - (i * 2),
-                recipe: {
-                  serves: 1,
-                  prepInstructions: [
-                    "Prepare ingredients according to seasonal availability and quality standards",
-                    "Organize mise en place with precision and attention to detail",
-                    "Pre-heat cooking equipment to optimal temperatures"
-                  ],
-                  cookingInstructions: [
-                    "Execute cooking techniques with precision timing",
-                    "Monitor temperatures and textures throughout process",
-                    "Apply finishing touches with professional technique"
-                  ],
-                  platingInstructions: [
-                    "Warm plates to appropriate serving temperature",
-                    "Plate with artistic precision and visual appeal",
-                    "Add garnishes and finishing elements"
-                  ],
-                  techniques: ["Professional cooking methods", "Precision timing", "Artistic presentation"]
-                },
-                allergens: ["Please check with kitchen"],
-                nutritionalHighlights: ["Thoughtfully crafted nutrition profile"],
-                winePairings: ["Sommelier recommended pairing"],
-                upsellOpportunities: ["Wine pairing", "Appetizer enhancement"]
-              });
-            }
-            
-            if (menuItemFragments.length === 4) {
-              console.log('Successfully reconstructed 4 menu items from fragments');
-              result = { items: menuItemFragments };
-            } else {
-              console.log('Fragment reconstruction failed, using comprehensive fallback');
-              result = this.getFallbackMenuItems();
-            }
-          } else {
-            console.log('No valid fragments found, using comprehensive fallback');
-            result = this.getFallbackMenuItems();
-          }
-        }
+        console.log('JSON parsing failed, using fallback');
+        result = this.getStaticFallbackMenuItems(request.context);
       }
       
       // Filter out any items with placeholder text or invalid names
