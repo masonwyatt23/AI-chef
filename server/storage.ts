@@ -5,6 +5,8 @@ import {
   messages, 
   recommendations,
   savedMenus,
+  menuItemHistory,
+  cocktailHistory,
   type User, 
   type InsertUser,
   type Restaurant,
@@ -16,7 +18,11 @@ import {
   type Recommendation,
   type InsertRecommendation,
   type SavedMenu,
-  type InsertSavedMenu
+  type InsertSavedMenu,
+  type MenuItemHistory,
+  type InsertMenuItemHistory,
+  type CocktailHistory,
+  type InsertCocktailHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -49,6 +55,17 @@ export interface IStorage {
   getSavedMenusByRestaurant(restaurantId: number): Promise<SavedMenu[]>;
   getSavedMenu(id: number): Promise<SavedMenu | undefined>;
   deleteSavedMenu(id: number): Promise<boolean>;
+  
+  // Recipe History operations
+  addMenuItemToHistory(menuItem: InsertMenuItemHistory): Promise<MenuItemHistory>;
+  getMenuItemHistory(userId: number, restaurantId: number): Promise<MenuItemHistory[]>;
+  deleteMenuItemFromHistory(id: number, userId: number): Promise<boolean>;
+  clearMenuItemHistory(userId: number, restaurantId: number): Promise<boolean>;
+  
+  addCocktailToHistory(cocktail: InsertCocktailHistory): Promise<CocktailHistory>;
+  getCocktailHistory(userId: number, restaurantId: number): Promise<CocktailHistory[]>;
+  deleteCocktailFromHistory(id: number, userId: number): Promise<boolean>;
+  clearCocktailHistory(userId: number, restaurantId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -250,6 +267,87 @@ export class DatabaseStorage implements IStorage {
       return true;
     } catch (error) {
       console.error("Error deleting saved menu:", error);
+      return false;
+    }
+  }
+
+  // Recipe History operations
+  async addMenuItemToHistory(menuItem: InsertMenuItemHistory): Promise<MenuItemHistory> {
+    const [history] = await db
+      .insert(menuItemHistory)
+      .values(menuItem)
+      .returning();
+    return history;
+  }
+
+  async getMenuItemHistory(userId: number, restaurantId: number): Promise<MenuItemHistory[]> {
+    return await db
+      .select()
+      .from(menuItemHistory)
+      .where(eq(menuItemHistory.userId, userId))
+      .orderBy(menuItemHistory.createdAt);
+  }
+
+  async deleteMenuItemFromHistory(id: number, userId: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(menuItemHistory)
+        .where(eq(menuItemHistory.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error("Error deleting menu item from history:", error);
+      return false;
+    }
+  }
+
+  async clearMenuItemHistory(userId: number, restaurantId: number): Promise<boolean> {
+    try {
+      await db
+        .delete(menuItemHistory)
+        .where(eq(menuItemHistory.userId, userId));
+      return true;
+    } catch (error) {
+      console.error("Error clearing menu item history:", error);
+      return false;
+    }
+  }
+
+  async addCocktailToHistory(cocktail: InsertCocktailHistory): Promise<CocktailHistory> {
+    const [history] = await db
+      .insert(cocktailHistory)
+      .values(cocktail)
+      .returning();
+    return history;
+  }
+
+  async getCocktailHistory(userId: number, restaurantId: number): Promise<CocktailHistory[]> {
+    return await db
+      .select()
+      .from(cocktailHistory)
+      .where(eq(cocktailHistory.userId, userId))
+      .orderBy(cocktailHistory.createdAt);
+  }
+
+  async deleteCocktailFromHistory(id: number, userId: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(cocktailHistory)
+        .where(eq(cocktailHistory.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error("Error deleting cocktail from history:", error);
+      return false;
+    }
+  }
+
+  async clearCocktailHistory(userId: number, restaurantId: number): Promise<boolean> {
+    try {
+      await db
+        .delete(cocktailHistory)
+        .where(eq(cocktailHistory.userId, userId));
+      return true;
+    } catch (error) {
+      console.error("Error clearing cocktail history:", error);
       return false;
     }
   }

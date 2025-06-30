@@ -698,6 +698,181 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Recipe History endpoints
+  app.post("/api/restaurants/:id/menu-history", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      const { itemData } = req.body;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const historyItem = await storage.addMenuItemToHistory({
+        userId,
+        restaurantId,
+        itemData
+      });
+      
+      res.json(historyItem);
+    } catch (error) {
+      console.error("Error adding menu item to history:", error);
+      res.status(500).json({ error: "Failed to add menu item to history" });
+    }
+  });
+
+  app.get("/api/restaurants/:id/menu-history", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const history = await storage.getMenuItemHistory(userId, restaurantId);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching menu history:", error);
+      res.status(500).json({ error: "Failed to fetch menu history" });
+    }
+  });
+
+  app.delete("/api/restaurants/:id/menu-history/:historyId", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const historyId = parseInt(req.params.historyId);
+      const userId = req.user!.id;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const success = await storage.deleteMenuItemFromHistory(historyId, userId);
+      if (success) {
+        res.json({ message: "Menu item removed from history" });
+      } else {
+        res.status(404).json({ error: "Menu item not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting menu item from history:", error);
+      res.status(500).json({ error: "Failed to delete menu item from history" });
+    }
+  });
+
+  app.delete("/api/restaurants/:id/menu-history", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      await storage.clearMenuItemHistory(userId, restaurantId);
+      res.json({ message: "Menu history cleared" });
+    } catch (error) {
+      console.error("Error clearing menu history:", error);
+      res.status(500).json({ error: "Failed to clear menu history" });
+    }
+  });
+
+  app.post("/api/restaurants/:id/cocktail-history", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      const { cocktailData } = req.body;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const historyItem = await storage.addCocktailToHistory({
+        userId,
+        restaurantId,
+        cocktailData
+      });
+      
+      res.json(historyItem);
+    } catch (error) {
+      console.error("Error adding cocktail to history:", error);
+      res.status(500).json({ error: "Failed to add cocktail to history" });
+    }
+  });
+
+  app.get("/api/restaurants/:id/cocktail-history", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const history = await storage.getCocktailHistory(userId, restaurantId);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching cocktail history:", error);
+      res.status(500).json({ error: "Failed to fetch cocktail history" });
+    }
+  });
+
+  app.delete("/api/restaurants/:id/cocktail-history/:historyId", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const historyId = parseInt(req.params.historyId);
+      const userId = req.user!.id;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const success = await storage.deleteCocktailFromHistory(historyId, userId);
+      if (success) {
+        res.json({ message: "Cocktail removed from history" });
+      } else {
+        res.status(404).json({ error: "Cocktail not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting cocktail from history:", error);
+      res.status(500).json({ error: "Failed to delete cocktail from history" });
+    }
+  });
+
+  app.delete("/api/restaurants/:id/cocktail-history", requireAuth, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verify restaurant ownership
+      const restaurant = await storage.getRestaurant(restaurantId);
+      if (!restaurant || restaurant.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      await storage.clearCocktailHistory(userId, restaurantId);
+      res.json({ message: "Cocktail history cleared" });
+    } catch (error) {
+      console.error("Error clearing cocktail history:", error);
+      res.status(500).json({ error: "Failed to clear cocktail history" });
+    }
+  });
+
   // Enhanced Menu Generation API
   app.post("/api/generate/menu-items", async (req, res) => {
     try {
