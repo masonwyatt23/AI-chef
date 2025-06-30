@@ -621,34 +621,35 @@ Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, n
     const uniqueId = Math.floor(Math.random() * 100000);
     const currentMenuText = request.currentMenu?.map(item => `${item.name} (${item.category})`).join(', ') || 'No current menu provided';
     
-    // Streamlined prompt for concise, high-quality output
-    const enhancedUserPrompt = `Generate 4 unique signature cocktails for ${request.context.name}, a ${request.context.theme} restaurant.
+    // Ultra-concise prompt for brief, quality output
+    const enhancedUserPrompt = `Generate 4 signature cocktails for ${request.context.name}.
+
+CRITICAL: Keep descriptions under 15 words. Be brief and direct.
 
 Requirements:
-- Each cocktail must use a different base spirit (bourbon, gin, vodka, rum)
-- Names should incorporate "${request.context.name}" or "${request.context.theme}" elements
-- Keep descriptions concise (1-2 sentences max)
-- Focus on profitable, executable recipes
-- Generation ID: ${uniqueId}
+- Different spirits: bourbon, gin, vodka, rum
+- Short names with "${request.context.theme}" theme
+- Brief descriptions (10-15 words max)
+- ID: ${uniqueId}
 
-Respond ONLY with valid JSON:
+JSON format:
 {
   "cocktails": [
     {
-      "name": "Brief creative name",
-      "description": "Concise 1-2 sentence description",
+      "name": "Short Name",
+      "description": "Brief 10-15 word description only",
       "category": "signature",
-      "ingredients": [{"ingredient": "ingredient name", "amount": "2 oz", "cost": 3.0}],
-      "instructions": ["brief step 1", "brief step 2"],
-      "garnish": "simple garnish",
-      "glassware": "glass type",
+      "ingredients": [{"ingredient": "name", "amount": "2 oz", "cost": 3.0}],
+      "instructions": ["step 1", "step 2"],
+      "garnish": "garnish",
+      "glassware": "glass",
       "estimatedCost": 4.5,
       "suggestedPrice": 15,
       "profitMargin": 67,
       "preparationTime": 5,
-      "batchInstructions": ["brief batch note"],
-      "variations": [{"name": "variation", "changes": ["brief change"]}],
-      "foodPairings": ["pairing 1", "pairing 2"]
+      "batchInstructions": ["note"],
+      "variations": [{"name": "variation", "changes": ["change"]}],
+      "foodPairings": ["pairing"]
     }
   ]
 }`;
@@ -947,7 +948,15 @@ Respond ONLY with valid JSON:
         // Clean up the cocktail object by removing malformed fields and fixing data
         const cleanCocktail = {
           name: this.cleanField(cocktail.name) || "Creative House Cocktail",
-          description: this.cleanField(cocktail.description) || "A unique craft cocktail featuring premium ingredients",
+          description: (() => {
+            let desc = this.cleanField(cocktail.description) || "A unique craft cocktail featuring premium ingredients";
+            // Truncate description to max 15 words
+            const words = desc.split(' ');
+            if (words.length > 15) {
+              desc = words.slice(0, 15).join(' ') + '...';
+            }
+            return desc;
+          })(),
           category: (cocktail.category === "signature" || cocktail.category === "classic" || 
                     cocktail.category === "seasonal" || cocktail.category === "mocktail") 
                    ? cocktail.category : "signature",
@@ -1074,7 +1083,7 @@ Respond ONLY with valid JSON:
       
       return {
         name: `${baseName} #${uniqueId.toString().slice(-3)}`,
-        description: `A ${context.theme?.toLowerCase() || 'signature'} cocktail featuring ${spirit.toLowerCase()} with ${modifier.toLowerCase()}.`,
+        description: `${context.theme || 'Signature'} cocktail with ${spirit.split(' ')[0].toLowerCase()} and ${modifier.toLowerCase().split(' ')[0]}.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: spirit, amount: "2 oz", cost: 2.50 + (index * 0.30) },
@@ -1141,7 +1150,7 @@ Respond ONLY with valid JSON:
       
       return {
         name: uniqueName,
-        description: `A ${context.theme?.toLowerCase() || 'signature'} cocktail featuring ${template.spirit.toLowerCase()} with ${template.modifier.toLowerCase()}.`,
+        description: `${context.theme || 'Signature'} cocktail with ${template.spirit.split(' ')[0].toLowerCase()} and ${template.modifier.toLowerCase().split(' ')[0]}.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: template.spirit, amount: "2 oz", cost: 2.80 + (index * 0.30) + (dynamicId % 50 / 100) },
