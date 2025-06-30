@@ -33,6 +33,11 @@ export interface MenuGenerationRequest {
   context: RestaurantContext;
   category?: string;
   currentMenu?: Array<{ name: string; category: string; }>;
+  specificRequests?: string;
+  dietaryRestrictions?: string[];
+  targetPricePoint?: number;
+  seasonalFocus?: string;
+  focusCategory?: string;
 }
 
 export interface CocktailGenerationRequest {
