@@ -297,8 +297,8 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   });
 
   const deleteMenuItemMutation = useMutation({
-    mutationFn: async (historyId: number) => {
-      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/menu-history/${historyId}`);
+    mutationFn: async (itemId: number) => {
+      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/menu-history/${itemId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/menu-history`] });
@@ -306,8 +306,8 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   });
 
   const deleteCocktailMutation = useMutation({
-    mutationFn: async (historyId: number) => {
-      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/cocktail-history/${historyId}`);
+    mutationFn: async (itemId: number) => {
+      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/cocktail-history/${itemId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/cocktail-history`] });

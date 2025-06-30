@@ -487,9 +487,37 @@ export class MenuGeneratorService {
         }
       }
       
+      // Filter out any items with placeholder text or invalid names
+      if (result.items && Array.isArray(result.items)) {
+        result.items = result.items.filter(item => {
+          // Check for placeholder text patterns
+          const hasPlaceholderName = !item.name || 
+            item.name.includes('<NAME>') || 
+            item.name.includes('<') || 
+            item.name.includes('>') ||
+            item.name.includes('KEYWORDS_HERE') ||
+            item.name.trim() === '' ||
+            item.name === '<NAME>';
+          
+          const hasPlaceholderDescription = !item.description || 
+            item.description.includes('<NAME>') ||
+            item.description.includes('KEYWORDS_HERE') ||
+            item.description.trim() === '';
+          
+          if (hasPlaceholderName || hasPlaceholderDescription) {
+            console.log(`Filtering out invalid item: ${item.name || 'unnamed'}`);
+            return false;
+          }
+          
+          return true;
+        });
+        
+        console.log(`After filtering: ${result.items.length} valid items remaining`);
+      }
+      
       // Ensure we have exactly 4 items
       if (!result.items || !Array.isArray(result.items) || result.items.length !== 4) {
-        console.log(`AI returned ${result.items?.length || 0} items instead of 4, using fallback`);
+        console.log(`AI returned ${result.items?.length || 0} valid items instead of 4, using fallback`);
         result = this.getFallbackMenuItems();
       }
       
@@ -768,11 +796,28 @@ export class MenuGeneratorService {
         
         return cleanCocktail;
       }).filter((cocktail: any) => {
-        // Only keep cocktails that have a valid name and description
-        return cocktail.name && 
-               cocktail.name !== "Creative House Cocktail" && 
-               cocktail.description && 
-               cocktail.description !== "A unique craft cocktail featuring premium ingredients";
+        // Check for placeholder text patterns
+        const hasPlaceholderName = !cocktail.name || 
+          cocktail.name.includes('<NAME>') || 
+          cocktail.name.includes('<') || 
+          cocktail.name.includes('>') ||
+          cocktail.name.includes('KEYWORDS_HERE') ||
+          cocktail.name.trim() === '' ||
+          cocktail.name === '<NAME>' ||
+          cocktail.name === "Creative House Cocktail";
+        
+        const hasPlaceholderDescription = !cocktail.description || 
+          cocktail.description.includes('<NAME>') ||
+          cocktail.description.includes('KEYWORDS_HERE') ||
+          cocktail.description.trim() === '' ||
+          cocktail.description === "A unique craft cocktail featuring premium ingredients";
+        
+        if (hasPlaceholderName || hasPlaceholderDescription) {
+          console.log(`Filtering out invalid cocktail: ${cocktail.name || 'unnamed'}`);
+          return false;
+        }
+        
+        return true;
       });
       
       console.log(`Processed cocktails: ${processedCocktails.length} out of ${(result.cocktails || []).length} total`);
