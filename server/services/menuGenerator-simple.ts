@@ -12,8 +12,18 @@ export interface DetailedIngredient {
   unit: string;
   cost: number;
   notes?: string;
+  quality?: string;
   batchAmount?: string;
   batchUnit?: string;
+  batchCost?: number;
+  supplier?: string;
+  storage?: string;
+  shelf_life?: string;
+  wholesalePrice?: number;
+  // Cocktail-specific properties
+  brand?: string;
+  abv?: number;
+  bottleCost?: number;
 }
 
 export interface GeneratedMenuItem {
@@ -187,7 +197,20 @@ JSON format:
       "name": "Restaurant-Themed Name",
       "description": "A thoughtful sentence or two describing the cocktail's flavor profile, inspiration, and connection to the restaurant's identity and atmosphere.",
       "category": "signature",
-      "ingredients": [{"ingredient": "specific spirit", "amount": "2 oz", "cost": 3}],
+      "ingredients": [
+        {
+          "ingredient": "Premium Bourbon",
+          "amount": "2 oz",
+          "cost": 3.25,
+          "notes": "Use high-quality bourbon, chilled",
+          "brand": "Buffalo Trace or similar",
+          "abv": 45,
+          "batchAmount": "20 oz",
+          "batchCost": 32.50,
+          "storage": "Room temperature, dark place",
+          "supplier": "Local distributor"
+        }
+      ],
       "instructions": ["detailed preparation"],
       "garnish": "themed garnish",
       "glassware": "appropriate glass",
@@ -267,7 +290,35 @@ JSON format:
       "name": "Creative Restaurant-Themed Name",
       "description": "Compelling description highlighting unique aspects",
       "category": "entrees",
-      "ingredients": ["specific ingredient1", "local ingredient2"],
+      "ingredients": [
+        {
+          "ingredient": "Prime Ribeye Steak",
+          "amount": "8 oz",
+          "unit": "oz",
+          "cost": 14.50,
+          "notes": "Dry-aged 21 days, room temperature before cooking",
+          "quality": "Prime grade",
+          "batchAmount": "5 lbs",
+          "batchCost": 116.00,
+          "supplier": "Local butcher",
+          "storage": "Refrigerated 32-35°F",
+          "shelf_life": "3-5 days",
+          "wholesalePrice": 13.25
+        },
+        {
+          "ingredient": "Yukon Gold Potatoes",
+          "amount": "6 oz",
+          "unit": "oz", 
+          "cost": 0.75,
+          "notes": "Hand-selected, uniform size",
+          "quality": "A-grade",
+          "batchAmount": "10 lbs",
+          "batchCost": 20.00,
+          "supplier": "Local farm",
+          "storage": "Cool, dark, dry place",
+          "shelf_life": "2-3 weeks"
+        }
+      ],
       "preparationTime": 25,
       "difficulty": "medium",
       "estimatedCost": 12,
@@ -278,7 +329,9 @@ JSON format:
         "prepInstructions": ["detailed step1"],
         "cookingInstructions": ["specific technique step1"],
         "platingInstructions": ["presentation step1"],
-        "techniques": ["relevant technique1"]
+        "techniques": ["relevant technique1"],
+        "batchInstructions": ["batch prep step1", "volume production step2"],
+        "batchServes": 10
       },
       "allergens": ["specific allergen1"],
       "nutritionalHighlights": ["relevant highlight1"],
