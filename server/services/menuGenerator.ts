@@ -1001,100 +1001,35 @@ CRITICAL: Generate exactly 4 unique cocktails. NO placeholders, NO template text
     const glasswareOptions = ["Coupe", "Rocks glass", "Nick & Nora", "Martini glass", "Highball"];
     const garnishOptions = ["Torched citrus wheel", "Fresh herb sprig", "Dehydrated fruit", "Smoked salt rim", "Edible flower"];
     
-    return [
-      {
-        name: `${getRandomElement(creativePrefixes, 0)} ${getRandomElement(cocktailNames, 0)}`,
-        description: `An innovative cocktail creation featuring contemporary mixology techniques and premium ingredients, perfectly crafted for ${context.name}.`,
-        category: "signature" as const,
-        ingredients: [
-          { ingredient: "Premium base spirit", amount: "2 oz", cost: 2.50 + (timestamp % 5) * 0.1 },
-          { ingredient: "Fresh citrus juice", amount: "0.75 oz", cost: 0.20 + (timestamp % 3) * 0.05 },
-          { ingredient: "House-made syrup", amount: "0.5 oz", cost: 0.25 + (timestamp % 4) * 0.05 },
-          { ingredient: "Artisanal bitters", amount: "2 dashes", cost: 0.10 + (timestamp % 2) * 0.05 }
-        ],
-        instructions: [
-          "Combine ingredients using appropriate technique for cocktail style",
-          "Apply proper dilution and temperature control", 
-          "Strain into selected glassware with appropriate ice",
-          "Finish with aromatic garnish and serve immediately"
-        ],
-        garnish: getRandomElement(garnishOptions),
-        glassware: getRandomElement(glasswareOptions),
-        estimatedCost: 3.00 + (timestamp % 8) * 0.1,
-        suggestedPrice: getRandomPrice(12, 0),
-        profitMargin: 65 + (timestamp % 15),
-        preparationTime: 3 + (timestamp % 5)
-      },
-      {
-        name: `${getRandomElement(creativePrefixes, 1)} ${getRandomElement(cocktailNames, 1)}`,
-        description: `A refreshing effervescent cocktail with innovative botanical elements and artisanal touches, crafted to complement ${context.name}'s atmosphere.`,
-        category: "signature" as const, 
-        ingredients: [
-          { ingredient: "Artisanal spirit", amount: "1.5 oz", cost: 2.00 + (timestamp % 6) * 0.1 },
-          { ingredient: "Fresh citrus juice", amount: "0.5 oz", cost: 0.15 + (timestamp % 4) * 0.05 },
-          { ingredient: "Premium cordial", amount: "0.75 oz", cost: 0.35 + (timestamp % 3) * 0.05 },
-          { ingredient: "Sparkling water", amount: "3 oz", cost: 0.30 + (timestamp % 2) * 0.05 }
-        ],
-        instructions: [
-          "Prepare base ingredients with appropriate technique",
-          "Combine spirits and modifiers with proper ice",
-          "Strain into suitable glassware",
-          "Top with sparkling component and garnish"
-        ],
-        garnish: getRandomElement(garnishOptions),
-        glassware: getRandomElement(glasswareOptions), 
-        estimatedCost: 2.80 + (timestamp % 7) * 0.1,
-        suggestedPrice: getRandomPrice(13),
-        profitMargin: 70 + (timestamp % 20),
-        preparationTime: 2 + (timestamp % 4)
-      },
-      {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
-        description: `A rich, complex cocktail featuring aged spirits and innovative flavor layering techniques, designed to showcase premium ingredients.`,
-        category: "signature" as const,
-        ingredients: [
-          { ingredient: "Aged base spirit", amount: "2 oz", cost: 2.75 + (timestamp % 8) * 0.1 },
-          { ingredient: "Specialty liqueur", amount: "0.5 oz", cost: 0.55 + (timestamp % 5) * 0.05 },
-          { ingredient: "Concentrate element", amount: "0.25 oz", cost: 0.12 + (timestamp % 3) * 0.03 },
-          { ingredient: "Premium syrup", amount: "0.25 oz", cost: 0.18 + (timestamp % 4) * 0.02 }
-        ],
-        instructions: [
-          "Combine ingredients with appropriate mixing technique",
-          "Apply proper chilling and dilution control",
-          "Strain into selected glassware",
-          "Add aromatic enhancement elements"
-        ],
-        garnish: getRandomElement(garnishOptions),
-        glassware: getRandomElement(glasswareOptions),
-        estimatedCost: 3.60 + (timestamp % 9) * 0.1,
-        suggestedPrice: getRandomPrice(15),
-        profitMargin: 72 + (timestamp % 18),
-        preparationTime: 3 + (timestamp % 6)
-      },
-      {
-        name: `${getRandomElement(creativePrefixes)} ${getRandomElement(cocktailNames)}`,
-        description: `A sophisticated large-format cocktail featuring layered complexity and shareable elegance, perfect for special occasions.`,
-        category: "signature" as const,
-        ingredients: [
-          { ingredient: "Premium aged spirit", amount: "1.5 oz", cost: 2.25 + (timestamp % 7) * 0.1 },
-          { ingredient: "Fresh seasonal element", amount: "1 oz", cost: 0.30 + (timestamp % 4) * 0.05 },
-          { ingredient: "Artisanal syrup", amount: "0.5 oz", cost: 0.25 + (timestamp % 3) * 0.05 },
-          { ingredient: "Sparkling component", amount: "2 oz", cost: 1.00 + (timestamp % 5) * 0.1 }
-        ],
-        instructions: [
-          "Prepare base elements with proper technique",
-          "Combine spirits and modifiers with appropriate ice",
-          "Apply proper straining technique",
-          "Top with sparkling element and finish garnish"
-        ],
-        garnish: getRandomElement(garnishOptions),
-        glassware: getRandomElement(glasswareOptions),
-        estimatedCost: 3.80 + (timestamp % 10) * 0.1,
-        suggestedPrice: getRandomPrice(16),
-        profitMargin: 68 + (timestamp % 22),
-        preparationTime: 4 + (timestamp % 7)
-      }
-    ];
+    return fallbackCocktails.map((cocktail, index) => ({
+      name: cocktail.name,
+      description: `A ${cocktail.prefix.toLowerCase()} cocktail featuring ${cocktail.spirit} and ${cocktail.modifier}, perfectly crafted for ${context.name}'s sophisticated atmosphere.`,
+      category: "signature" as const,
+      ingredients: [
+        { ingredient: cocktail.spirit, amount: "2 oz", cost: 2.50 + (index * 0.25) },
+        { ingredient: "Fresh citrus", amount: "0.75 oz", cost: 0.25 + (index * 0.05) },
+        { ingredient: cocktail.modifier, amount: "0.5 oz", cost: 0.35 + (index * 0.10) },
+        { ingredient: "Premium garnish element", amount: "1 each", cost: 0.15 + (index * 0.03) }
+      ],
+      instructions: [
+        `Muddle fresh ingredients if using ${cocktail.modifier}`,
+        `Add ${cocktail.spirit} and citrus to mixing glass with ice`,
+        "Stir or shake according to cocktail style",
+        "Strain into appropriate glassware and garnish"
+      ],
+      garnish: garnishOptions[index % garnishOptions.length],
+      glassware: glasswareOptions[index % glasswareOptions.length],
+      estimatedCost: 3.25 + (index * 0.43),
+      suggestedPrice: 13 + (index * 2),
+      profitMargin: 68 + (index * 3),
+      preparationTime: 4 + (index * 1),
+      batchInstructions: [`Pre-batch ${cocktail.modifier} mixture`, "Prepare garnishes in advance"],
+      variations: [{
+        name: `${cocktail.prefix} ${cocktail.base} Variation`,
+        changes: [`Substitute ${cocktail.spirit} with premium alternative`, "Add seasonal fruit element"]
+      }],
+      foodPairings: [`${context.theme || 'Contemporary'} appetizers`, "Artisanal cheese selection"]
+    }));
   }
 
   private buildMenuSystemPrompt(context: RestaurantContext): string {
