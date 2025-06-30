@@ -1674,10 +1674,30 @@ Ribeye Steak - 12oz premium cut $32
                             {/* Ingredients */}
                             <div>
                               <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {(item.ingredients || []).map((ingredient, i) => (
-                                  <div key={i} className="flex items-center p-2 bg-slate-50 rounded">
-                                    <span className="text-sm">{ingredient}</span>
+                              <div className="grid grid-cols-1 gap-3">
+                                {(item.ingredients || []).map((ingredient: any, i: number) => (
+                                  <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded border">
+                                    <div className="flex-1">
+                                      <div className="font-medium text-slate-900">
+                                        {typeof ingredient === 'string' ? ingredient : ingredient.ingredient}
+                                      </div>
+                                      {typeof ingredient === 'object' && ingredient.notes && (
+                                        <div className="text-xs text-slate-500 mt-1">{ingredient.notes}</div>
+                                      )}
+                                    </div>
+                                    {typeof ingredient === 'object' && (
+                                      <div className="text-right text-sm">
+                                        <div className="font-semibold text-blue-600">
+                                          {ingredient.amount} {ingredient.unit}
+                                        </div>
+                                        <div className="text-slate-500">{formatCurrency(ingredient.cost)}</div>
+                                        {ingredient.batchAmount && (
+                                          <div className="text-xs text-purple-600 mt-1">
+                                            Batch: {ingredient.batchAmount} {ingredient.batchUnit}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -1721,6 +1741,27 @@ Ribeye Steak - 12oz premium cut $32
                                 </ol>
                               </div>
                             </div>
+
+                            {/* Batch Instructions */}
+                            {item.recipe?.batchInstructions && item.recipe.batchInstructions.length > 0 && (
+                              <div>
+                                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full text-sm">
+                                    Batch Production ({item.recipe.batchServes || 10} servings)
+                                  </span>
+                                </h3>
+                                <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                                  <ol className="space-y-2 text-sm">
+                                    {item.recipe.batchInstructions.map((instruction: any, i: number) => (
+                                      <li key={i} className="flex">
+                                        <span className="font-semibold text-purple-600 mr-3">{i + 1}.</span>
+                                        <span className="text-slate-700">{instruction}</span>
+                                      </li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              </div>
+                            )}
 
                             {/* Techniques & Additional Info */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

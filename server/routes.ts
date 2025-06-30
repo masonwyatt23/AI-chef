@@ -932,7 +932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced Menu Generation API
   app.post("/api/generate/menu-items", async (req, res) => {
     try {
-      const { restaurantId, specificRequests, dietaryRestrictions, targetPricePoint, seasonalFocus, focusCategory, currentMenu } = req.body;
+      const { restaurantId, specificRequests, dietaryRestrictions, targetPricePoint, seasonalFocus, focusCategory, currentMenu, batchProduction, batchSize } = req.body;
       
       const restaurant = await storage.getRestaurant(restaurantId);
       if (!restaurant) {
@@ -949,7 +949,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         targetPricePoint,
         seasonalFocus,
         focusCategory,
-        currentMenu
+        currentMenu,
+        batchProduction,
+        batchSize
       });
 
       res.json({ menuItems });
