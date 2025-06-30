@@ -164,6 +164,8 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [menuSeasonalFocus, setMenuSeasonalFocus] = useState("");
   const [newMenuRequest, setNewMenuRequest] = useState("");
   const [newDietaryRestriction, setNewDietaryRestriction] = useState("");
+  const [batchProduction, setBatchProduction] = useState(false);
+  const [batchSize, setBatchSize] = useState(10);
   
   // Enhanced menu parsing and category-specific generation
   const [existingMenu, setExistingMenu] = useState("");
@@ -374,7 +376,9 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
       targetPricePoint: menuPricePoint,
       seasonalFocus: menuSeasonalFocus,
       focusCategory: selectedCategory === "all" ? "" : selectedCategory,
-      currentMenu: parsedMenuItems
+      currentMenu: parsedMenuItems,
+      batchProduction,
+      batchSize
     });
   };
 
@@ -1435,6 +1439,38 @@ Ribeye Steak - 12oz premium cut $32
                     value={menuSeasonalFocus}
                     onChange={(e) => setMenuSeasonalFocus(e.target.value)}
                   />
+                </div>
+
+                {/* Batch Production */}
+                <div className="border rounded-lg p-4 bg-slate-50">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Checkbox
+                      id="batch-production"
+                      checked={batchProduction}
+                      onCheckedChange={(checked) => setBatchProduction(checked as boolean)}
+                    />
+                    <Label htmlFor="batch-production" className="font-semibold">Include batch production instructions</Label>
+                  </div>
+                  
+                  {batchProduction && (
+                    <div>
+                      <Label>Batch Size (servings)</Label>
+                      <Select value={batchSize.toString()} onValueChange={(value) => setBatchSize(parseInt(value))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select batch size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10 servings</SelectItem>
+                          <SelectItem value="20">20 servings</SelectItem>
+                          <SelectItem value="50">50 servings</SelectItem>
+                          <SelectItem value="100">100 servings</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-slate-600 mt-1">
+                        Generate scaled recipes and batch preparation instructions for volume production
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <Button 
