@@ -68,8 +68,71 @@ export interface GeneratedCocktail {
 }
 
 export class SimpleMenuGenerator {
+  private buildDetailedContext(context: RestaurantContext, currentMenu?: Array<{ name: string; category: string; }>): string {
+    const sections = [];
+    
+    // Basic restaurant info
+    sections.push(`Restaurant: "${context.name}"`);
+    sections.push(`Theme/Concept: ${context.theme}`);
+    sections.push(`Categories: ${context.categories?.join(', ') || 'Various'}`);
+    
+    // Business context
+    if (context.establishmentType) sections.push(`Type: ${context.establishmentType}`);
+    if (context.serviceStyle) sections.push(`Service: ${context.serviceStyle}`);
+    if (context.targetDemographic) sections.push(`Target Customers: ${context.targetDemographic}`);
+    if (context.averageTicketPrice) sections.push(`Average Check: $${context.averageTicketPrice}`);
+    if (context.diningCapacity) sections.push(`Capacity: ${context.diningCapacity} seats`);
+    
+    // Location & market
+    if (context.location) sections.push(`Location: ${context.location}`);
+    if (context.marketType) sections.push(`Market: ${context.marketType}`);
+    if (context.localIngredients?.length) sections.push(`Local Ingredients: ${context.localIngredients.join(', ')}`);
+    if (context.culturalInfluences?.length) sections.push(`Cultural Influences: ${context.culturalInfluences.join(', ')}`);
+    
+    // Kitchen & operations
+    sections.push(`Kitchen Capability: ${context.kitchenCapability}`);
+    sections.push(`Staff Size: ${context.staffSize}`);
+    if (context.kitchenSize) sections.push(`Kitchen Size: ${context.kitchenSize}`);
+    if (context.kitchenEquipment?.length) sections.push(`Equipment: ${context.kitchenEquipment.join(', ')}`);
+    if (context.staffSkillLevel) sections.push(`Staff Skill: ${context.staffSkillLevel}`);
+    
+    // Business goals
+    if (context.profitMarginGoals) sections.push(`Target Profit Margin: ${context.profitMarginGoals}%`);
+    if (context.foodCostGoals) sections.push(`Target Food Cost: ${context.foodCostGoals}%`);
+    if (context.specialDietaryNeeds?.length) sections.push(`Dietary Accommodations: ${context.specialDietaryNeeds.join(', ')}`);
+    
+    // Competition & positioning
+    if (context.primaryCompetitors?.length) sections.push(`Competitors: ${context.primaryCompetitors.join(', ')}`);
+    if (context.uniqueSellingPoints?.length) sections.push(`USPs: ${context.uniqueSellingPoints.join(', ')}`);
+    if (context.pricePosition) sections.push(`Price Position: ${context.pricePosition}`);
+    
+    // Current challenges and priorities
+    if (context.currentChallenges?.length) sections.push(`Current Challenges: ${context.currentChallenges.join(', ')}`);
+    if (context.businessPriorities?.length) sections.push(`Business Priorities: ${context.businessPriorities.join(', ')}`);
+    if (context.seasonalConsiderations) sections.push(`Seasonal Notes: ${context.seasonalConsiderations}`);
+    
+    // Current menu analysis
+    if (currentMenu?.length) {
+      const menuByCategory = currentMenu.reduce((acc, item) => {
+        if (!acc[item.category]) acc[item.category] = [];
+        acc[item.category].push(item.name);
+        return acc;
+      }, {} as Record<string, string[]>);
+      
+      sections.push('\nCurrent Menu:');
+      Object.entries(menuByCategory).forEach(([category, items]) => {
+        sections.push(`${category}: ${items.join(', ')}`);
+      });
+    }
+    
+    return sections.join('\n');
+  }
+
   async generateCocktails(request: CocktailGenerationRequest): Promise<GeneratedCocktail[]> {
-    console.log('Starting simplified cocktail generation');
+    console.log('Starting personalized cocktail generation for:', request.context.name);
+    
+    // Build comprehensive restaurant context for cocktails
+    const restaurantInfo = this.buildDetailedContext(request.context);
     
     try {
       const response = await openai.chat.completions.create({
@@ -77,35 +140,57 @@ export class SimpleMenuGenerator {
         messages: [
           { 
             role: "system", 
-            content: "Create short cocktail descriptions using 3-5 words only. Examples: 'Sweet bourbon fizz', 'Crisp gin blend'. Always respond with valid JSON only." 
+            content: "You are an expert mixologist and beverage consultant. Create signature cocktails that perfectly complement the restaurant's theme, atmosphere, and clientele. Focus on short, appealing descriptions (3-5 words) while ensuring each cocktail reflects the establishment's unique identity." 
           },
           { 
             role: "user", 
-            content: `Create 4 cocktails for ${request.context.name}.
+            content: `Create 4 signature cocktails for "${request.context.name}" based on this restaurant profile:
+
+${restaurantInfo}
+
+Requirements:
+- Reflect the ${request.context.theme} theme in both names and ingredients
+- Match the ${request.context.establishmentType} atmosphere
+- Appeal to ${request.context.targetDemographic} customers
+- Use spirits and ingredients that fit the restaurant's style
+- Consider local flavors from ${request.context.location || 'the region'}
+- Price appropriately for $${request.context.averageTicketPrice || '25'} average check
+
+${request.theme ? `Additional theme: ${request.theme}` : ''}
+${request.baseSpirits?.length ? `Preferred spirits: ${request.baseSpirits.join(', ')}` : ''}
+${request.seasonality ? `Seasonal focus: ${request.seasonality}` : ''}
+
+Each cocktail should have:
+- A creative name that reflects the restaurant's identity
+- A 3-5 word description highlighting key flavors
+- Ingredients that complement the restaurant's food style
+- Pricing that matches their market position
 
 JSON format:
 {
   "cocktails": [
     {
-      "name": "Short Name",
-      "description": "Brief flavor combo",
+      "name": "Restaurant-Themed Name",
+      "description": "Brief appealing flavor",
       "category": "signature",
-      "ingredients": [{"ingredient": "spirit", "amount": "2 oz", "cost": 3}],
-      "instructions": ["shake and serve"],
-      "garnish": "citrus",
-      "glassware": "rocks",
+      "ingredients": [{"ingredient": "specific spirit", "amount": "2 oz", "cost": 3}],
+      "instructions": ["detailed preparation"],
+      "garnish": "themed garnish",
+      "glassware": "appropriate glass",
       "estimatedCost": 4,
       "suggestedPrice": 14,
       "profitMargin": 70,
       "preparationTime": 3
     }
   ]
-}` 
+}
+
+Make each cocktail unique and specifically tailored to this restaurant's character and brand.` 
           }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.4,
-        max_tokens: 800,
+        temperature: 0.6,
+        max_tokens: 1200,
       });
 
       const content = response.choices[0].message.content || '{"cocktails": []}';
@@ -129,7 +214,10 @@ JSON format:
   }
 
   async generateMenuItems(request: MenuGenerationRequest): Promise<GeneratedMenuItem[]> {
-    console.log('Starting simplified menu generation');
+    console.log('Starting personalized menu generation for:', request.context.name);
+    
+    // Build comprehensive restaurant context
+    const restaurantInfo = this.buildDetailedContext(request.context, request.currentMenu);
     
     try {
       const response = await openai.chat.completions.create({
@@ -137,44 +225,61 @@ JSON format:
         messages: [
           { 
             role: "system", 
-            content: "You are a chef. Create 4 menu items in valid JSON format only." 
+            content: `You are an expert chef consultant specializing in menu development. Create innovative, restaurant-specific menu items that perfectly align with the establishment's theme, capabilities, and market positioning. Use the restaurant's complete profile to ensure every dish reflects their unique identity.` 
           },
           { 
             role: "user", 
-            content: `Create 4 menu items for "${request.context.name}". 
+            content: `Create 4 unique menu items for "${request.context.name}" based on this detailed restaurant profile:
 
-Format:
+${restaurantInfo}
+
+Requirements:
+- Each item must reflect the restaurant's ${request.context.theme} theme
+- Consider their ${request.context.establishmentType} establishment type
+- Target ${request.context.targetDemographic} demographic
+- Use ingredients available in ${request.context.location || 'the local area'}
+- Work within their kitchen capabilities: ${request.context.kitchenCapability}
+- Staff skill level: ${request.context.staffSkillLevel || 'experienced'}
+- Average ticket price range: $${request.context.averageTicketPrice || '25'}
+
+${request.specificRequests ? `Special requests: ${request.specificRequests}` : ''}
+${request.dietaryRestrictions?.length ? `Dietary considerations: ${request.dietaryRestrictions.join(', ')}` : ''}
+${request.focusCategory ? `Focus on: ${request.focusCategory} category` : ''}
+
+JSON format:
 {
   "items": [
     {
-      "name": "Dish Name",
-      "description": "Short description",
+      "name": "Creative Restaurant-Themed Name",
+      "description": "Compelling description highlighting unique aspects",
       "category": "entrees",
-      "ingredients": ["ingredient1", "ingredient2"],
+      "ingredients": ["specific ingredient1", "local ingredient2"],
       "preparationTime": 25,
       "difficulty": "medium",
-      "estimatedCost": 10,
-      "suggestedPrice": 24,
-      "profitMargin": 58,
+      "estimatedCost": 12,
+      "suggestedPrice": 28,
+      "profitMargin": 57,
       "recipe": {
         "serves": 1,
-        "prepInstructions": ["step1"],
-        "cookingInstructions": ["step1"],
-        "platingInstructions": ["step1"],
-        "techniques": ["technique1"]
+        "prepInstructions": ["detailed step1"],
+        "cookingInstructions": ["specific technique step1"],
+        "platingInstructions": ["presentation step1"],
+        "techniques": ["relevant technique1"]
       },
-      "allergens": ["allergen1"],
-      "nutritionalHighlights": ["highlight1"],
-      "winePairings": ["wine1"],
-      "upsellOpportunities": ["upsell1"]
+      "allergens": ["specific allergen1"],
+      "nutritionalHighlights": ["relevant highlight1"],
+      "winePairings": ["appropriate wine1"],
+      "upsellOpportunities": ["relevant upsell1"]
     }
   ]
-}` 
+}
+
+Make each item distinctly different and specifically tailored to this restaurant's unique profile and capabilities.` 
           }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.3,
-        max_tokens: 1500,
+        temperature: 0.7,
+        max_tokens: 2500,
       });
 
       const content = response.choices[0].message.content || '{"items": []}';
@@ -198,35 +303,63 @@ Format:
     }
   }
 
+  private generateUniqueId(): string {
+    return `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  }
+
   private getFallbackItems(context: RestaurantContext): GeneratedMenuItem[] {
     const theme = context.theme || 'American';
-    const timestamp = Date.now().toString().slice(-3);
+    const uniqueId = this.generateUniqueId();
+    const location = context.location || 'Local';
+    const priceRange = context.averageTicketPrice || 25;
+    
+    // Restaurant-specific naming based on actual profile
+    const namePrefix = context.name?.split(' ')[0] || theme;
+    const demographic = context.targetDemographic || 'all guests';
+    const establishment = context.establishmentType || 'restaurant';
     
     return [
       {
-        name: `${theme} Classic #${timestamp}`,
-        description: "Traditional favorite with modern twist",
+        name: `${namePrefix}'s Signature ${theme} Platter`,
+        description: `Locally-sourced ${theme.toLowerCase()} dish crafted for ${demographic} with ${location} ingredients and our unique preparation style`,
         category: "entrees",
-        ingredients: ["Premium protein", "Seasonal vegetables", "House sauce"],
-        preparationTime: 25,
-        difficulty: "medium",
-        estimatedCost: 12,
-        suggestedPrice: 28,
-        profitMargin: 57,
+        ingredients: [
+          `${location} sourced protein`,
+          `Seasonal ${location.toLowerCase()} vegetables`,
+          `House-made ${theme.toLowerCase()} sauce`,
+          `${namePrefix} special seasoning blend`
+        ],
+        preparationTime: Math.floor(priceRange * 0.8),
+        difficulty: context.staffSkillLevel?.includes('experienced') ? "medium" : "easy",
+        estimatedCost: Math.floor(priceRange * 0.4),
+        suggestedPrice: priceRange,
+        profitMargin: Math.floor(((priceRange - (priceRange * 0.4)) / priceRange) * 100),
         recipe: {
           serves: 1,
-          prepInstructions: ["Prepare ingredients", "Season protein"],
-          cookingInstructions: ["Cook protein to temperature", "Prepare vegetables"],
-          platingInstructions: ["Plate attractively", "Add sauce"],
-          techniques: ["Grilling", "Sautéing"]
+          prepInstructions: [
+            `Source premium ${location.toLowerCase()} ingredients according to seasonal availability`,
+            `Prepare signature ${theme.toLowerCase()} marinade using house recipe`,
+            `Set up mise en place for ${establishment} service standards`
+          ],
+          cookingInstructions: [
+            `Execute ${theme.toLowerCase()} cooking technique with precision timing`,
+            `Monitor temperatures to achieve perfect ${demographic} preference`,
+            `Apply final ${namePrefix} finishing touches`
+          ],
+          platingInstructions: [
+            `Present using ${establishment} plating standards`,
+            `Garnish with ${location} seasonal elements`,
+            `Add signature ${namePrefix} presentation touches`
+          ],
+          techniques: [`${theme} cooking methods`, "Local ingredient preparation", `${namePrefix} signature techniques`]
         },
-        allergens: ["None specified"],
-        nutritionalHighlights: ["High protein"],
-        winePairings: ["House red"],
-        upsellOpportunities: ["Wine pairing"]
+        allergens: context.specialDietaryNeeds || ["Please check with kitchen staff"],
+        nutritionalHighlights: [`${theme} cuisine benefits`, `${location} fresh ingredients`],
+        winePairings: [`${theme} wine selection`, `${location} vineyard recommendations`],
+        upsellOpportunities: [`${theme} appetizer pairing`, `${location} beverage selection`]
       },
       {
-        name: `${theme} Special #${timestamp}`,
+        name: `${namePrefix} ${theme} Signature Appetizer`,
         description: "Chef's signature creation",
         category: "appetizers",
         ingredients: ["Fresh herbs", "Local ingredients", "Artisan garnish"],
@@ -248,7 +381,7 @@ Format:
         upsellOpportunities: ["Appetizer combo"]
       },
       {
-        name: `${theme} Delight #${timestamp}`,
+        name: `${namePrefix} ${theme} Signature Dessert`,
         description: "Satisfying comfort creation",
         category: "desserts",
         ingredients: ["Seasonal fruits", "Premium dairy", "House-made elements"],
@@ -270,7 +403,7 @@ Format:
         upsellOpportunities: ["Coffee pairing"]
       },
       {
-        name: `${theme} Garden #${timestamp}`,
+        name: `${namePrefix} ${theme} Garden Selection`,
         description: "Fresh vegetarian option",
         category: "vegetarian",
         ingredients: ["Seasonal vegetables", "Grains", "Fresh herbs"],
