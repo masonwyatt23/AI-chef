@@ -52,6 +52,62 @@ const imageUpload = multer({
   }
 });
 
+// Helper function to convert null to undefined for restaurant context
+function buildRestaurantContext(restaurant: any) {
+  return {
+    name: restaurant.name,
+    theme: restaurant.theme,
+    categories: restaurant.categories,
+    kitchenCapability: restaurant.kitchenCapability,
+    staffSize: restaurant.staffSize,
+    additionalContext: restaurant.additionalContext || undefined,
+    
+    // Business Context
+    establishmentType: restaurant.establishmentType || undefined,
+    serviceStyle: restaurant.serviceStyle || undefined,
+    targetDemographic: restaurant.targetDemographic || undefined,
+    averageTicketPrice: restaurant.averageTicketPrice || undefined,
+    diningCapacity: restaurant.diningCapacity || undefined,
+    operatingHours: restaurant.operatingHours || undefined,
+    
+    // Location & Market
+    location: restaurant.location || undefined,
+    marketType: restaurant.marketType || undefined,
+    localIngredients: restaurant.localIngredients || undefined,
+    culturalInfluences: restaurant.culturalInfluences || undefined,
+    
+    // Kitchen & Operations
+    kitchenSize: restaurant.kitchenSize || undefined,
+    kitchenEquipment: restaurant.kitchenEquipment || undefined,
+    prepSpace: restaurant.prepSpace || undefined,
+    storageCapacity: restaurant.storageCapacity || undefined,
+    deliveryCapability: restaurant.deliveryCapability || undefined,
+    
+    // Staff & Skills
+    chefExperience: restaurant.chefExperience || undefined,
+    staffSkillLevel: restaurant.staffSkillLevel || undefined,
+    specializedRoles: restaurant.specializedRoles || undefined,
+    laborBudget: restaurant.laborBudget || undefined,
+    
+    // Menu & Business Goals
+    currentMenuSize: restaurant.currentMenuSize || undefined,
+    menuChangeFrequency: restaurant.menuChangeFrequency || undefined,
+    profitMarginGoals: restaurant.profitMarginGoals || undefined,
+    foodCostGoals: restaurant.foodCostGoals || undefined,
+    specialDietaryNeeds: restaurant.specialDietaryNeeds || undefined,
+    
+    // Competition & Positioning
+    primaryCompetitors: restaurant.primaryCompetitors || undefined,
+    uniqueSellingPoints: restaurant.uniqueSellingPoints || undefined,
+    pricePosition: restaurant.pricePosition || undefined,
+    
+    // Challenges & Priorities
+    currentChallenges: restaurant.currentChallenges || undefined,
+    businessPriorities: restaurant.businessPriorities || undefined,
+    seasonalConsiderations: restaurant.seasonalConsiderations || undefined
+  };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
   configureSession(app);
@@ -884,58 +940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Pass complete restaurant profile for AI context
-      const context = {
-        name: restaurant.name,
-        theme: restaurant.theme,
-        categories: restaurant.categories,
-        kitchenCapability: restaurant.kitchenCapability,
-        staffSize: restaurant.staffSize,
-        additionalContext: restaurant.additionalContext || undefined,
-        
-        // Business Context
-        establishmentType: restaurant.establishmentType,
-        serviceStyle: restaurant.serviceStyle,
-        targetDemographic: restaurant.targetDemographic,
-        averageTicketPrice: restaurant.averageTicketPrice,
-        diningCapacity: restaurant.diningCapacity,
-        operatingHours: restaurant.operatingHours,
-        
-        // Location & Market
-        location: restaurant.location,
-        marketType: restaurant.marketType,
-        localIngredients: restaurant.localIngredients,
-        culturalInfluences: restaurant.culturalInfluences,
-        
-        // Kitchen & Operations
-        kitchenSize: restaurant.kitchenSize,
-        kitchenEquipment: restaurant.kitchenEquipment,
-        prepSpace: restaurant.prepSpace,
-        storageCapacity: restaurant.storageCapacity,
-        deliveryCapability: restaurant.deliveryCapability,
-        
-        // Staff & Skills
-        chefExperience: restaurant.chefExperience,
-        staffSkillLevel: restaurant.staffSkillLevel,
-        specializedRoles: restaurant.specializedRoles,
-        laborBudget: restaurant.laborBudget,
-        
-        // Menu & Business Goals
-        currentMenuSize: restaurant.currentMenuSize,
-        menuChangeFrequency: restaurant.menuChangeFrequency,
-        profitMarginGoals: restaurant.profitMarginGoals,
-        foodCostGoals: restaurant.foodCostGoals,
-        specialDietaryNeeds: restaurant.specialDietaryNeeds,
-        
-        // Competition & Positioning
-        primaryCompetitors: restaurant.primaryCompetitors,
-        uniqueSellingPoints: restaurant.uniqueSellingPoints,
-        pricePosition: restaurant.pricePosition,
-        
-        // Challenges & Priorities
-        currentChallenges: restaurant.currentChallenges,
-        businessPriorities: restaurant.businessPriorities,
-        seasonalConsiderations: restaurant.seasonalConsiderations
-      };
+      const context = buildRestaurantContext(restaurant);
 
       const menuItems = await menuGenerator.generateMenuItems({
         context,
