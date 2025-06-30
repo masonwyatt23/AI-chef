@@ -103,6 +103,22 @@ export const savedMenus = pgTable("saved_menus", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const menuItemHistory = pgTable("menu_item_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
+  itemData: jsonb("item_data").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const cocktailHistory = pgTable("cocktail_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  restaurantId: integer("restaurant_id").references(() => restaurants.id).notNull(),
+  cocktailData: jsonb("cocktail_data").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertRestaurantSchema = createInsertSchema(restaurants).omit({
   id: true,
   createdAt: true,
@@ -128,6 +144,16 @@ export const insertSavedMenuSchema = createInsertSchema(savedMenus).omit({
   createdAt: true,
 });
 
+export const insertMenuItemHistorySchema = createInsertSchema(menuItemHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCocktailHistorySchema = createInsertSchema(cocktailHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
@@ -143,6 +169,12 @@ export type InsertRecommendation = z.infer<typeof insertRecommendationSchema>;
 
 export type SavedMenu = typeof savedMenus.$inferSelect;
 export type InsertSavedMenu = z.infer<typeof insertSavedMenuSchema>;
+
+export type MenuItemHistory = typeof menuItemHistory.$inferSelect;
+export type InsertMenuItemHistory = z.infer<typeof insertMenuItemHistorySchema>;
+
+export type CocktailHistory = typeof cocktailHistory.$inferSelect;
+export type InsertCocktailHistory = z.infer<typeof insertCocktailHistorySchema>;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
