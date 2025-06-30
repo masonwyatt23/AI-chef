@@ -178,6 +178,7 @@ Requirements:
 ${request.theme ? `Additional theme: ${request.theme}` : ''}
 ${request.baseSpirits?.length ? `Preferred spirits: ${request.baseSpirits.join(', ')}` : ''}
 ${request.seasonality ? `Seasonal focus: ${request.seasonality}` : ''}
+${request.batchable ? `BATCH PRODUCTION: Include batch preparation instructions for 10-cocktail batches with scaled ingredient amounts.` : ''}
 
 Each cocktail should have:
 - A creative name that reflects the restaurant's identity
@@ -192,14 +193,16 @@ JSON format:
       "name": "Restaurant-Themed Name",
       "description": "A thoughtful sentence or two describing the cocktail's flavor profile, inspiration, and connection to the restaurant's identity and atmosphere.",
       "category": "signature",
-      "ingredients": [{"ingredient": "specific spirit", "amount": "2 oz", "cost": 3}],
+      "ingredients": [{"ingredient": "specific spirit", "amount": "2", "unit": "oz", "cost": 3, "batchAmount": "20", "batchUnit": "oz"}],
       "instructions": ["detailed preparation"],
       "garnish": "themed garnish",
       "glassware": "appropriate glass",
       "estimatedCost": 4,
       "suggestedPrice": 14,
       "profitMargin": 70,
-      "preparationTime": 3
+      "preparationTime": 3,
+      "batchInstructions": ["batch preparation step1"],
+      "batchYield": 10
     }
   ]
 }
@@ -264,6 +267,7 @@ Requirements:
 ${request.specificRequests ? `Special requests: ${request.specificRequests}` : ''}
 ${request.dietaryRestrictions?.length ? `Dietary considerations: ${request.dietaryRestrictions.join(', ')}` : ''}
 ${request.focusCategory ? `Focus on: ${request.focusCategory} category` : ''}
+${request.batchProduction ? `BATCH PRODUCTION: Include detailed batch preparation instructions for ${request.batchSize || 10} servings, with scaled ingredient amounts and specific batch cooking techniques.` : ''}
 
 JSON format:
 {
@@ -293,7 +297,9 @@ JSON format:
         "prepInstructions": ["detailed step1"],
         "cookingInstructions": ["specific technique step1"],
         "platingInstructions": ["presentation step1"],
-        "techniques": ["relevant technique1"]
+        "techniques": ["relevant technique1"],
+        "batchInstructions": ["batch preparation step1", "batch cooking step1"],
+        "batchServes": 10
       },
       "allergens": ["specific allergen1"],
       "nutritionalHighlights": ["relevant highlight1"],

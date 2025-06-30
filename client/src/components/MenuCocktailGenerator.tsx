@@ -2275,18 +2275,80 @@ Cabernet - Napa Valley $12/42
 
                             {/* Ingredients */}
                             <div>
-                              <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {(cocktail.ingredients || []).map((ingredient, i) => (
-                                  <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded">
-                                    <span className="font-medium">{ingredient.ingredient}</span>
-                                    <div className="text-right text-sm">
-                                      <div>{ingredient.amount}</div>
-                                      <div className="text-slate-500">{formatCurrency(ingredient.cost)}</div>
+                              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                                Ingredients
+                                {cocktail.batchYield && (
+                                  <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                                    Batch: {cocktail.batchYield} servings
+                                  </Badge>
+                                )}
+                              </h3>
+                              <div className="grid grid-cols-1 gap-3">
+                                {(cocktail.ingredients || []).map((ingredient: any, i: number) => (
+                                  <div key={i} className="p-4 bg-slate-50 rounded-lg border">
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-slate-900 text-base">
+                                          {ingredient.ingredient}
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="text-right">
+                                        {/* Single Serving Amount */}
+                                        <div className="bg-white rounded px-3 py-2 border mb-2">
+                                          <div className="text-xs text-slate-500 uppercase tracking-wide">Per Cocktail</div>
+                                          <div className="font-bold text-blue-600 text-lg">
+                                            {ingredient.amount} {ingredient.unit || ''}
+                                          </div>
+                                          <div className="text-sm text-slate-600">{formatCurrency(ingredient.cost)}</div>
+                                        </div>
+                                        
+                                        {/* Batch Amount */}
+                                        {ingredient.batchAmount && (
+                                          <div className="bg-purple-50 rounded px-3 py-2 border border-purple-200">
+                                            <div className="text-xs text-purple-600 uppercase tracking-wide">Batch ({cocktail.batchYield || 10})</div>
+                                            <div className="font-bold text-purple-700 text-lg">
+                                              {ingredient.batchAmount} {ingredient.batchUnit || ingredient.unit || ''}
+                                            </div>
+                                            <div className="text-sm text-purple-600">
+                                              {formatCurrency((ingredient.cost || 0) * (cocktail.batchYield || 10))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 ))}
                               </div>
+                              
+                              {/* Batch Production Summary */}
+                              {cocktail.batchYield && (
+                                <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-l-4 border-purple-500">
+                                  <h4 className="font-semibold text-purple-800 mb-2">Batch Production Summary</h4>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="text-slate-600">Total Yield:</span>
+                                      <span className="font-semibold text-purple-700 ml-2">{cocktail.batchYield} cocktails</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-slate-600">Total Cost:</span>
+                                      <span className="font-semibold text-purple-700 ml-2">
+                                        {formatCurrency((cocktail.estimatedCost || 0) * (cocktail.batchYield || 10))}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-slate-600">Cost Per Cocktail:</span>
+                                      <span className="font-semibold text-green-600 ml-2">{formatCurrency(cocktail.estimatedCost || 0)}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-slate-600">Revenue Potential:</span>
+                                      <span className="font-semibold text-green-600 ml-2">
+                                        {formatCurrency((cocktail.suggestedPrice || 0) * (cocktail.batchYield || 10))}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             {/* Instructions */}
@@ -2301,6 +2363,27 @@ Cabernet - Napa Valley $12/42
                                 ))}
                               </ol>
                             </div>
+
+                            {/* Batch Instructions */}
+                            {cocktail.batchInstructions && cocktail.batchInstructions.length > 0 && (
+                              <div>
+                                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full text-sm">
+                                    Batch Production ({cocktail.batchYield || 10} cocktails)
+                                  </span>
+                                </h3>
+                                <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                                  <ol className="space-y-2 text-sm">
+                                    {cocktail.batchInstructions.map((instruction: any, i: number) => (
+                                      <li key={i} className="flex">
+                                        <span className="font-semibold text-purple-600 mr-3">{i + 1}.</span>
+                                        <span className="text-slate-700">{instruction}</span>
+                                      </li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              </div>
+                            )}
 
                             {/* Variations & Food Pairings */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
