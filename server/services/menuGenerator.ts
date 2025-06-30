@@ -621,53 +621,37 @@ Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, n
     const uniqueId = Math.floor(Math.random() * 100000);
     const currentMenuText = request.currentMenu?.map(item => `${item.name} (${item.category})`).join(', ') || 'No current menu provided';
     
-    // Enhanced prompt with unique context
-    const enhancedUserPrompt = userPrompt + ` 
+    // Streamlined prompt for concise, high-quality output
+    const enhancedUserPrompt = `Generate 4 unique signature cocktails for ${request.context.name}, a ${request.context.theme} restaurant.
 
-UNIQUE GENERATION CONTEXT:
-- Restaurant: ${request.context.name}
-- Theme: ${request.context.theme}
-- Current Menu Items: ${currentMenuText}
+Requirements:
+- Each cocktail must use a different base spirit (bourbon, gin, vodka, rum)
+- Names should incorporate "${request.context.name}" or "${request.context.theme}" elements
+- Keep descriptions concise (1-2 sentences max)
+- Focus on profitable, executable recipes
 - Generation ID: ${uniqueId}
-- Timestamp: ${timestamp}
 
-CRITICAL UNIQUENESS REQUIREMENT:
-Generate 4 completely unique cocktails that have NEVER been created before. Each cocktail must:
-1. Have a unique name incorporating "${request.context.name}" or "${request.context.theme}" elements
-2. Use different base spirits (bourbon, gin, vodka, rum)
-3. Complement the existing menu items listed above
-4. Reflect the ${request.context.theme} theme authentically
-5. Be profitable for the restaurant's price point
-
-ABSOLUTE REQUIREMENT - VALID JSON ONLY:
-You must respond with ONLY valid JSON. No markdown, no explanations, no placeholders like <NAME> or @.
-Use proper double quotes for all strings. Numbers must be unquoted.
-
-EXACT FORMAT REQUIRED:
+Respond ONLY with valid JSON:
 {
   "cocktails": [
     {
-      "name": "Unique Name for ${request.context.name}",
-      "description": "Description that mentions how it complements the menu and theme", 
+      "name": "Brief creative name",
+      "description": "Concise 1-2 sentence description",
       "category": "signature",
-      "ingredients": [
-        {"ingredient": "specific real ingredient", "amount": "2 oz", "cost": 3.0}
-      ],
-      "instructions": ["detailed step 1", "detailed step 2", "detailed step 3"],
-      "garnish": "specific garnish description",
-      "glassware": "specific glassware type",
+      "ingredients": [{"ingredient": "ingredient name", "amount": "2 oz", "cost": 3.0}],
+      "instructions": ["brief step 1", "brief step 2"],
+      "garnish": "simple garnish",
+      "glassware": "glass type",
       "estimatedCost": 4.5,
       "suggestedPrice": 15,
       "profitMargin": 67,
       "preparationTime": 5,
-      "batchInstructions": ["specific batch instruction"],
-      "variations": [{"name": "variation name", "changes": ["specific change"]}],
-      "foodPairings": ["specific food pairing from menu"]
+      "batchInstructions": ["brief batch note"],
+      "variations": [{"name": "variation", "changes": ["brief change"]}],
+      "foodPairings": ["pairing 1", "pairing 2"]
     }
   ]
-}
-
-CRITICAL: Generate exactly 4 unique cocktails with completely different names, spirits, and techniques. Each must be tailored to ${request.context.name}.`;
+}`;
 
     try {
       const response = await openai.chat.completions.create({
@@ -1090,32 +1074,31 @@ CRITICAL: Generate exactly 4 unique cocktails with completely different names, s
       
       return {
         name: `${baseName} #${uniqueId.toString().slice(-3)}`,
-        description: `A signature ${context.theme?.toLowerCase() || 'contemporary'} cocktail featuring ${spirit.toLowerCase()} with ${modifier.toLowerCase()}, specially crafted to complement ${context.name}'s authentic atmosphere and culinary offerings.`,
+        description: `A ${context.theme?.toLowerCase() || 'signature'} cocktail featuring ${spirit.toLowerCase()} with ${modifier.toLowerCase()}.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: spirit, amount: "2 oz", cost: 2.50 + (index * 0.30) },
           { ingredient: "Fresh citrus juice", amount: "0.75 oz", cost: 0.25 + (index * 0.08) },
           { ingredient: modifier, amount: "0.5 oz", cost: 0.40 + (index * 0.12) },
-          { ingredient: `${context.theme || 'House'} garnish`, amount: "1 piece", cost: 0.20 + (index * 0.05) }
+          { ingredient: "Garnish element", amount: "1 piece", cost: 0.20 + (index * 0.05) }
         ],
         instructions: [
-          `Prepare ${modifier.toLowerCase()} using traditional technique`,
-          `Combine ${spirit.toLowerCase()} with fresh citrus in mixing glass`,
-          `Add ${modifier.toLowerCase()} and stir with precision`,
-          `Strain into chilled glassware and add signature garnish`
+          `Combine ${spirit.toLowerCase()} with citrus in mixing glass`,
+          `Add ${modifier.toLowerCase()} and stir well`,
+          `Strain and garnish`
         ],
-        garnish: [`Smoked ${context.theme?.toLowerCase() || 'house'} garnish`, "Fresh herb sprig", "Dehydrated local fruit", "Torched citrus wheel"][index % 4],
+        garnish: ["Herb sprig", "Citrus wheel", "Local fruit", "Salt rim"][index % 4],
         glassware: ["Mason jar", "Rocks glass", "Coupe", "Old Fashioned"][index % 4],
         estimatedCost: 3.35 + (index * 0.50),
         suggestedPrice: 12 + (index * 2) + (uniqueId % 3),
         profitMargin: 68 + (index * 4) + (uniqueId % 8),
         preparationTime: 4 + (index * 2) + (uniqueId % 3),
-        batchInstructions: [`Pre-batch ${modifier.toLowerCase()} mixture for efficiency`, `Prepare ${context.theme?.toLowerCase() || 'signature'} garnishes in advance`],
+        batchInstructions: [`Pre-batch ${modifier.toLowerCase()}`, "Prepare garnishes"],
         variations: [{
-          name: `${baseName} Seasonal`,
-          changes: [`Add seasonal ${context.theme?.toLowerCase() || 'local'} ingredients`, `Substitute with premium ${spirit.split(' ')[0].toLowerCase()} alternative`]
+          name: `${baseName} Twist`,
+          changes: [`Add seasonal element`, `Substitute premium ${spirit.split(' ')[0].toLowerCase()}`]
         }],
-        foodPairings: [`${context.theme || 'Southern'} comfort food`, `${context.name} signature dishes`, "Regional specialties"]
+        foodPairings: [`${context.theme || 'Southern'} dishes`, "Appetizers"]
       };
     });
   }
@@ -1158,43 +1141,40 @@ CRITICAL: Generate exactly 4 unique cocktails with completely different names, s
       
       return {
         name: uniqueName,
-        description: `An exclusive ${context.theme?.toLowerCase() || 'signature'} cocktail for ${context.name}, featuring ${template.spirit.toLowerCase()} expertly combined with ${template.modifier.toLowerCase()}. This unique creation reflects the restaurant's authentic atmosphere and complements our culinary offerings perfectly.`,
+        description: `A ${context.theme?.toLowerCase() || 'signature'} cocktail featuring ${template.spirit.toLowerCase()} with ${template.modifier.toLowerCase()}.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: template.spirit, amount: "2 oz", cost: 2.80 + (index * 0.30) + (dynamicId % 50 / 100) },
           { ingredient: "Fresh citrus juice", amount: "0.75 oz", cost: 0.35 + (index * 0.08) + (dynamicId % 20 / 100) },
           { ingredient: template.modifier, amount: "0.5 oz", cost: 0.45 + (index * 0.12) + (dynamicId % 30 / 100) },
-          { ingredient: `${context.theme || 'House'} special garnish`, amount: "1 piece", cost: 0.25 + (index * 0.07) + (dynamicId % 15 / 100) }
+          { ingredient: "Special garnish", amount: "1 piece", cost: 0.25 + (index * 0.07) + (dynamicId % 15 / 100) }
         ],
         instructions: [
-          `Prepare ${template.modifier.toLowerCase()} using our signature technique`,
-          `Muddle fresh ingredients if incorporating ${context.theme?.toLowerCase() || 'house'} elements`,
-          `Combine ${template.spirit.toLowerCase()} with citrus in professional mixing glass`,
-          `Add ${template.modifier.toLowerCase()} and stir with precision timing`,
-          `Strain into appropriate glassware and add distinctive garnish`
+          `Prepare ${template.modifier.toLowerCase()}`,
+          `Combine ${template.spirit.toLowerCase()} with citrus`,
+          `Add ${template.modifier.toLowerCase()} and stir`,
+          `Strain and garnish`
         ],
-        garnish: [`${context.theme} signature garnish`, "Fresh local herb sprig", "Torched seasonal fruit", "Smoked finishing salt"][index % 4],
+        garnish: ["Herb sprig", "Seasonal fruit", "Salt rim", "Citrus twist"][index % 4],
         glassware: ["Mason jar", "Rocks glass", "Coupe", "Old Fashioned glass"][index % 4],
         estimatedCost: 3.85 + (index * 0.55) + (dynamicId % 100 / 200),
         suggestedPrice: 13 + (index * 2) + (dynamicId % 8),
         profitMargin: 67 + (index * 4) + (dynamicId % 12),
         preparationTime: 5 + (index * 2) + (dynamicId % 4),
         batchInstructions: [
-          `Pre-batch ${template.modifier.toLowerCase()} mixture for service efficiency`,
-          `Prepare ${context.theme?.toLowerCase() || 'signature'} garnish elements in advance`,
-          `Store premixed base in refrigerated dispenser`
+          `Pre-batch ${template.modifier.toLowerCase()}`,
+          "Prepare garnish elements"
         ],
         variations: [{
-          name: `${uniqueName} Seasonal`,
+          name: `${uniqueName} Twist`,
           changes: [
-            `Incorporate seasonal ${context.theme?.toLowerCase() || 'local'} ingredients`,
-            `Substitute ${template.spirit.split(' ')[0].toLowerCase()} with premium seasonal alternative`
+            `Add seasonal ingredients`,
+            `Substitute premium ${template.spirit.split(' ')[0].toLowerCase()}`
           ]
         }],
         foodPairings: [
-          `${context.theme || 'Southern'} comfort specialties`,
-          `${context.name} signature dishes`,
-          "Regional appetizer classics"
+          `${context.theme || 'Southern'} dishes`,
+          "Appetizers"
         ]
       };
     });
