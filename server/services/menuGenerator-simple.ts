@@ -6,11 +6,21 @@ const openai = new OpenAI({
   baseURL: process.env.XAI_API_KEY ? "https://api.x.ai/v1" : undefined,
 });
 
+export interface DetailedIngredient {
+  ingredient: string;
+  amount: string;
+  unit: string;
+  cost: number;
+  notes?: string;
+  batchAmount?: string;
+  batchUnit?: string;
+}
+
 export interface GeneratedMenuItem {
   name: string;
   description: string;
   category: string;
-  ingredients: string[];
+  ingredients: DetailedIngredient[];
   preparationTime: number;
   difficulty: string;
   estimatedCost: number;
@@ -22,6 +32,8 @@ export interface GeneratedMenuItem {
     cookingInstructions: string[];
     platingInstructions: string[];
     techniques: string[];
+    batchInstructions?: string[];
+    batchServes?: number;
   };
   allergens?: string[];
   nutritionalHighlights?: string[];
@@ -38,6 +50,8 @@ export interface MenuGenerationRequest {
   targetPricePoint?: number;
   seasonalFocus?: string;
   focusCategory?: string;
+  batchProduction?: boolean;
+  batchSize?: number;
 }
 
 export interface CocktailGenerationRequest {
@@ -324,10 +338,34 @@ Make each item distinctly different and specifically tailored to this restaurant
         description: `Locally-sourced ${theme.toLowerCase()} dish crafted for ${demographic} with ${location} ingredients and our unique preparation style`,
         category: "entrees",
         ingredients: [
-          `${location} sourced protein`,
-          `Seasonal ${location.toLowerCase()} vegetables`,
-          `House-made ${theme.toLowerCase()} sauce`,
-          `${namePrefix} special seasoning blend`
+          {
+            ingredient: `${location} sourced protein`,
+            amount: "6",
+            unit: "oz",
+            cost: Math.floor(priceRange * 0.15),
+            notes: `Premium grade, locally sourced from ${location} suppliers`
+          },
+          {
+            ingredient: `Seasonal ${location.toLowerCase()} vegetables`,
+            amount: "4",
+            unit: "oz",
+            cost: Math.floor(priceRange * 0.08),
+            notes: "Fresh, seasonal selection"
+          },
+          {
+            ingredient: `House-made ${theme.toLowerCase()} sauce`,
+            amount: "2",
+            unit: "oz",
+            cost: Math.floor(priceRange * 0.05),
+            notes: `Signature ${namePrefix} recipe`
+          },
+          {
+            ingredient: `${namePrefix} special seasoning blend`,
+            amount: "1",
+            unit: "tsp",
+            cost: 0.25,
+            notes: "Proprietary blend of herbs and spices"
+          }
         ],
         preparationTime: Math.floor(priceRange * 0.8),
         difficulty: context.staffSkillLevel?.includes('experienced') ? "medium" : "easy",
@@ -362,7 +400,11 @@ Make each item distinctly different and specifically tailored to this restaurant
         name: `${namePrefix} ${theme} Signature Appetizer`,
         description: "Chef's signature creation",
         category: "appetizers",
-        ingredients: ["Fresh herbs", "Local ingredients", "Artisan garnish"],
+        ingredients: [
+          { ingredient: "Fresh herbs", amount: "2", unit: "tbsp", cost: 1.50, notes: "Mixed seasonal herbs" },
+          { ingredient: "Local ingredients", amount: "3", unit: "oz", cost: 2.25, notes: "Market fresh" },
+          { ingredient: "Artisan garnish", amount: "1", unit: "piece", cost: 0.75, notes: "House-made accent" }
+        ],
         preparationTime: 20,
         difficulty: "easy",
         estimatedCost: 8,
@@ -384,7 +426,11 @@ Make each item distinctly different and specifically tailored to this restaurant
         name: `${namePrefix} ${theme} Signature Dessert`,
         description: "Satisfying comfort creation",
         category: "desserts",
-        ingredients: ["Seasonal fruits", "Premium dairy", "House-made elements"],
+        ingredients: [
+          { ingredient: "Seasonal fruits", amount: "4", unit: "oz", cost: 2.00, notes: "Peak season selection" },
+          { ingredient: "Premium dairy", amount: "2", unit: "oz", cost: 1.25, notes: "Local dairy source" },
+          { ingredient: "House-made elements", amount: "1", unit: "portion", cost: 1.50, notes: "Signature preparation" }
+        ],
         preparationTime: 30,
         difficulty: "medium",
         estimatedCost: 6,
@@ -406,7 +452,11 @@ Make each item distinctly different and specifically tailored to this restaurant
         name: `${namePrefix} ${theme} Garden Selection`,
         description: "Fresh vegetarian option",
         category: "vegetarian",
-        ingredients: ["Seasonal vegetables", "Grains", "Fresh herbs"],
+        ingredients: [
+          { ingredient: "Seasonal vegetables", amount: "6", unit: "oz", cost: 2.50, notes: "Farm-fresh selection" },
+          { ingredient: "Grains", amount: "3", unit: "oz", cost: 1.00, notes: "Ancient grain blend" },
+          { ingredient: "Fresh herbs", amount: "1", unit: "tbsp", cost: 0.75, notes: "Garden fresh" }
+        ],
         preparationTime: 28,
         difficulty: "easy",
         estimatedCost: 9,
