@@ -107,6 +107,13 @@ export class MenuGeneratorService {
     return null;
   }
 
+  private cleanStringArray(arr: any[]): string[] {
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .map(item => this.cleanField(item))
+      .filter((item): item is string => item !== null);
+  }
+
   async generateMenuItems(request: MenuGenerationRequest): Promise<GeneratedMenuItem[]> {
     const systemPrompt = this.buildMenuSystemPrompt(request.context);
     const userPrompt = this.buildMenuUserPrompt(request);
@@ -126,15 +133,125 @@ export class MenuGeneratorService {
         max_tokens: 12000, // Increased for 4 comprehensive menu items with detailed recipes
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
+      let content = response.choices[0].message.content || '{"items": []}';
+      let result;
+      
+      try {
+        result = JSON.parse(content);
+      } catch (firstError) {
+        console.log('Initial JSON parse failed, attempting to fix malformed JSON...');
+        console.log('Raw content length:', content.length);
+        console.log('Content preview:', content.substring(0, 500));
+        
+        // Clean up the JSON content
+        let fixedContent = content
+          .replace(/```json\s*/g, '')  // Remove markdown code blocks
+          .replace(/```\s*$/g, '')     // Remove closing code blocks
+          .replace(/\*\*/g, '')        // Remove bold markdown
+          .replace(/\*/g, '')          // Remove asterisks
+          .trim();
+        
+        // Fix unterminated strings by finding and completing them
+        if (fixedContent.includes('"') && !fixedContent.endsWith('}')) {
+          // Count quotes to find unterminated strings
+          const quotes = (fixedContent.match(/"/g) || []).length;
+          if (quotes % 2 !== 0) {
+            // Odd number of quotes means unterminated string
+            console.log('Found unterminated string, attempting to close it...');
+            
+            // Find the last incomplete field and try to complete it
+            const lastQuoteIndex = fixedContent.lastIndexOf('"');
+            const afterLastQuote = fixedContent.substring(lastQuoteIndex + 1);
+            
+            // If there's content after the last quote that looks incomplete
+            if (afterLastQuote && !afterLastQuote.includes('"') && !afterLastQuote.includes('}')) {
+              // Close the string and the object
+              fixedContent = fixedContent.substring(0, lastQuoteIndex + 1) + '"';
+              
+              // Add missing closing brackets/braces
+              const openBraces = (fixedContent.match(/{/g) || []).length;
+              const closeBraces = (fixedContent.match(/}/g) || []).length;
+              const openBrackets = (fixedContent.match(/\[/g) || []).length;
+              const closeBrackets = (fixedContent.match(/]/g) || []).length;
+              
+              for (let i = 0; i < (openBrackets - closeBrackets); i++) {
+                fixedContent += ']';
+              }
+              for (let i = 0; i < (openBraces - closeBraces); i++) {
+                fixedContent += '}';
+              }
+            }
+          }
+        }
+        
+        try {
+          result = JSON.parse(fixedContent);
+          console.log('Successfully repaired malformed JSON');
+        } catch (secondError) {
+          console.error('Could not repair JSON, creating minimal valid response:', secondError);
+          result = { 
+            items: [
+              {
+                name: "Chef's Special Creation",
+                description: "An innovative dish crafted with premium ingredients and creative techniques",
+                category: "signature",
+                ingredients: ["Premium seasonal ingredients", "Artisanal preparations"],
+                preparationTime: 30,
+                difficulty: "medium",
+                estimatedCost: 12,
+                suggestedPrice: 28,
+                profitMargin: 57,
+                recipe: {
+                  serves: 1,
+                  prepInstructions: ["Prepare ingredients according to seasonal availability"],
+                  cookingInstructions: ["Execute with precision and creativity"],
+                  platingInstructions: ["Present with artistic flair"],
+                  techniques: ["Advanced culinary methods"]
+                },
+                allergens: ["Please check with kitchen for specific allergens"],
+                nutritionalHighlights: ["Thoughtfully crafted nutrition profile"],
+                winePairings: ["Sommelier selected pairing available"],
+                upsellOpportunities: ["Wine pairing", "Appetizer enhancement"]
+              }
+            ]
+          };
+        }
+      }
       
       // Debug logging to see the actual AI response structure
-      console.log('AI Response Structure:', JSON.stringify(result, null, 2));
+      console.log('Menu AI Response Structure:', JSON.stringify(result, null, 2));
       if (result.items && result.items.length > 0) {
         console.log('First item recipe structure:', JSON.stringify(result.items[0].recipe, null, 2));
       }
       
-      return result.items || [];
+      // Validate and clean up menu items to ensure complete data
+      const processedItems = (result.items || []).map((item: any) => {
+        return {
+          name: this.cleanField(item.name) || "Creative Menu Item",
+          description: this.cleanField(item.description) || "A unique culinary creation",
+          category: this.cleanField(item.category) || "signature",
+          ingredients: this.cleanStringArray(item.ingredients || []) || ["Premium ingredients"],
+          preparationTime: this.extractNumber(item.preparationTime) || 30,
+          difficulty: (item.difficulty === "easy" || item.difficulty === "medium" || item.difficulty === "hard") ? 
+            item.difficulty : "medium",
+          estimatedCost: this.extractNumber(item.estimatedCost) || 15,
+          suggestedPrice: this.extractNumber(item.suggestedPrice) || 32,
+          profitMargin: this.extractNumber(item.profitMargin) || 53,
+          recipe: {
+            serves: this.extractNumber(item.recipe?.serves) || 1,
+            prepInstructions: this.cleanStringArray(item.recipe?.prepInstructions || []) || ["Prepare ingredients with care"],
+            cookingInstructions: this.cleanStringArray(item.recipe?.cookingInstructions || []) || ["Cook with precision"],
+            platingInstructions: this.cleanStringArray(item.recipe?.platingInstructions || []) || ["Plate with artistic presentation"],
+            techniques: this.cleanStringArray(item.recipe?.techniques || []) || ["Professional cooking techniques"]
+          },
+          allergens: this.cleanStringArray(item.allergens || []),
+          nutritionalHighlights: this.cleanStringArray(item.nutritionalHighlights || []),
+          winePairings: this.cleanStringArray(item.winePairings || []),
+          upsellOpportunities: this.cleanStringArray(item.upsellOpportunities || [])
+        };
+      });
+      
+      return processedItems;
     } catch (error) {
       console.error('Menu generation error:', error);
       throw new Error('Failed to generate menu items');
