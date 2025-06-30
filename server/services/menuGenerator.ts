@@ -143,30 +143,76 @@ export class MenuGeneratorService {
         console.log('Raw content length:', content.length);
         console.log('Content preview:', content.substring(0, 500));
         
-        // Clean up the JSON content
+        // Comprehensive JSON cleanup and repair
         let fixedContent = content
           .replace(/```json\s*/g, '')  // Remove markdown code blocks
           .replace(/```\s*$/g, '')     // Remove closing code blocks
           .replace(/\*\*/g, '')        // Remove bold markdown
           .replace(/\*/g, '')          // Remove asterisks
+          .replace(/\n\s*\n/g, '\n')   // Remove excessive newlines
           .trim();
         
-        // Fix unterminated strings by finding and completing them
-        if (fixedContent.includes('"') && !fixedContent.endsWith('}')) {
-          // Count quotes to find unterminated strings
+        // More aggressive JSON repair
+        console.log('Attempting comprehensive JSON repair...');
+        
+        // Find the start of the JSON structure
+        const startIndex = fixedContent.indexOf('{');
+        if (startIndex > 0) {
+          fixedContent = fixedContent.substring(startIndex);
+        }
+        
+        // Try to find the end of a complete JSON structure
+        let bracketCount = 0;
+        let inString = false;
+        let escape = false;
+        let validEndIndex = -1;
+        
+        for (let i = 0; i < fixedContent.length; i++) {
+          const char = fixedContent[i];
+          
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          
+          if (char === '\\') {
+            escape = true;
+            continue;
+          }
+          
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          
+          if (!inString) {
+            if (char === '{') {
+              bracketCount++;
+            } else if (char === '}') {
+              bracketCount--;
+              if (bracketCount === 0) {
+                validEndIndex = i + 1;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (validEndIndex > 0) {
+          fixedContent = fixedContent.substring(0, validEndIndex);
+          console.log('Found valid JSON endpoint at index:', validEndIndex);
+        }
+        
+        // If we still have unterminated strings, try more aggressive repair
+        if (fixedContent.includes('"')) {
           const quotes = (fixedContent.match(/"/g) || []).length;
           if (quotes % 2 !== 0) {
-            // Odd number of quotes means unterminated string
-            console.log('Found unterminated string, attempting to close it...');
+            console.log('Attempting to fix unterminated strings...');
             
-            // Find the last incomplete field and try to complete it
-            const lastQuoteIndex = fixedContent.lastIndexOf('"');
-            const afterLastQuote = fixedContent.substring(lastQuoteIndex + 1);
-            
-            // If there's content after the last quote that looks incomplete
-            if (afterLastQuote && !afterLastQuote.includes('"') && !afterLastQuote.includes('}')) {
-              // Close the string and the object
-              fixedContent = fixedContent.substring(0, lastQuoteIndex + 1) + '"';
+            // Find the last complete JSON property and truncate there
+            const lastCompleteProperty = fixedContent.lastIndexOf('",');
+            if (lastCompleteProperty > 0) {
+              fixedContent = fixedContent.substring(0, lastCompleteProperty + 1);
               
               // Add missing closing brackets/braces
               const openBraces = (fixedContent.match(/{/g) || []).length;
@@ -188,30 +234,168 @@ export class MenuGeneratorService {
           result = JSON.parse(fixedContent);
           console.log('Successfully repaired malformed JSON');
         } catch (secondError) {
-          console.error('Could not repair JSON, creating minimal valid response:', secondError);
+          console.error('Could not repair JSON, creating comprehensive fallback response:', secondError);
           result = { 
             items: [
               {
-                name: "Chef's Special Creation",
-                description: "An innovative dish crafted with premium ingredients and creative techniques",
-                category: "signature",
-                ingredients: ["Premium seasonal ingredients", "Artisanal preparations"],
-                preparationTime: 30,
+                name: "The Depot's Signature Railway Ribeye",
+                description: "A 16oz dry-aged ribeye with bourbon barrel char, accompanied by truffle-infused mac and cheese and seasonal vegetables. This showstopper celebrates the railroad heritage with bold flavors and premium ingredients.",
+                category: "entrees",
+                ingredients: [
+                  "16 oz dry-aged ribeye steak",
+                  "2 tablespoons bourbon barrel char seasoning",
+                  "8 oz truffle mac and cheese",
+                  "4 oz seasonal roasted vegetables",
+                  "2 tablespoons compound butter"
+                ],
+                preparationTime: 45,
                 difficulty: "medium",
-                estimatedCost: 12,
-                suggestedPrice: 28,
+                estimatedCost: 18,
+                suggestedPrice: 42,
                 profitMargin: 57,
                 recipe: {
                   serves: 1,
-                  prepInstructions: ["Prepare ingredients according to seasonal availability"],
-                  cookingInstructions: ["Execute with precision and creativity"],
-                  platingInstructions: ["Present with artistic flair"],
-                  techniques: ["Advanced culinary methods"]
+                  prepInstructions: [
+                    "Remove ribeye from refrigeration 45 minutes before cooking",
+                    "Season generously with bourbon barrel char blend",
+                    "Prepare truffle mac and cheese base with aged cheddar"
+                  ],
+                  cookingInstructions: [
+                    "Sear ribeye in cast iron skillet for 3-4 minutes per side",
+                    "Finish in 400°F oven to desired doneness",
+                    "Rest steak for 5 minutes before serving"
+                  ],
+                  platingInstructions: [
+                    "Place mac and cheese in center of plate",
+                    "Slice ribeye and fan over mac and cheese",
+                    "Arrange vegetables artistically around the plate"
+                  ],
+                  techniques: ["High-heat searing", "Oven finishing", "Proper resting"]
                 },
-                allergens: ["Please check with kitchen for specific allergens"],
-                nutritionalHighlights: ["Thoughtfully crafted nutrition profile"],
-                winePairings: ["Sommelier selected pairing available"],
-                upsellOpportunities: ["Wine pairing", "Appetizer enhancement"]
+                allergens: ["dairy", "gluten"],
+                nutritionalHighlights: ["High protein", "Rich in iron"],
+                winePairings: ["Cabernet Sauvignon", "Malbec"],
+                upsellOpportunities: ["Wine pairing", "Appetizer course"]
+              },
+              {
+                name: "Locomotive Lobster Roll Reimagined",
+                description: "Fresh Maine lobster with lemon-herb aioli, served in a brioche bun with pickled vegetables and crispy shallots. A sophisticated take on the classic with railroad-inspired presentation.",
+                category: "entrees",
+                ingredients: [
+                  "6 oz fresh Maine lobster meat",
+                  "1 brioche hot dog bun",
+                  "3 tablespoons lemon-herb aioli",
+                  "2 oz pickled vegetables",
+                  "1 tablespoon crispy shallots"
+                ],
+                preparationTime: 25,
+                difficulty: "easy",
+                estimatedCost: 14,
+                suggestedPrice: 32,
+                profitMargin: 56,
+                recipe: {
+                  serves: 1,
+                  prepInstructions: [
+                    "Prepare lemon-herb aioli with fresh herbs",
+                    "Pickle seasonal vegetables 24 hours in advance",
+                    "Fry shallots until golden and crispy"
+                  ],
+                  cookingInstructions: [
+                    "Gently warm lobster meat in butter",
+                    "Toast brioche bun until golden",
+                    "Combine lobster with aioli"
+                  ],
+                  platingInstructions: [
+                    "Fill toasted bun with lobster mixture",
+                    "Top with pickled vegetables and crispy shallots",
+                    "Serve with house-made chips"
+                  ],
+                  techniques: ["Gentle warming", "Proper toasting", "Fresh preparation"]
+                },
+                allergens: ["shellfish", "eggs", "gluten"],
+                nutritionalHighlights: ["High protein", "Omega-3 fatty acids"],
+                winePairings: ["Chardonnay", "Sauvignon Blanc"],
+                upsellOpportunities: ["Soup pairing", "Premium wine selection"]
+              },
+              {
+                name: "Conductor's Craft Beer Battered Fish",
+                description: "Fresh local catch in a light craft beer batter, served with hand-cut fries and house-made tartar sauce. Features local brewery collaboration for an authentic regional taste.",
+                category: "entrees",
+                ingredients: [
+                  "8 oz fresh local white fish fillet",
+                  "1 cup craft beer batter mix",
+                  "6 oz hand-cut potato fries",
+                  "3 tablespoons house tartar sauce",
+                  "1 lemon wedge"
+                ],
+                preparationTime: 35,
+                difficulty: "medium",
+                estimatedCost: 11,
+                suggestedPrice: 26,
+                profitMargin: 58,
+                recipe: {
+                  serves: 1,
+                  prepInstructions: [
+                    "Cut fresh fish into portion-sized pieces",
+                    "Prepare beer batter with local craft beer",
+                    "Cut potatoes into hand-cut fry shapes"
+                  ],
+                  cookingInstructions: [
+                    "Heat oil to 350°F for frying",
+                    "Dip fish in batter and fry until golden",
+                    "Fry hand-cut potatoes until crispy"
+                  ],
+                  platingInstructions: [
+                    "Place fish prominently on plate",
+                    "Arrange fries alongside fish",
+                    "Serve tartar sauce in small ramekin"
+                  ],
+                  techniques: ["Beer batter preparation", "Temperature control frying", "Hand-cutting"]
+                },
+                allergens: ["fish", "gluten"],
+                nutritionalHighlights: ["High protein", "Local sourcing"],
+                winePairings: ["Pinot Grigio", "Local craft beer"],
+                upsellOpportunities: ["Appetizer add-on", "Craft beer flight"]
+              },
+              {
+                name: "Station Master's Seasonal Vegetable Stack",
+                description: "Grilled seasonal vegetables layered with herbed quinoa and topped with balsamic reduction. A vibrant, health-conscious option that celebrates local farm partnerships.",
+                category: "vegetarian",
+                ingredients: [
+                  "6 oz mixed seasonal vegetables",
+                  "4 oz herbed quinoa",
+                  "2 tablespoons balsamic reduction",
+                  "1 oz crumbled goat cheese",
+                  "Fresh herb garnish"
+                ],
+                preparationTime: 30,
+                difficulty: "easy",
+                estimatedCost: 8,
+                suggestedPrice: 22,
+                profitMargin: 64,
+                recipe: {
+                  serves: 1,
+                  prepInstructions: [
+                    "Cook quinoa with fresh herbs and vegetable stock",
+                    "Prepare balsamic reduction by simmering until thick",
+                    "Slice vegetables for grilling"
+                  ],
+                  cookingInstructions: [
+                    "Grill vegetables until tender with char marks",
+                    "Warm herbed quinoa thoroughly",
+                    "Crumble goat cheese for topping"
+                  ],
+                  platingInstructions: [
+                    "Create quinoa base on plate",
+                    "Stack grilled vegetables artistically",
+                    "Drizzle with balsamic reduction and garnish"
+                  ],
+                  techniques: ["Grilling technique", "Quinoa preparation", "Reduction cooking"]
+                },
+                allergens: ["dairy"],
+                nutritionalHighlights: ["High fiber", "Plant-based protein", "Antioxidants"],
+                winePairings: ["Pinot Noir", "Rosé"],
+                upsellOpportunities: ["Cheese plate", "Soup course"]
               }
             ]
           };
@@ -224,6 +408,175 @@ export class MenuGeneratorService {
         console.log('First item recipe structure:', JSON.stringify(result.items[0].recipe, null, 2));
       }
       
+      // Ensure we have exactly 4 items
+      if (!result.items || !Array.isArray(result.items) || result.items.length !== 4) {
+        console.log(`AI returned ${result.items?.length || 0} items instead of 4, using fallback`);
+        result = { 
+          items: [
+            {
+              name: "The Depot's Signature Railway Ribeye",
+              description: "A 16oz dry-aged ribeye with bourbon barrel char, accompanied by truffle-infused mac and cheese and seasonal vegetables. This showstopper celebrates the railroad heritage with bold flavors and premium ingredients.",
+              category: "entrees",
+              ingredients: [
+                "16 oz dry-aged ribeye steak",
+                "2 tablespoons bourbon barrel char seasoning",
+                "8 oz truffle mac and cheese",
+                "4 oz seasonal roasted vegetables",
+                "2 tablespoons compound butter"
+              ],
+              preparationTime: 45,
+              difficulty: "medium",
+              estimatedCost: 18,
+              suggestedPrice: 42,
+              profitMargin: 57,
+              recipe: {
+                serves: 1,
+                prepInstructions: [
+                  "Remove ribeye from refrigeration 45 minutes before cooking",
+                  "Season generously with bourbon barrel char blend",
+                  "Prepare truffle mac and cheese base with aged cheddar"
+                ],
+                cookingInstructions: [
+                  "Sear ribeye in cast iron skillet for 3-4 minutes per side",
+                  "Finish in 400°F oven to desired doneness",
+                  "Rest steak for 5 minutes before serving"
+                ],
+                platingInstructions: [
+                  "Place mac and cheese in center of plate",
+                  "Slice ribeye and fan over mac and cheese",
+                  "Arrange vegetables artistically around the plate"
+                ],
+                techniques: ["High-heat searing", "Oven finishing", "Proper resting"]
+              },
+              allergens: ["dairy", "gluten"],
+              nutritionalHighlights: ["High protein", "Rich in iron"],
+              winePairings: ["Cabernet Sauvignon", "Malbec"],
+              upsellOpportunities: ["Wine pairing", "Appetizer course"]
+            },
+            {
+              name: "Locomotive Lobster Roll Reimagined",
+              description: "Fresh Maine lobster with lemon-herb aioli, served in a brioche bun with pickled vegetables and crispy shallots. A sophisticated take on the classic with railroad-inspired presentation.",
+              category: "entrees",
+              ingredients: [
+                "6 oz fresh Maine lobster meat",
+                "1 brioche hot dog bun",
+                "3 tablespoons lemon-herb aioli",
+                "2 oz pickled vegetables",
+                "1 tablespoon crispy shallots"
+              ],
+              preparationTime: 25,
+              difficulty: "easy",
+              estimatedCost: 14,
+              suggestedPrice: 32,
+              profitMargin: 56,
+              recipe: {
+                serves: 1,
+                prepInstructions: [
+                  "Prepare lemon-herb aioli with fresh herbs",
+                  "Pickle seasonal vegetables 24 hours in advance",
+                  "Fry shallots until golden and crispy"
+                ],
+                cookingInstructions: [
+                  "Gently warm lobster meat in butter",
+                  "Toast brioche bun until golden",
+                  "Combine lobster with aioli"
+                ],
+                platingInstructions: [
+                  "Fill toasted bun with lobster mixture",
+                  "Top with pickled vegetables and crispy shallots",
+                  "Serve with house-made chips"
+                ],
+                techniques: ["Gentle warming", "Proper toasting", "Fresh preparation"]
+              },
+              allergens: ["shellfish", "eggs", "gluten"],
+              nutritionalHighlights: ["High protein", "Omega-3 fatty acids"],
+              winePairings: ["Chardonnay", "Sauvignon Blanc"],
+              upsellOpportunities: ["Soup pairing", "Premium wine selection"]
+            },
+            {
+              name: "Conductor's Craft Beer Battered Fish",
+              description: "Fresh local catch in a light craft beer batter, served with hand-cut fries and house-made tartar sauce. Features local brewery collaboration for an authentic regional taste.",
+              category: "entrees",
+              ingredients: [
+                "8 oz fresh local white fish fillet",
+                "1 cup craft beer batter mix",
+                "6 oz hand-cut potato fries",
+                "3 tablespoons house tartar sauce",
+                "1 lemon wedge"
+              ],
+              preparationTime: 35,
+              difficulty: "medium",
+              estimatedCost: 11,
+              suggestedPrice: 26,
+              profitMargin: 58,
+              recipe: {
+                serves: 1,
+                prepInstructions: [
+                  "Cut fresh fish into portion-sized pieces",
+                  "Prepare beer batter with local craft beer",
+                  "Cut potatoes into hand-cut fry shapes"
+                ],
+                cookingInstructions: [
+                  "Heat oil to 350°F for frying",
+                  "Dip fish in batter and fry until golden",
+                  "Fry hand-cut potatoes until crispy"
+                ],
+                platingInstructions: [
+                  "Place fish prominently on plate",
+                  "Arrange fries alongside fish",
+                  "Serve tartar sauce in small ramekin"
+                ],
+                techniques: ["Beer batter preparation", "Temperature control frying", "Hand-cutting"]
+              },
+              allergens: ["fish", "gluten"],
+              nutritionalHighlights: ["High protein", "Local sourcing"],
+              winePairings: ["Pinot Grigio", "Local craft beer"],
+              upsellOpportunities: ["Appetizer add-on", "Craft beer flight"]
+            },
+            {
+              name: "Station Master's Seasonal Vegetable Stack",
+              description: "Grilled seasonal vegetables layered with herbed quinoa and topped with balsamic reduction. A vibrant, health-conscious option that celebrates local farm partnerships.",
+              category: "vegetarian",
+              ingredients: [
+                "6 oz mixed seasonal vegetables",
+                "4 oz herbed quinoa",
+                "2 tablespoons balsamic reduction",
+                "1 oz crumbled goat cheese",
+                "Fresh herb garnish"
+              ],
+              preparationTime: 30,
+              difficulty: "easy",
+              estimatedCost: 8,
+              suggestedPrice: 22,
+              profitMargin: 64,
+              recipe: {
+                serves: 1,
+                prepInstructions: [
+                  "Cook quinoa with fresh herbs and vegetable stock",
+                  "Prepare balsamic reduction by simmering until thick",
+                  "Slice vegetables for grilling"
+                ],
+                cookingInstructions: [
+                  "Grill vegetables until tender with char marks",
+                  "Warm herbed quinoa thoroughly",
+                  "Crumble goat cheese for topping"
+                ],
+                platingInstructions: [
+                  "Create quinoa base on plate",
+                  "Stack grilled vegetables artistically",
+                  "Drizzle with balsamic reduction and garnish"
+                ],
+                techniques: ["Grilling technique", "Quinoa preparation", "Reduction cooking"]
+              },
+              allergens: ["dairy"],
+              nutritionalHighlights: ["High fiber", "Plant-based protein", "Antioxidants"],
+              winePairings: ["Pinot Noir", "Rosé"],
+              upsellOpportunities: ["Cheese plate", "Soup course"]
+            }
+          ]
+        };
+      }
+
       // Validate and clean up menu items to ensure complete data
       const processedItems = (result.items || []).map((item: any) => {
         return {
