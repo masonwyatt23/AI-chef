@@ -179,6 +179,8 @@ Requirements:
 - Use spirits and ingredients that fit the restaurant's style
 - Consider local flavors from ${request.context.location || 'the region'}
 - Price appropriately for $${request.context.averageTicketPrice || '25'} average check
+- Include detailed ingredient specifications with exact measurements, costs, and bar notes
+- Provide brand recommendations and storage requirements for professional bar operations
 
 ${request.theme ? `Additional theme: ${request.theme}` : ''}
 ${request.baseSpirits?.length ? `Preferred spirits: ${request.baseSpirits.join(', ')}` : ''}
@@ -221,6 +223,13 @@ JSON format:
     }
   ]
 }
+
+COCKTAIL INGREDIENT SPECIFICATIONS:
+- Each ingredient must include exact measurements (oz, dashes, etc.)
+- Provide specific cost per cocktail and batch cost calculations
+- Include bar notes, brand recommendations, and ABV information
+- Add storage requirements and supplier details
+- Calculate batch amounts for volume production (10 cocktails)
 
 Make each cocktail unique and specifically tailored to this restaurant's character and brand.` 
           }
@@ -278,6 +287,8 @@ Requirements:
 - Work within their kitchen capabilities: ${request.context.kitchenCapability}
 - Staff skill level: ${request.context.staffSkillLevel || 'experienced'}
 - Average ticket price range: $${request.context.averageTicketPrice || '25'}
+- Include detailed ingredient specifications with exact measurements, costs, and preparation notes
+- Provide batch production calculations for volume service${request.batchProduction ? ` (batch size: ${request.batchSize || 10} servings)` : ''}
 
 ${request.specificRequests ? `Special requests: ${request.specificRequests}` : ''}
 ${request.dietaryRestrictions?.length ? `Dietary considerations: ${request.dietaryRestrictions.join(', ')}` : ''}
@@ -341,7 +352,14 @@ JSON format:
   ]
 }
 
-Make each item distinctly different and specifically tailored to this restaurant's unique profile and capabilities.` 
+IMPORTANT INGREDIENT SPECIFICATIONS:
+- Each ingredient must include exact measurements (amount + unit)
+- Provide specific cost per serving and batch cost calculations
+- Include preparation notes, quality specifications, and storage requirements
+- Add supplier information and shelf life details
+- Calculate batch amounts for volume production (${request.batchSize || 10} servings)
+
+Make each item distinctly different and specifically tailored to this restaurant's unique profile and capabilities. Focus on creating professional-grade ingredient specifications that a chef can immediately implement in their kitchen.` 
           }
         ],
         response_format: { type: "json_object" },
