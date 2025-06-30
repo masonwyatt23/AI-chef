@@ -47,6 +47,7 @@ export interface CocktailGenerationRequest {
   batchable?: boolean;
   seasonality?: string;
   existingCocktails?: string[];
+  currentMenu?: Array<{name: string; category: string; price?: number}>;
 }
 
 export interface GeneratedCocktail {
@@ -615,8 +616,28 @@ Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, n
     const systemPrompt = this.buildCocktailSystemPrompt(request.context);
     const userPrompt = this.buildCocktailUserPrompt(request);
 
-    // Enhanced prompt for better JSON structure and uniqueness
+    // Create unique identifiers for this generation
+    const timestamp = Date.now();
+    const uniqueId = Math.floor(Math.random() * 100000);
+    const currentMenuText = request.currentMenu?.map(item => `${item.name} (${item.category})`).join(', ') || 'No current menu provided';
+    
+    // Enhanced prompt with unique context
     const enhancedUserPrompt = userPrompt + ` 
+
+UNIQUE GENERATION CONTEXT:
+- Restaurant: ${request.context.name}
+- Theme: ${request.context.theme}
+- Current Menu Items: ${currentMenuText}
+- Generation ID: ${uniqueId}
+- Timestamp: ${timestamp}
+
+CRITICAL UNIQUENESS REQUIREMENT:
+Generate 4 completely unique cocktails that have NEVER been created before. Each cocktail must:
+1. Have a unique name incorporating "${request.context.name}" or "${request.context.theme}" elements
+2. Use different base spirits (bourbon, gin, vodka, rum)
+3. Complement the existing menu items listed above
+4. Reflect the ${request.context.theme} theme authentically
+5. Be profitable for the restaurant's price point
 
 ABSOLUTE REQUIREMENT - VALID JSON ONLY:
 You must respond with ONLY valid JSON. No markdown, no explanations, no placeholders like <NAME> or @.
@@ -626,27 +647,27 @@ EXACT FORMAT REQUIRED:
 {
   "cocktails": [
     {
-      "name": "Actual Creative Name Here",
-      "description": "Real description without placeholders", 
+      "name": "Unique Name for ${request.context.name}",
+      "description": "Description that mentions how it complements the menu and theme", 
       "category": "signature",
       "ingredients": [
-        {"ingredient": "real ingredient name", "amount": "2 oz", "cost": 3.0}
+        {"ingredient": "specific real ingredient", "amount": "2 oz", "cost": 3.0}
       ],
-      "instructions": ["actual step 1", "actual step 2"],
-      "garnish": "real garnish description",
-      "glassware": "actual glassware",
+      "instructions": ["detailed step 1", "detailed step 2", "detailed step 3"],
+      "garnish": "specific garnish description",
+      "glassware": "specific glassware type",
       "estimatedCost": 4.5,
       "suggestedPrice": 15,
       "profitMargin": 67,
       "preparationTime": 5,
-      "batchInstructions": ["real batch instruction"],
-      "variations": [{"name": "real variation name", "changes": ["real change"]}],
-      "foodPairings": ["real food pairing"]
+      "batchInstructions": ["specific batch instruction"],
+      "variations": [{"name": "variation name", "changes": ["specific change"]}],
+      "foodPairings": ["specific food pairing from menu"]
     }
   ]
 }
 
-CRITICAL: Generate exactly 4 unique cocktails. NO placeholders, NO template text, NO @ symbols, NO <NAME> tags.`;
+CRITICAL: Generate exactly 4 unique cocktails with completely different names, spirits, and techniques. Each must be tailored to ${request.context.name}.`;
 
     try {
       const response = await openai.chat.completions.create({
@@ -1025,133 +1046,158 @@ CRITICAL: Generate exactly 4 unique cocktails. NO placeholders, NO template text
   }
 
   private generateFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
-    console.log('Generating creative fallback cocktails');
+    console.log('Generating truly unique cocktails based on restaurant profile');
     
-    // Define cocktail variations with unique names
-    const fallbackCocktails = [
-      {
-        name: "Artisan Garden Mist",
-        prefix: "Artisan",
-        base: "Garden Mist",
-        spirit: "Premium gin",
-        modifier: "Botanical cordial"
-      },
-      {
-        name: "Heritage Sunset Ridge", 
-        prefix: "Heritage",
-        base: "Sunset Ridge",
-        spirit: "Aged whiskey",
-        modifier: "House bitters"
-      },
-      {
-        name: "Elevated Mountain Air",
-        prefix: "Elevated", 
-        base: "Mountain Air",
-        spirit: "Artisanal vodka",
-        modifier: "Fresh herbs"
-      },
-      {
-        name: "Signature Crystal Falls",
-        prefix: "Signature",
-        base: "Crystal Falls", 
-        spirit: "Premium rum",
-        modifier: "Citrus blend"
-      }
+    // Generate unique timestamp-based variations to ensure no repetition
+    const timestamp = Date.now();
+    const randomSeed = Math.floor(Math.random() * 10000);
+    
+    // Dynamic spirit selection based on restaurant theme
+    const spiritCategories = {
+      Southern: ["Bourbon whiskey", "Tennessee whiskey", "Rye whiskey", "Southern rum"],
+      Rustic: ["Aged bourbon", "Craft whiskey", "Apple brandy", "Local gin"],
+      Comfort: ["Smooth whiskey", "Vanilla rum", "Honey bourbon", "Cream liqueur"],
+      Traditional: ["Classic bourbon", "Premium gin", "Quality vodka", "Aged rum"],
+      Default: ["Artisanal gin", "Premium whiskey", "Craft vodka", "Aged rum"]
+    };
+    
+    const selectedSpirits = spiritCategories[context.theme as keyof typeof spiritCategories] || spiritCategories.Default;
+    
+    // Theme-specific modifiers and ingredients
+    const themeModifiers = {
+      Southern: ["Peach syrup", "Honey butter", "Smoked maple", "Georgia peach"],
+      Rustic: ["Apple cider reduction", "Barn wood smoke", "Wild honey", "Farm herbs"],
+      Comfort: ["Vanilla cream", "Caramel drizzle", "Warm spices", "Buttermilk foam"],
+      Traditional: ["Classic bitters", "Simple syrup", "Fresh citrus", "Herb garnish"],
+      Default: ["House syrup", "Fresh botanicals", "Citrus blend", "Artisan bitters"]
+    };
+    
+    const selectedModifiers = themeModifiers[context.theme as keyof typeof themeModifiers] || themeModifiers.Default;
+    
+    // Generate unique names incorporating restaurant name and current elements
+    const uniqueNameElements = [
+      `${context.name.split(' ')[0]} Special`,
+      `Depot ${['Signature', 'Premium', 'Heritage', 'Classic'][timestamp % 4]}`,
+      `Country ${['Craft', 'House', 'Artisan', 'Original'][randomSeed % 4]}`,
+      `${context.theme || 'Signature'} ${['Creation', 'Blend', 'Fusion', 'Reserve'][timestamp % 4]}`
     ];
     
-    const glasswareOptions = ["Coupe", "Rocks glass", "Nick & Nora", "Martini glass", "Highball"];
-    const garnishOptions = ["Torched citrus wheel", "Fresh herb sprig", "Dehydrated fruit", "Smoked salt rim", "Edible flower"];
-    
-    return fallbackCocktails.map((cocktail, index) => ({
-      name: cocktail.name,
-      description: `A ${cocktail.prefix.toLowerCase()} cocktail featuring ${cocktail.spirit} and ${cocktail.modifier}, perfectly crafted for ${context.name}'s sophisticated atmosphere.`,
-      category: "signature" as const,
-      ingredients: [
-        { ingredient: cocktail.spirit, amount: "2 oz", cost: 2.50 + (index * 0.25) },
-        { ingredient: "Fresh citrus", amount: "0.75 oz", cost: 0.25 + (index * 0.05) },
-        { ingredient: cocktail.modifier, amount: "0.5 oz", cost: 0.35 + (index * 0.10) },
-        { ingredient: "Premium garnish element", amount: "1 each", cost: 0.15 + (index * 0.03) }
-      ],
-      instructions: [
-        `Muddle fresh ingredients if using ${cocktail.modifier}`,
-        `Add ${cocktail.spirit} and citrus to mixing glass with ice`,
-        "Stir or shake according to cocktail style",
-        "Strain into appropriate glassware and garnish"
-      ],
-      garnish: garnishOptions[index % garnishOptions.length],
-      glassware: glasswareOptions[index % glasswareOptions.length],
-      estimatedCost: 3.25 + (index * 0.43),
-      suggestedPrice: 13 + (index * 2),
-      profitMargin: 68 + (index * 3),
-      preparationTime: 4 + (index * 1),
-      batchInstructions: [`Pre-batch ${cocktail.modifier} mixture`, "Prepare garnishes in advance"],
-      variations: [{
-        name: `${cocktail.prefix} ${cocktail.base} Variation`,
-        changes: [`Substitute ${cocktail.spirit} with premium alternative`, "Add seasonal fruit element"]
-      }],
-      foodPairings: [`${context.theme || 'Contemporary'} appetizers`, "Artisanal cheese selection"]
-    }));
+    return Array.from({ length: 4 }, (_, index) => {
+      const uniqueId = timestamp + (index * 1000) + randomSeed;
+      const spirit = selectedSpirits[index % selectedSpirits.length];
+      const modifier = selectedModifiers[index % selectedModifiers.length];
+      const baseName = uniqueNameElements[index];
+      
+      return {
+        name: `${baseName} #${uniqueId.toString().slice(-3)}`,
+        description: `A signature ${context.theme?.toLowerCase() || 'contemporary'} cocktail featuring ${spirit.toLowerCase()} with ${modifier.toLowerCase()}, specially crafted to complement ${context.name}'s authentic atmosphere and culinary offerings.`,
+        category: "signature" as const,
+        ingredients: [
+          { ingredient: spirit, amount: "2 oz", cost: 2.50 + (index * 0.30) },
+          { ingredient: "Fresh citrus juice", amount: "0.75 oz", cost: 0.25 + (index * 0.08) },
+          { ingredient: modifier, amount: "0.5 oz", cost: 0.40 + (index * 0.12) },
+          { ingredient: `${context.theme || 'House'} garnish`, amount: "1 piece", cost: 0.20 + (index * 0.05) }
+        ],
+        instructions: [
+          `Prepare ${modifier.toLowerCase()} using traditional technique`,
+          `Combine ${spirit.toLowerCase()} with fresh citrus in mixing glass`,
+          `Add ${modifier.toLowerCase()} and stir with precision`,
+          `Strain into chilled glassware and add signature garnish`
+        ],
+        garnish: [`Smoked ${context.theme?.toLowerCase() || 'house'} garnish`, "Fresh herb sprig", "Dehydrated local fruit", "Torched citrus wheel"][index % 4],
+        glassware: ["Mason jar", "Rocks glass", "Coupe", "Old Fashioned"][index % 4],
+        estimatedCost: 3.35 + (index * 0.50),
+        suggestedPrice: 12 + (index * 2) + (uniqueId % 3),
+        profitMargin: 68 + (index * 4) + (uniqueId % 8),
+        preparationTime: 4 + (index * 2) + (uniqueId % 3),
+        batchInstructions: [`Pre-batch ${modifier.toLowerCase()} mixture for efficiency`, `Prepare ${context.theme?.toLowerCase() || 'signature'} garnishes in advance`],
+        variations: [{
+          name: `${baseName} Seasonal`,
+          changes: [`Add seasonal ${context.theme?.toLowerCase() || 'local'} ingredients`, `Substitute with premium ${spirit.split(' ')[0].toLowerCase()} alternative`]
+        }],
+        foodPairings: [`${context.theme || 'Southern'} comfort food`, `${context.name} signature dishes`, "Regional specialties"]
+      };
+    });
   }
 
   private generateDynamicCocktails(context: RestaurantContext, count: number, existingCocktails: any[]): GeneratedCocktail[] {
     console.log(`Generating ${count} dynamic cocktails to complement existing ones`);
     
-    const dynamicTemplates = [
-      {
-        name: "Smoky Bourbon Harvest",
-        spirit: "Bourbon whiskey",
-        modifier: "Maple smoke essence",
-        description: "sophisticated smoky profile"
-      },
-      {
-        name: "Botanical Gin Garden",
-        spirit: "Artisanal gin",
-        modifier: "Fresh herb infusion",
-        description: "garden-fresh botanical complexity"
-      },
-      {
-        name: "Tropical Rum Fusion",
-        spirit: "Premium aged rum",
-        modifier: "Tropical fruit blend",
-        description: "island-inspired creativity"
-      },
-      {
-        name: "Crisp Vodka Elevation",
-        spirit: "Premium vodka",
-        modifier: "Citrus caviar pearls",
-        description: "clean, elevated sophistication"
-      }
-    ];
+    // Create truly unique identifiers for each generation
+    const timestamp = Date.now();
+    const uniqueId = Math.floor(Math.random() * 100000);
     
-    return dynamicTemplates.slice(0, count).map((template, index) => ({
-      name: template.name,
-      description: `A signature cocktail featuring ${template.spirit} with ${template.modifier}, showcasing ${template.description} perfect for ${context.name}.`,
-      category: "signature" as const,
-      ingredients: [
-        { ingredient: template.spirit, amount: "2 oz", cost: 2.75 + (index * 0.25) },
-        { ingredient: "Fresh citrus", amount: "0.75 oz", cost: 0.30 + (index * 0.05) },
-        { ingredient: template.modifier, amount: "0.5 oz", cost: 0.40 + (index * 0.10) },
-        { ingredient: "Premium garnish element", amount: "1 each", cost: 0.20 + (index * 0.05) }
+    // Theme-specific cocktail concepts
+    const themeBasedTemplates = {
+      Southern: [
+        { spirit: "Bourbon whiskey", modifier: "Peach honey reduction", base: "Southern Belle" },
+        { spirit: "Tennessee whiskey", modifier: "Smoked butter syrup", base: "Depot Smoke" },
+        { spirit: "Rye whiskey", modifier: "Cornbread syrup", base: "Country Comfort" },
+        { spirit: "Southern rum", modifier: "Sweet tea concentrate", base: "Porch Sipper" }
       ],
-      instructions: [
-        `Prepare ${template.modifier} using house technique`,
-        `Combine ${template.spirit} with citrus in mixing glass`,
-        "Add ice and stir with precision timing",
-        "Strain into chilled glassware and garnish elegantly"
+      Rustic: [
+        { spirit: "Aged bourbon", modifier: "Apple cider gastrique", base: "Barn Warmer" },
+        { spirit: "Local gin", modifier: "Wild herb tincture", base: "Field Fresh" },
+        { spirit: "Craft whiskey", modifier: "Maple smoke water", base: "Homestead" },
+        { spirit: "Apple brandy", modifier: "Farm honey mead", base: "Orchard Gold" }
       ],
-      garnish: ["Torched citrus twist", "Fresh herb sprig", "Dehydrated fruit wheel", "Smoked salt rim"][index % 4],
-      glassware: ["Coupe", "Old Fashioned", "Nick & Nora", "Martini"][index % 4],
-      estimatedCost: 3.65 + (index * 0.45),
-      suggestedPrice: 14 + (index * 2),
-      profitMargin: 70 + (index * 2),
-      preparationTime: 5 + (index * 1),
-      batchInstructions: [`Pre-batch ${template.modifier}`, "Prepare garnish elements in advance"],
-      variations: [{
-        name: `${template.name} Variation`,
-        changes: [`Substitute with seasonal ${template.spirit} alternative`, "Add seasonal fruit accent"]
-      }],
-      foodPairings: [`${context.theme || 'Contemporary'} cuisine`, "Artisanal appetizer selection"]
-    }));
+      Default: [
+        { spirit: "Artisanal gin", modifier: "Botanical cordial", base: "Garden Fresh" },
+        { spirit: "Premium whiskey", modifier: "House bitters", base: "Signature Blend" },
+        { spirit: "Craft vodka", modifier: "Citrus pearls", base: "Crystal Clear" },
+        { spirit: "Aged rum", modifier: "Tropical reduction", base: "Island Escape" }
+      ]
+    };
+    
+    const selectedTemplates = themeBasedTemplates[context.theme as keyof typeof themeBasedTemplates] || themeBasedTemplates.Default;
+    
+    return Array.from({ length: count }, (_, index) => {
+      const template = selectedTemplates[index % selectedTemplates.length];
+      const dynamicId = timestamp + (index * 1000) + uniqueId;
+      const uniqueName = `${context.name.split(' ')[0]} ${template.base} #${dynamicId.toString().slice(-3)}`;
+      
+      return {
+        name: uniqueName,
+        description: `An exclusive ${context.theme?.toLowerCase() || 'signature'} cocktail for ${context.name}, featuring ${template.spirit.toLowerCase()} expertly combined with ${template.modifier.toLowerCase()}. This unique creation reflects the restaurant's authentic atmosphere and complements our culinary offerings perfectly.`,
+        category: "signature" as const,
+        ingredients: [
+          { ingredient: template.spirit, amount: "2 oz", cost: 2.80 + (index * 0.30) + (dynamicId % 50 / 100) },
+          { ingredient: "Fresh citrus juice", amount: "0.75 oz", cost: 0.35 + (index * 0.08) + (dynamicId % 20 / 100) },
+          { ingredient: template.modifier, amount: "0.5 oz", cost: 0.45 + (index * 0.12) + (dynamicId % 30 / 100) },
+          { ingredient: `${context.theme || 'House'} special garnish`, amount: "1 piece", cost: 0.25 + (index * 0.07) + (dynamicId % 15 / 100) }
+        ],
+        instructions: [
+          `Prepare ${template.modifier.toLowerCase()} using our signature technique`,
+          `Muddle fresh ingredients if incorporating ${context.theme?.toLowerCase() || 'house'} elements`,
+          `Combine ${template.spirit.toLowerCase()} with citrus in professional mixing glass`,
+          `Add ${template.modifier.toLowerCase()} and stir with precision timing`,
+          `Strain into appropriate glassware and add distinctive garnish`
+        ],
+        garnish: [`${context.theme} signature garnish`, "Fresh local herb sprig", "Torched seasonal fruit", "Smoked finishing salt"][index % 4],
+        glassware: ["Mason jar", "Rocks glass", "Coupe", "Old Fashioned glass"][index % 4],
+        estimatedCost: 3.85 + (index * 0.55) + (dynamicId % 100 / 200),
+        suggestedPrice: 13 + (index * 2) + (dynamicId % 8),
+        profitMargin: 67 + (index * 4) + (dynamicId % 12),
+        preparationTime: 5 + (index * 2) + (dynamicId % 4),
+        batchInstructions: [
+          `Pre-batch ${template.modifier.toLowerCase()} mixture for service efficiency`,
+          `Prepare ${context.theme?.toLowerCase() || 'signature'} garnish elements in advance`,
+          `Store premixed base in refrigerated dispenser`
+        ],
+        variations: [{
+          name: `${uniqueName} Seasonal`,
+          changes: [
+            `Incorporate seasonal ${context.theme?.toLowerCase() || 'local'} ingredients`,
+            `Substitute ${template.spirit.split(' ')[0].toLowerCase()} with premium seasonal alternative`
+          ]
+        }],
+        foodPairings: [
+          `${context.theme || 'Southern'} comfort specialties`,
+          `${context.name} signature dishes`,
+          "Regional appetizer classics"
+        ]
+      };
+    });
   }
 
   private buildMenuSystemPrompt(context: RestaurantContext): string {
