@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiChefService } from "./services/aiChef";
@@ -54,6 +55,9 @@ const imageUpload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
   configureSession(app);
+
+  // Serve uploaded files
+  app.use('/uploads', express.static('uploads'));
 
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
@@ -150,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No image file uploaded" });
       }
 
-      const userId = req.session.userId;
+      const userId = req.user!.id;
       const profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
 
       // Update user profile picture in database

@@ -25,6 +25,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfilePicture(id: number, profilePicture: string): Promise<void>;
   
   createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
   getRestaurant(id: number): Promise<Restaurant | undefined>;
@@ -67,6 +68,13 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUserProfilePicture(id: number, profilePicture: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ profilePicture })
+      .where(eq(users.id, id));
   }
 
   async createRestaurant(insertRestaurant: InsertRestaurant): Promise<Restaurant> {
