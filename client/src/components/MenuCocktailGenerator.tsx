@@ -185,12 +185,12 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   
   // Database-backed recipe history queries
-  const { data: menuHistoryData = [] } = useQuery({
+  const { data: menuHistoryData = [] } = useQuery<any[]>({
     queryKey: [`/api/restaurants/${restaurantId}/menu-history`],
     retry: false,
   });
 
-  const { data: cocktailHistoryData = [] } = useQuery({
+  const { data: cocktailHistoryData = [] } = useQuery<any[]>({
     queryKey: [`/api/restaurants/${restaurantId}/cocktail-history`],
     retry: false,
   });
@@ -927,24 +927,30 @@ Cutwater Whiskey Mule (San Diego, CA) 7% ginger beer, a hint of lime and aromati
 
   // History management functions
   const deleteMenuItemFromHistory = (indexToDelete: number) => {
-    setMenuHistory(prev => prev.filter((_, index) => index !== indexToDelete));
+    const historyRecord = (menuHistoryData as any[])[indexToDelete];
+    if (historyRecord?.id) {
+      deleteMenuItemMutation.mutate(historyRecord.id);
+    }
   };
 
   const deleteCocktailFromHistory = (indexToDelete: number) => {
-    setCocktailHistory(prev => prev.filter((_, index) => index !== indexToDelete));
+    const historyRecord = (cocktailHistoryData as any[])[indexToDelete];
+    if (historyRecord?.id) {
+      deleteCocktailMutation.mutate(historyRecord.id);
+    }
   };
 
   const clearMenuHistory = () => {
-    setMenuHistory([]);
+    clearMenuHistoryMutation.mutate();
   };
 
   const clearCocktailHistory = () => {
-    setCocktailHistory([]);
+    clearCocktailHistoryMutation.mutate();
   };
 
   const clearAllHistory = () => {
-    setMenuHistory([]);
-    setCocktailHistory([]);
+    clearMenuHistoryMutation.mutate();
+    clearCocktailHistoryMutation.mutate();
     toast({
       title: "History cleared",
       description: "All recipe history has been removed",
