@@ -292,19 +292,53 @@ export class MenuGeneratorService {
     const systemPrompt = this.buildMenuSystemPrompt(request.context);
     const userPrompt = this.buildMenuUserPrompt(request);
 
+    // Enhanced prompt for better JSON structure and uniqueness
+    const enhancedUserPrompt = userPrompt + ` 
+
+CRITICAL JSON FORMAT REQUIREMENT:
+Return ONLY a valid JSON object with this exact structure:
+{
+  "items": [
+    {
+      "name": "Unique Creative Name",
+      "description": "Creative description", 
+      "category": "entrees|appetizers|desserts|vegetarian",
+      "ingredients": ["ingredient1", "ingredient2"],
+      "preparationTime": 30,
+      "difficulty": "easy|medium|hard",
+      "estimatedCost": 12,
+      "suggestedPrice": 28,
+      "profitMargin": 57,
+      "recipe": {
+        "serves": 1,
+        "prepInstructions": ["step1", "step2"],
+        "cookingInstructions": ["step1", "step2"], 
+        "platingInstructions": ["step1", "step2"],
+        "techniques": ["technique1", "technique2"]
+      },
+      "allergens": ["allergen1"],
+      "nutritionalHighlights": ["highlight1"],
+      "winePairings": ["wine1"],
+      "upsellOpportunities": ["upsell1"]
+    }
+  ]
+}
+
+Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, name, and preparation.`;
+
     try {
       const response = await openai.chat.completions.create({
         model: "grok-2-1212",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
+          { role: "system", content: systemPrompt + "\n\nIMPORTANT: Respond with clean, valid JSON only. No markdown formatting or extra text." },
+          { role: "user", content: enhancedUserPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.9,
-        top_p: 0.95,
-        frequency_penalty: 0.4,
-        presence_penalty: 0.3,
-        max_tokens: 8000, // Increased for comprehensive creative outputs
+        temperature: 0.85, // Slightly reduced for better structure consistency
+        top_p: 0.9,
+        frequency_penalty: 0.5, // Higher to prevent repetition
+        presence_penalty: 0.4,
+        max_tokens: 7000, // Optimized for 4 complete items
       });
 
       const content = response.choices[0].message.content || '{"items": []}';
