@@ -123,7 +123,7 @@ export class MenuGeneratorService {
         top_p: 0.95,
         frequency_penalty: 0.4,
         presence_penalty: 0.3,
-        max_tokens: 8000, // Increased for comprehensive creative outputs
+        max_tokens: 12000, // Increased for 4 comprehensive menu items with detailed recipes
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"items": []}');
@@ -398,7 +398,14 @@ ${buildContextSection('Current Challenges', context.currentChallenges)}
 ${buildContextSection('Business Priorities', context.businessPriorities)}
 ${context.additionalContext ? `\nAdditional Context: ${context.additionalContext}` : ''}
 
-You must respond with a JSON object containing an "items" array. Each item should include comprehensive details:
+## CRITICAL REQUIREMENTS:
+- Generate EXACTLY 4 menu items
+- Every ingredient MUST include exact measurements (oz, grams, cups, tablespoons)
+- Include brand preferences for premium ingredients when relevant
+- Provide comprehensive, professional-level recipe instructions
+- Each section must be detailed and actionable for restaurant staff
+
+You must respond with a JSON object containing an "items" array with EXACTLY 4 items:
 
 {
   "items": [
@@ -406,7 +413,13 @@ You must respond with a JSON object containing an "items" array. Each item shoul
       "name": "Creative unique name that tells a story",
       "description": "Detailed, enticing description (2-3 sentences) that highlights unique aspects",
       "category": "appropriate category",
-      "ingredients": ["ingredient 1", "ingredient 2", "special ingredient 3"],
+      "ingredients": [
+        "8 oz prime beef tenderloin, dry-aged",
+        "2 tablespoons Maldon sea salt",
+        "1 cup duck fat (preferably D'Artagnan)",
+        "3 sprigs fresh thyme",
+        "2 cloves garlic, smashed"
+      ],
       "preparationTime": number_in_minutes,
       "difficulty": "easy/medium/hard",
       "estimatedCost": cost_number,
@@ -414,10 +427,29 @@ You must respond with a JSON object containing an "items" array. Each item shoul
       "profitMargin": percentage_number,
       "recipe": {
         "serves": number,
-        "prepInstructions": ["detailed prep step 1", "detailed prep step 2"],
-        "cookingInstructions": ["detailed cooking step 1", "detailed cooking step 2"],
-        "platingInstructions": ["artistic plating step 1", "artistic plating step 2"],
-        "techniques": ["technique 1", "technique 2"]
+        "prepInstructions": [
+          "Day before: Dry-age beef in refrigerator uncovered for 24 hours",
+          "Morning prep: Remove beef from refrigerator 2 hours before service to reach room temperature",
+          "Mise en place: Portion all ingredients, preheat duck fat to 135°F in immersion circulator"
+        ],
+        "cookingInstructions": [
+          "Season beef generously with Maldon salt 45 minutes before cooking",
+          "Heat cast iron skillet over high heat until smoking",
+          "Sear beef 2 minutes per side for perfect caramelization",
+          "Transfer to duck fat bath, cook sous vide at 135°F for 45 minutes"
+        ],
+        "platingInstructions": [
+          "Warm plates in 200°F oven for 3 minutes",
+          "Slice beef against grain into 1/4-inch medallions",
+          "Fan slices in center of plate, drizzle with finishing oil",
+          "Garnish with microgreens and edible flowers in asymmetric pattern"
+        ],
+        "techniques": [
+          "Dry-aging for concentrated flavor",
+          "Sous vide precision cooking",
+          "High-heat searing for Maillard reaction",
+          "Temperature control for perfect doneness"
+        ]
       },
       "allergens": ["allergen1", "allergen2"],
       "nutritionalHighlights": ["highlight1", "highlight2"],
@@ -530,7 +562,7 @@ CREATIVITY REQUIREMENTS:
     
     // Category-specific generation with expert guidance
     if (request.focusCategory) {
-      prompt = `Create 3-4 exceptional ${request.focusCategory.toLowerCase()} items that will elevate this category and drive customer excitement`;
+      prompt = `Create EXACTLY 4 exceptional ${request.focusCategory.toLowerCase()} items that will elevate this category and drive customer excitement`;
       
       // Add category-specific guidance
       const categoryGuidance = this.getCategorySpecificGuidance(request.focusCategory);
@@ -538,7 +570,7 @@ CREATIVITY REQUIREMENTS:
         prompt += `. ${categoryGuidance}`;
       }
     } else {
-      prompt = `Create 3-4 innovative menu items across different categories that showcase culinary excellence`;
+      prompt = `Create EXACTLY 4 innovative menu items across different categories that showcase culinary excellence`;
     }
     
     // Existing menu analysis for strategic positioning
