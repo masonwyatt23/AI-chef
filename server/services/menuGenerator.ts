@@ -108,11 +108,25 @@ export class MenuGeneratorService {
   }
 
   private getFallbackMenuItems() {
+    // Generate dynamic fallback items with timestamps to ensure uniqueness
+    const timestamp = Date.now();
+    const randomSeed = Math.floor(Math.random() * 10000);
+    
+    console.log(`Creating dynamic fallback items with timestamp: ${timestamp}, seed: ${randomSeed}`);
+    
+    // Dynamic creative prefixes and suffixes for unique naming
+    const creativePrefixes = ["Artisan", "Heritage", "Signature", "Classic", "Modern", "Elevated", "Gourmet", "Chef's", "House-made", "Specialty"];
+    const creativeAdjectives = ["Innovative", "Rustic", "Contemporary", "Refined", "Unique", "Exceptional", "Premium", "Handcrafted", "Seasonal", "Local"];
+    const creativeNouns = ["Creation", "Masterpiece", "Specialty", "Delight", "Experience", "Sensation", "Innovation", "Fusion", "Composition", "Selection"];
+    
+    const getRandomElement = (arr: string[]) => arr[Math.floor((timestamp + randomSeed) % arr.length)];
+    const getRandomPrice = (base: number) => base + Math.floor((timestamp % 10));
+    
     return { 
       items: [
         {
-          name: "The Depot's Signature Railway Ribeye",
-          description: "A 16oz dry-aged ribeye with bourbon barrel char, accompanied by truffle-infused mac and cheese and seasonal vegetables. This showstopper celebrates the railroad heritage with bold flavors and premium ingredients.",
+          name: `${getRandomElement(creativePrefixes)} ${getRandomElement(creativeAdjectives)} Ribeye ${getRandomElement(creativeNouns)} #${randomSeed}`,
+          description: `A uniquely crafted ribeye with innovative seasonal accompaniments, featuring contemporary cooking techniques and artistic presentation. Generation ID: ${timestamp}`,
           category: "entrees",
           ingredients: [
             "16 oz dry-aged ribeye steak",
@@ -121,11 +135,11 @@ export class MenuGeneratorService {
             "4 oz seasonal roasted vegetables",
             "2 tablespoons compound butter"
           ],
-          preparationTime: 45,
+          preparationTime: 35 + (timestamp % 20),
           difficulty: "medium",
-          estimatedCost: 18,
-          suggestedPrice: 42,
-          profitMargin: 57,
+          estimatedCost: 15 + (timestamp % 8),
+          suggestedPrice: getRandomPrice(40),
+          profitMargin: 55 + (timestamp % 20),
           recipe: {
             serves: 1,
             prepInstructions: [
