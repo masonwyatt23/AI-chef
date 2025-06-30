@@ -3,7 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiChefService } from "./services/aiChef";
-import { menuGenerator } from "./services/menuGenerator";
+import { simpleMenuGenerator } from "./services/menuGenerator-simple";
 import { configureSession, hashPassword, comparePassword, requireAuth } from "./auth";
 import { 
   insertRestaurantSchema, 
@@ -942,7 +942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Pass complete restaurant profile for AI context
       const context = buildRestaurantContext(restaurant);
 
-      const menuItems = await menuGenerator.generateMenuItems({
+      const menuItems = await simpleMenuGenerator.generateMenuItems({
         context,
         specificRequests,
         dietaryRestrictions,
@@ -972,7 +972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Pass complete restaurant profile for AI context
       const context = buildRestaurantContext(restaurant);
 
-      const cocktails = await menuGenerator.generateCocktails({
+      const cocktails = await simpleMenuGenerator.generateCocktails({
         context,
         theme,
         baseSpirits,
@@ -1000,7 +1000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const context = buildRestaurantContext(restaurant);
 
-      const pairings = await menuGenerator.generatePairedMenuCocktails(menuItems, context);
+      const pairings = await simpleMenuGenerator.generatePairedMenuCocktails(menuItems, context);
 
       res.json({ pairings });
     } catch (error) {

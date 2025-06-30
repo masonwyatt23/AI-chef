@@ -35,7 +35,94 @@ export interface MenuGenerationRequest {
   currentMenu?: Array<{ name: string; category: string; }>;
 }
 
+export interface CocktailGenerationRequest {
+  context: RestaurantContext;
+  theme?: string;
+  baseSpirits?: string[];
+  complexity?: string;
+  batchable?: boolean;
+  seasonality?: string;
+}
+
+export interface GeneratedCocktail {
+  name: string;
+  description: string;
+  category: string;
+  ingredients: Array<{
+    ingredient: string;
+    amount: string;
+    cost: number;
+  }>;
+  instructions: string[];
+  garnish: string;
+  glassware: string;
+  estimatedCost: number;
+  suggestedPrice: number;
+  profitMargin: number;
+  preparationTime: number;
+}
+
 export class SimpleMenuGenerator {
+  async generateCocktails(request: CocktailGenerationRequest): Promise<GeneratedCocktail[]> {
+    console.log('Starting simplified cocktail generation');
+    
+    try {
+      const response = await openai.chat.completions.create({
+        model: "grok-2-1212",
+        messages: [
+          { 
+            role: "system", 
+            content: "Create short cocktail descriptions using 3-5 words only. Examples: 'Sweet bourbon fizz', 'Crisp gin blend'. Always respond with valid JSON only." 
+          },
+          { 
+            role: "user", 
+            content: `Create 4 cocktails for ${request.context.name}.
+
+JSON format:
+{
+  "cocktails": [
+    {
+      "name": "Short Name",
+      "description": "Brief flavor combo",
+      "category": "signature",
+      "ingredients": [{"ingredient": "spirit", "amount": "2 oz", "cost": 3}],
+      "instructions": ["shake and serve"],
+      "garnish": "citrus",
+      "glassware": "rocks",
+      "estimatedCost": 4,
+      "suggestedPrice": 14,
+      "profitMargin": 70,
+      "preparationTime": 3
+    }
+  ]
+}` 
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.4,
+        max_tokens: 800,
+      });
+
+      const content = response.choices[0].message.content || '{"cocktails": []}';
+      
+      try {
+        const result = JSON.parse(content);
+        if (result.cocktails && Array.isArray(result.cocktails) && result.cocktails.length > 0) {
+          console.log(`Generated ${result.cocktails.length} cocktails successfully`);
+          return result.cocktails.slice(0, 4);
+        }
+      } catch (parseError) {
+        console.log('Parse failed, using fallback');
+      }
+      
+      return this.getFallbackCocktails(request.context);
+      
+    } catch (error) {
+      console.error('Cocktail generation failed:', error);
+      return this.getFallbackCocktails(request.context);
+    }
+  }
+
   async generateMenuItems(request: MenuGenerationRequest): Promise<GeneratedMenuItem[]> {
     console.log('Starting simplified menu generation');
     
@@ -200,6 +287,92 @@ Format:
         upsellOpportunities: ["Soup pairing"]
       }
     ];
+  }
+
+  private getFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
+    const theme = context.theme || 'Classic';
+    const timestamp = Date.now().toString().slice(-3);
+    
+    return [
+      {
+        name: `${theme} Bourbon`,
+        description: "Smooth bourbon blend",
+        category: "signature",
+        ingredients: [
+          { ingredient: "Bourbon", amount: "2 oz", cost: 3 },
+          { ingredient: "Simple syrup", amount: "0.5 oz", cost: 0.2 },
+          { ingredient: "Lemon juice", amount: "0.5 oz", cost: 0.1 }
+        ],
+        instructions: ["Shake with ice", "Strain into glass"],
+        garnish: "lemon twist",
+        glassware: "rocks glass",
+        estimatedCost: 3.3,
+        suggestedPrice: 14,
+        profitMargin: 76,
+        preparationTime: 3
+      },
+      {
+        name: `${theme} Gin`,
+        description: "Crisp gin cocktail",
+        category: "signature", 
+        ingredients: [
+          { ingredient: "Gin", amount: "2 oz", cost: 2.5 },
+          { ingredient: "Tonic water", amount: "4 oz", cost: 0.3 },
+          { ingredient: "Lime juice", amount: "0.25 oz", cost: 0.1 }
+        ],
+        instructions: ["Build in glass", "Stir gently"],
+        garnish: "lime wheel",
+        glassware: "highball glass",
+        estimatedCost: 2.9,
+        suggestedPrice: 12,
+        profitMargin: 76,
+        preparationTime: 2
+      },
+      {
+        name: `${theme} Vodka`,
+        description: "Clean vodka mix",
+        category: "signature",
+        ingredients: [
+          { ingredient: "Vodka", amount: "2 oz", cost: 2 },
+          { ingredient: "Cranberry juice", amount: "1 oz", cost: 0.2 },
+          { ingredient: "Lime juice", amount: "0.5 oz", cost: 0.1 }
+        ],
+        instructions: ["Shake with ice", "Strain over fresh ice"],
+        garnish: "lime wedge",
+        glassware: "rocks glass",
+        estimatedCost: 2.3,
+        suggestedPrice: 11,
+        profitMargin: 79,
+        preparationTime: 3
+      },
+      {
+        name: `${theme} Rum`,
+        description: "Tropical rum fizz",
+        category: "signature",
+        ingredients: [
+          { ingredient: "White rum", amount: "2 oz", cost: 2.2 },
+          { ingredient: "Pineapple juice", amount: "1 oz", cost: 0.3 },
+          { ingredient: "Club soda", amount: "2 oz", cost: 0.1 }
+        ],
+        instructions: ["Shake juice and rum", "Top with soda"],
+        garnish: "pineapple wedge",
+        glassware: "highball glass",
+        estimatedCost: 2.6,
+        suggestedPrice: 13,
+        profitMargin: 80,
+        preparationTime: 3
+      }
+    ];
+  }
+
+  async generatePairedMenuCocktails(menuItems: any[], context: RestaurantContext): Promise<any> {
+    // Simple pairing fallback
+    return {
+      pairings: menuItems.map((item, index) => ({
+        menuItem: item,
+        cocktail: this.getFallbackCocktails(context)[index % 4]
+      }))
+    };
   }
 }
 
