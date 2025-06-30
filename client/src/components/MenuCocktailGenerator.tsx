@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -184,26 +184,20 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [isSavingMenu, setIsSavingMenu] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   
-  // History state for previously generated items with localStorage persistence
-  const [menuHistory, setMenuHistory] = useState<GeneratedMenuItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('chef-assistant-menu-history');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error('Error loading menu history from localStorage:', error);
-      return [];
-    }
+  // Database-backed recipe history queries
+  const { data: menuHistoryData = [] } = useQuery({
+    queryKey: [`/api/restaurants/${restaurantId}/menu-history`],
+    retry: false,
   });
-  
-  const [cocktailHistory, setCocktailHistory] = useState<GeneratedCocktail[]>(() => {
-    try {
-      const saved = localStorage.getItem('chef-assistant-cocktail-history');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error('Error loading cocktail history from localStorage:', error);
-      return [];
-    }
+
+  const { data: cocktailHistoryData = [] } = useQuery({
+    queryKey: [`/api/restaurants/${restaurantId}/cocktail-history`],
+    retry: false,
   });
+
+  // Extract item data from database records
+  const menuHistory = menuHistoryData.map((record: any) => record.itemData);
+  const cocktailHistory = cocktailHistoryData.map((record: any) => record.cocktailData);
   
   // Enhanced category options with common restaurant categories
   const commonCategories = [
@@ -265,22 +259,60 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
   const [generatedMenuItems, setGeneratedMenuItems] = useState<GeneratedMenuItem[]>([]);
   const [generatedCocktails, setGeneratedCocktails] = useState<GeneratedCocktail[]>([]);
 
-  // Save history to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      localStorage.setItem('chef-assistant-menu-history', JSON.stringify(menuHistory));
-    } catch (error) {
-      console.error('Error saving menu history to localStorage:', error);
-    }
-  }, [menuHistory]);
+  // Database mutations for recipe history
+  const addMenuItemMutation = useMutation({
+    mutationFn: async (itemData: GeneratedMenuItem) => {
+      return apiRequest("POST", `/api/restaurants/${restaurantId}/menu-history`, { itemData });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/menu-history`] });
+    },
+  });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('chef-assistant-cocktail-history', JSON.stringify(cocktailHistory));
-    } catch (error) {
-      console.error('Error saving cocktail history to localStorage:', error);
-    }
-  }, [cocktailHistory]);
+  const addCocktailMutation = useMutation({
+    mutationFn: async (cocktailData: GeneratedCocktail) => {
+      return apiRequest("POST", `/api/restaurants/${restaurantId}/cocktail-history`, { cocktailData });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/cocktail-history`] });
+    },
+  });
+
+  const clearMenuHistoryMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/menu-history`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/menu-history`] });
+    },
+  });
+
+  const clearCocktailHistoryMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/cocktail-history`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/cocktail-history`] });
+    },
+  });
+
+  const deleteMenuItemMutation = useMutation({
+    mutationFn: async (historyId: number) => {
+      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/menu-history/${historyId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/menu-history`] });
+    },
+  });
+
+  const deleteCocktailMutation = useMutation({
+    mutationFn: async (historyId: number) => {
+      return apiRequest("DELETE", `/api/restaurants/${restaurantId}/cocktail-history/${historyId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${restaurantId}/cocktail-history`] });
+    },
+  });
 
   const menuMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -290,13 +322,9 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     onSuccess: (data) => {
       const newItems = data.menuItems || [];
       setGeneratedMenuItems(newItems);
-      // Add new items to history (avoid duplicates)
-      setMenuHistory(prev => {
-        const combined = [...prev, ...newItems];
-        const unique = combined.filter((item, index, self) => 
-          index === self.findIndex(i => i.name === item.name)
-        );
-        return unique;
+      // Add new items to database history
+      newItems.forEach((item: GeneratedMenuItem) => {
+        addMenuItemMutation.mutate(item);
       });
       toast({
         title: "Menu items generated!",
@@ -320,13 +348,9 @@ export function MenuCocktailGenerator({ restaurantId }: MenuCocktailGeneratorPro
     onSuccess: (data) => {
       const newCocktails = data.cocktails || [];
       setGeneratedCocktails(newCocktails);
-      // Add new cocktails to history (avoid duplicates)
-      setCocktailHistory(prev => {
-        const combined = [...prev, ...newCocktails];
-        const unique = combined.filter((cocktail, index, self) => 
-          index === self.findIndex(c => c.name === cocktail.name)
-        );
-        return unique;
+      // Add new cocktails to database history
+      newCocktails.forEach((cocktail: GeneratedCocktail) => {
+        addCocktailMutation.mutate(cocktail);
       });
       toast({
         title: "Cocktails generated!",
