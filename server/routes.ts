@@ -15,7 +15,7 @@ import { z } from "zod";
 import multer from "multer";
 
 // Configure multer for PDF uploads
-const upload = multer({
+const pdfUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
@@ -25,6 +25,28 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error('Only PDF files are allowed'));
+    }
+  }
+});
+
+// Configure multer for profile picture uploads
+const imageUpload = multer({
+  storage: multer.diskStorage({
+    destination: 'uploads/profile-pictures/',
+    filename: (req, file, cb) => {
+      const userId = (req as any).session.userId;
+      const ext = file.originalname.split('.').pop();
+      cb(null, `user-${userId}-${Date.now()}.${ext}`);
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit for images
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
     }
   }
 });
@@ -100,18 +122,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/auth/me", (req, res) => {
+  app.get("/api/auth/me", async (req, res) => {
     if (!req.session || !req.session.userId) {
       return res.status(401).json({ error: "Not authenticated" });
     }
     
-    res.json({ 
-      id: req.session.userId, 
-      username: req.session.username 
-    });
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json({ 
+        id: user.id, 
+        username: user.username,
+        profilePicture: user.profilePicture
+      });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ error: "Failed to fetch user data" });
+    }
+  });
+
+  // Profile picture upload endpoint
+  app.post("/api/auth/profile-picture", requireAuth, imageUpload.single('profilePicture'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file uploaded" });
+      }
+
+      const userId = req.session.userId;
+      const profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
+
+      // Update user profile picture in database
+      await storage.updateUserProfilePicture(userId, profilePicturePath);
+
+      res.json({ 
+        message: "Profile picture uploaded successfully",
+        profilePicture: profilePicturePath
+      });
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      res.status(500).json({ error: "Failed to upload profile picture" });
+    }
   });
   // PDF Upload route with text extraction
-  app.post("/api/parse-menu-pdf", upload.single('menuPdf'), async (req, res) => {
+  app.post("/api/parse-menu-pdf", pdfUpload.single('menuPdf'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No PDF file uploaded" });
