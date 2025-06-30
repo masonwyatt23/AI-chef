@@ -140,7 +140,7 @@ export class SimpleMenuGenerator {
         messages: [
           { 
             role: "system", 
-            content: "You are an expert mixologist and beverage consultant. Create signature cocktails that perfectly complement the restaurant's theme, atmosphere, and clientele. Focus on short, appealing descriptions (3-5 words) while ensuring each cocktail reflects the establishment's unique identity." 
+            content: "You are an expert mixologist and beverage consultant. Create signature cocktails that perfectly complement the restaurant's theme, atmosphere, and clientele. Write compelling 1-2 sentence descriptions that capture the drink's essence, flavor profile, and connection to the restaurant's identity." 
           },
           { 
             role: "user", 
@@ -162,7 +162,7 @@ ${request.seasonality ? `Seasonal focus: ${request.seasonality}` : ''}
 
 Each cocktail should have:
 - A creative name that reflects the restaurant's identity
-- A 3-5 word description highlighting key flavors
+- A compelling 1-2 sentence description that captures the drink's unique flavors, inspiration, and connection to the restaurant
 - Ingredients that complement the restaurant's food style
 - Pricing that matches their market position
 
@@ -171,7 +171,7 @@ JSON format:
   "cocktails": [
     {
       "name": "Restaurant-Themed Name",
-      "description": "Brief appealing flavor",
+      "description": "A thoughtful sentence or two describing the cocktail's flavor profile, inspiration, and connection to the restaurant's identity and atmosphere.",
       "category": "signature",
       "ingredients": [{"ingredient": "specific spirit", "amount": "2 oz", "cost": 3}],
       "instructions": ["detailed preparation"],
@@ -429,12 +429,14 @@ Make each item distinctly different and specifically tailored to this restaurant
 
   private getFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
     const theme = context.theme || 'Classic';
-    const timestamp = Date.now().toString().slice(-3);
+    const uniqueId = this.generateUniqueId();
+    const location = context.location || 'locally';
+    const namePrefix = context.name?.split(' ')[0] || theme;
     
     return [
       {
-        name: `${theme} Bourbon`,
-        description: "Smooth bourbon blend",
+        name: `${namePrefix} ${theme} Bourbon Signature`,
+        description: `A sophisticated bourbon cocktail that captures the warmth and character of ${context.name || 'our establishment'}, featuring premium bourbon perfectly balanced with subtle sweetness and bright citrus notes that complement our ${theme.toLowerCase()} dining atmosphere.`,
         category: "signature",
         ingredients: [
           { ingredient: "Bourbon", amount: "2 oz", cost: 3 },
@@ -450,8 +452,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         preparationTime: 3
       },
       {
-        name: `${theme} Gin`,
-        description: "Crisp gin cocktail",
+        name: `${namePrefix} ${theme} Gin Garden`,
+        description: `A refreshing gin-based cocktail that embodies the crisp, botanical essence perfect for ${context.name || 'our restaurant'}, combining premium gin with effervescent tonic and fresh citrus to create a drink that pairs beautifully with our ${theme.toLowerCase()} cuisine.`,
         category: "signature", 
         ingredients: [
           { ingredient: "Gin", amount: "2 oz", cost: 2.5 },
@@ -467,8 +469,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         preparationTime: 2
       },
       {
-        name: `${theme} Vodka`,
-        description: "Clean vodka mix",
+        name: `${namePrefix} ${theme} Vodka Splash`,
+        description: `A vibrant vodka cocktail designed to reflect the clean, modern aesthetic of ${context.name || 'our establishment'}, blending premium vodka with fresh cranberry and lime to create a beautifully balanced drink that's both visually stunning and perfectly suited to our ${theme.toLowerCase()} atmosphere.`,
         category: "signature",
         ingredients: [
           { ingredient: "Vodka", amount: "2 oz", cost: 2 },
@@ -484,8 +486,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         preparationTime: 3
       },
       {
-        name: `${theme} Rum`,
-        description: "Tropical rum fizz",
+        name: `${namePrefix} ${theme} Rum Paradise`,
+        description: `An inviting rum cocktail that brings tropical warmth to ${context.name || 'our dining experience'}, featuring smooth white rum combined with sweet pineapple and sparkling soda to create a refreshing drink that perfectly complements our ${theme.toLowerCase()} hospitality and cuisine.`,
         category: "signature",
         ingredients: [
           { ingredient: "White rum", amount: "2 oz", cost: 2.2 },
