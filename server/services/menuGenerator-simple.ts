@@ -12,18 +12,8 @@ export interface DetailedIngredient {
   unit: string;
   cost: number;
   notes?: string;
-  quality?: string;
   batchAmount?: string;
   batchUnit?: string;
-  batchCost?: number;
-  supplier?: string;
-  storage?: string;
-  shelf_life?: string;
-  wholesalePrice?: number;
-  // Cocktail-specific properties
-  brand?: string;
-  abv?: number;
-  bottleCost?: number;
 }
 
 export interface GeneratedMenuItem {
@@ -179,8 +169,6 @@ Requirements:
 - Use spirits and ingredients that fit the restaurant's style
 - Consider local flavors from ${request.context.location || 'the region'}
 - Price appropriately for $${request.context.averageTicketPrice || '25'} average check
-- Include detailed ingredient specifications with exact measurements, costs, and bar notes
-- Provide brand recommendations and storage requirements for professional bar operations
 
 ${request.theme ? `Additional theme: ${request.theme}` : ''}
 ${request.baseSpirits?.length ? `Preferred spirits: ${request.baseSpirits.join(', ')}` : ''}
@@ -199,20 +187,7 @@ JSON format:
       "name": "Restaurant-Themed Name",
       "description": "A thoughtful sentence or two describing the cocktail's flavor profile, inspiration, and connection to the restaurant's identity and atmosphere.",
       "category": "signature",
-      "ingredients": [
-        {
-          "ingredient": "Premium Bourbon",
-          "amount": "2 oz",
-          "cost": 3.25,
-          "notes": "Use high-quality bourbon, chilled",
-          "brand": "Buffalo Trace or similar",
-          "abv": 45,
-          "batchAmount": "20 oz",
-          "batchCost": 32.50,
-          "storage": "Room temperature, dark place",
-          "supplier": "Local distributor"
-        }
-      ],
+      "ingredients": [{"ingredient": "specific spirit", "amount": "2 oz", "cost": 3}],
       "instructions": ["detailed preparation"],
       "garnish": "themed garnish",
       "glassware": "appropriate glass",
@@ -223,13 +198,6 @@ JSON format:
     }
   ]
 }
-
-COCKTAIL INGREDIENT SPECIFICATIONS:
-- Each ingredient must include exact measurements (oz, dashes, etc.)
-- Provide specific cost per cocktail and batch cost calculations
-- Include bar notes, brand recommendations, and ABV information
-- Add storage requirements and supplier details
-- Calculate batch amounts for volume production (10 cocktails)
 
 Make each cocktail unique and specifically tailored to this restaurant's character and brand.` 
           }
@@ -287,8 +255,6 @@ Requirements:
 - Work within their kitchen capabilities: ${request.context.kitchenCapability}
 - Staff skill level: ${request.context.staffSkillLevel || 'experienced'}
 - Average ticket price range: $${request.context.averageTicketPrice || '25'}
-- Include detailed ingredient specifications with exact measurements, costs, and preparation notes
-- Provide batch production calculations for volume service${request.batchProduction ? ` (batch size: ${request.batchSize || 10} servings)` : ''}
 
 ${request.specificRequests ? `Special requests: ${request.specificRequests}` : ''}
 ${request.dietaryRestrictions?.length ? `Dietary considerations: ${request.dietaryRestrictions.join(', ')}` : ''}
@@ -301,35 +267,7 @@ JSON format:
       "name": "Creative Restaurant-Themed Name",
       "description": "Compelling description highlighting unique aspects",
       "category": "entrees",
-      "ingredients": [
-        {
-          "ingredient": "Prime Ribeye Steak",
-          "amount": "8 oz",
-          "unit": "oz",
-          "cost": 14.50,
-          "notes": "Dry-aged 21 days, room temperature before cooking",
-          "quality": "Prime grade",
-          "batchAmount": "5 lbs",
-          "batchCost": 116.00,
-          "supplier": "Local butcher",
-          "storage": "Refrigerated 32-35°F",
-          "shelf_life": "3-5 days",
-          "wholesalePrice": 13.25
-        },
-        {
-          "ingredient": "Yukon Gold Potatoes",
-          "amount": "6 oz",
-          "unit": "oz", 
-          "cost": 0.75,
-          "notes": "Hand-selected, uniform size",
-          "quality": "A-grade",
-          "batchAmount": "10 lbs",
-          "batchCost": 20.00,
-          "supplier": "Local farm",
-          "storage": "Cool, dark, dry place",
-          "shelf_life": "2-3 weeks"
-        }
-      ],
+      "ingredients": ["specific ingredient1", "local ingredient2"],
       "preparationTime": 25,
       "difficulty": "medium",
       "estimatedCost": 12,
@@ -340,9 +278,7 @@ JSON format:
         "prepInstructions": ["detailed step1"],
         "cookingInstructions": ["specific technique step1"],
         "platingInstructions": ["presentation step1"],
-        "techniques": ["relevant technique1"],
-        "batchInstructions": ["batch prep step1", "volume production step2"],
-        "batchServes": 10
+        "techniques": ["relevant technique1"]
       },
       "allergens": ["specific allergen1"],
       "nutritionalHighlights": ["relevant highlight1"],
@@ -352,14 +288,7 @@ JSON format:
   ]
 }
 
-IMPORTANT INGREDIENT SPECIFICATIONS:
-- Each ingredient must include exact measurements (amount + unit)
-- Provide specific cost per serving and batch cost calculations
-- Include preparation notes, quality specifications, and storage requirements
-- Add supplier information and shelf life details
-- Calculate batch amounts for volume production (${request.batchSize || 10} servings)
-
-Make each item distinctly different and specifically tailored to this restaurant's unique profile and capabilities. Focus on creating professional-grade ingredient specifications that a chef can immediately implement in their kitchen.` 
+Make each item distinctly different and specifically tailored to this restaurant's unique profile and capabilities.` 
           }
         ],
         response_format: { type: "json_object" },

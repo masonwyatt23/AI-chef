@@ -1671,138 +1671,36 @@ Ribeye Steak - 12oz premium cut $32
                               </div>
                             </div>
 
-                            {/* Professional Ingredients Specification */}
+                            {/* Ingredients */}
                             <div>
-                              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                <span className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-3 py-1 rounded-full text-sm">
-                                  Professional Ingredients ({item.recipe?.serves || 1} serving{(item.recipe?.serves || 1) > 1 ? 's' : ''})
-                                </span>
-                              </h3>
-                              <div className="space-y-3">
+                              <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
+                              <div className="grid grid-cols-1 gap-3">
                                 {(item.ingredients || []).map((ingredient: any, i: number) => (
-                                  <div key={i} className="border border-slate-200 rounded-lg p-4 bg-white shadow-sm">
-                                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                                      {/* Ingredient Name & Description */}
-                                      <div className="lg:col-span-2">
-                                        <div className="font-semibold text-slate-900 text-base mb-1">
-                                          {typeof ingredient === 'string' ? ingredient : ingredient.ingredient}
-                                        </div>
-                                        {typeof ingredient === 'object' && ingredient.notes && (
-                                          <div className="text-sm text-slate-600 bg-blue-50 p-2 rounded border-l-3 border-blue-300">
-                                            <span className="font-medium text-blue-700">Prep Notes:</span> {ingredient.notes}
-                                          </div>
-                                        )}
-                                        {typeof ingredient === 'object' && ingredient.quality && (
-                                          <div className="text-xs text-green-700 mt-1 font-medium">
-                                            Quality: {ingredient.quality}
-                                          </div>
-                                        )}
+                                  <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded border">
+                                    <div className="flex-1">
+                                      <div className="font-medium text-slate-900">
+                                        {typeof ingredient === 'string' ? ingredient : ingredient.ingredient}
                                       </div>
-
-                                      {/* Quantity & Measurements */}
-                                      <div className="text-center">
-                                        {typeof ingredient === 'object' ? (
-                                          <div className="space-y-2">
-                                            <div className="bg-blue-100 px-3 py-2 rounded-lg">
-                                              <div className="font-bold text-lg text-blue-800">
-                                                {ingredient.amount} {ingredient.unit}
-                                              </div>
-                                              <div className="text-xs text-blue-600 font-medium">Per Serving</div>
-                                            </div>
-                                            {ingredient.batchAmount && (
-                                              <div className="bg-purple-100 px-3 py-2 rounded-lg border border-purple-200">
-                                                <div className="font-bold text-sm text-purple-800">
-                                                  {ingredient.batchAmount} {ingredient.batchUnit || ingredient.unit}
-                                                </div>
-                                                <div className="text-xs text-purple-600 font-medium">Batch Size</div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <div className="text-sm text-slate-500 italic">Standard portion</div>
-                                        )}
-                                      </div>
-
-                                      {/* Cost Analysis */}
-                                      <div className="text-center">
-                                        {typeof ingredient === 'object' && ingredient.cost ? (
-                                          <div className="space-y-2">
-                                            <div className="bg-green-100 px-3 py-2 rounded-lg">
-                                              <div className="font-bold text-lg text-green-800">
-                                                {formatCurrency(ingredient.cost)}
-                                              </div>
-                                              <div className="text-xs text-green-600 font-medium">Per Serving</div>
-                                            </div>
-                                            {ingredient.batchCost && (
-                                              <div className="bg-yellow-100 px-3 py-2 rounded-lg border border-yellow-200">
-                                                <div className="font-bold text-sm text-yellow-800">
-                                                  {formatCurrency(ingredient.batchCost)}
-                                                </div>
-                                                <div className="text-xs text-yellow-600 font-medium">Batch Cost</div>
-                                              </div>
-                                            )}
-                                            {ingredient.wholesalePrice && (
-                                              <div className="text-xs text-slate-600">
-                                                Wholesale: {formatCurrency(ingredient.wholesalePrice)}
-                                              </div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <div className="text-sm text-slate-500 italic">Cost TBD</div>
-                                        )}
-                                      </div>
+                                      {typeof ingredient === 'object' && ingredient.notes && (
+                                        <div className="text-xs text-slate-500 mt-1">{ingredient.notes}</div>
+                                      )}
                                     </div>
-
-                                    {/* Additional Details */}
-                                    {typeof ingredient === 'object' && (ingredient.supplier || ingredient.storage || ingredient.shelf_life) && (
-                                      <div className="mt-3 pt-3 border-t border-slate-100">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                                          {ingredient.supplier && (
-                                            <div>
-                                              <span className="font-semibold text-slate-600">Supplier:</span>
-                                              <span className="text-slate-500 ml-1">{ingredient.supplier}</span>
-                                            </div>
-                                          )}
-                                          {ingredient.storage && (
-                                            <div>
-                                              <span className="font-semibold text-slate-600">Storage:</span>
-                                              <span className="text-slate-500 ml-1">{ingredient.storage}</span>
-                                            </div>
-                                          )}
-                                          {ingredient.shelf_life && (
-                                            <div>
-                                              <span className="font-semibold text-slate-600">Shelf Life:</span>
-                                              <span className="text-slate-500 ml-1">{ingredient.shelf_life}</span>
-                                            </div>
-                                          )}
+                                    {typeof ingredient === 'object' && (
+                                      <div className="text-right text-sm">
+                                        <div className="font-semibold text-blue-600">
+                                          {ingredient.amount} {ingredient.unit}
                                         </div>
+                                        <div className="text-slate-500">{formatCurrency(ingredient.cost)}</div>
+                                        {ingredient.batchAmount && (
+                                          <div className="text-xs text-purple-600 mt-1">
+                                            Batch: {ingredient.batchAmount} {ingredient.batchUnit}
+                                          </div>
+                                        )}
                                       </div>
                                     )}
                                   </div>
                                 ))}
                               </div>
-
-                              {/* Cost Summary */}
-                              {item.ingredients && item.ingredients.some((ing: any) => typeof ing === 'object' && ing.cost) && (
-                                <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-                                  <div className="flex justify-between items-center">
-                                    <div>
-                                      <h4 className="font-semibold text-green-800">Total Ingredient Cost</h4>
-                                      <p className="text-xs text-green-600">Per serving cost breakdown</p>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-2xl font-bold text-green-800">
-                                        {formatCurrency(
-                                          item.ingredients
-                                            .filter((ing: any) => typeof ing === 'object' && ing.cost)
-                                            .reduce((sum: number, ing: any) => sum + (ing.cost || 0), 0)
-                                        )}
-                                      </div>
-                                      <div className="text-xs text-green-600">Food Cost per Serving</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
                             </div>
 
                             {/* Recipe Instructions */}
@@ -2324,144 +2222,20 @@ Cabernet - Napa Valley $12/42
                               </div>
                             </div>
 
-                            {/* Professional Cocktail Ingredients */}
+                            {/* Ingredients */}
                             <div>
-                              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-sm">
-                                  Professional Cocktail Ingredients (1 serving)
-                                </span>
-                              </h3>
-                              <div className="space-y-3">
-                                {(cocktail.ingredients || []).map((ingredient: any, i: number) => (
-                                  <div key={i} className="border border-slate-200 rounded-lg p-4 bg-white shadow-sm">
-                                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                                      {/* Ingredient Name & Description */}
-                                      <div className="lg:col-span-2">
-                                        <div className="font-semibold text-slate-900 text-base mb-1">
-                                          {typeof ingredient === 'string' ? ingredient : ingredient.ingredient}
-                                        </div>
-                                        {typeof ingredient === 'object' && ingredient.notes && (
-                                          <div className="text-sm text-slate-600 bg-purple-50 p-2 rounded border-l-3 border-purple-300">
-                                            <span className="font-medium text-purple-700">Bar Notes:</span> {ingredient.notes}
-                                          </div>
-                                        )}
-                                        {typeof ingredient === 'object' && ingredient.brand && (
-                                          <div className="text-xs text-purple-700 mt-1 font-medium">
-                                            Recommended Brand: {ingredient.brand}
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {/* Measurements */}
-                                      <div className="text-center">
-                                        {typeof ingredient === 'object' ? (
-                                          <div className="space-y-2">
-                                            <div className="bg-purple-100 px-3 py-2 rounded-lg">
-                                              <div className="font-bold text-lg text-purple-800">
-                                                {ingredient.amount}
-                                              </div>
-                                              <div className="text-xs text-purple-600 font-medium">Per Cocktail</div>
-                                            </div>
-                                            {ingredient.batchAmount && (
-                                              <div className="bg-indigo-100 px-3 py-2 rounded-lg border border-indigo-200">
-                                                <div className="font-bold text-sm text-indigo-800">
-                                                  {ingredient.batchAmount}
-                                                </div>
-                                                <div className="text-xs text-indigo-600 font-medium">Batch (10 drinks)</div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <div className="text-sm text-slate-500 italic">Standard measure</div>
-                                        )}
-                                      </div>
-
-                                      {/* Cost Analysis */}
-                                      <div className="text-center">
-                                        {typeof ingredient === 'object' && ingredient.cost ? (
-                                          <div className="space-y-2">
-                                            <div className="bg-green-100 px-3 py-2 rounded-lg">
-                                              <div className="font-bold text-lg text-green-800">
-                                                {formatCurrency(ingredient.cost)}
-                                              </div>
-                                              <div className="text-xs text-green-600 font-medium">Per Cocktail</div>
-                                            </div>
-                                            {ingredient.batchCost && (
-                                              <div className="bg-orange-100 px-3 py-2 rounded-lg border border-orange-200">
-                                                <div className="font-bold text-sm text-orange-800">
-                                                  {formatCurrency(ingredient.batchCost)}
-                                                </div>
-                                                <div className="text-xs text-orange-600 font-medium">Batch Cost</div>
-                                              </div>
-                                            )}
-                                            {ingredient.bottleCost && (
-                                              <div className="text-xs text-slate-600">
-                                                Bottle: {formatCurrency(ingredient.bottleCost)}
-                                              </div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <div className="text-sm text-slate-500 italic">Cost TBD</div>
-                                        )}
-                                      </div>
+                              <h3 className="font-semibold text-lg mb-3">Ingredients</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {(cocktail.ingredients || []).map((ingredient, i) => (
+                                  <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded">
+                                    <span className="font-medium">{ingredient.ingredient}</span>
+                                    <div className="text-right text-sm">
+                                      <div>{ingredient.amount}</div>
+                                      <div className="text-slate-500">{formatCurrency(ingredient.cost)}</div>
                                     </div>
-
-                                    {/* Additional Bar Details */}
-                                    {typeof ingredient === 'object' && (ingredient.supplier || ingredient.storage || ingredient.shelf_life || ingredient.abv) && (
-                                      <div className="mt-3 pt-3 border-t border-slate-100">
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                                          {ingredient.abv && (
-                                            <div>
-                                              <span className="font-semibold text-slate-600">ABV:</span>
-                                              <span className="text-slate-500 ml-1">{ingredient.abv}%</span>
-                                            </div>
-                                          )}
-                                          {ingredient.supplier && (
-                                            <div>
-                                              <span className="font-semibold text-slate-600">Supplier:</span>
-                                              <span className="text-slate-500 ml-1">{ingredient.supplier}</span>
-                                            </div>
-                                          )}
-                                          {ingredient.storage && (
-                                            <div>
-                                              <span className="font-semibold text-slate-600">Storage:</span>
-                                              <span className="text-slate-500 ml-1">{ingredient.storage}</span>
-                                            </div>
-                                          )}
-                                          {ingredient.shelf_life && (
-                                            <div>
-                                              <span className="font-semibold text-slate-600">Shelf Life:</span>
-                                              <span className="text-slate-500 ml-1">{ingredient.shelf_life}</span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
                                   </div>
                                 ))}
                               </div>
-
-                              {/* Cocktail Cost Summary */}
-                              {cocktail.ingredients && cocktail.ingredients.some((ing: any) => typeof ing === 'object' && ing.cost) && (
-                                <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                                  <div className="flex justify-between items-center">
-                                    <div>
-                                      <h4 className="font-semibold text-purple-800">Total Ingredient Cost</h4>
-                                      <p className="text-xs text-purple-600">Per cocktail cost breakdown</p>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-2xl font-bold text-purple-800">
-                                        {formatCurrency(
-                                          cocktail.ingredients
-                                            .filter((ing: any) => typeof ing === 'object' && ing.cost)
-                                            .reduce((sum: number, ing: any) => sum + (ing.cost || 0), 0)
-                                        )}
-                                      </div>
-                                      <div className="text-xs text-purple-600">Ingredient Cost per Cocktail</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
                             </div>
 
                             {/* Instructions */}
