@@ -4,6 +4,7 @@ import { ComprehensiveRestaurantContext } from "@/components/ComprehensiveRestau
 import { ChatInterface } from "@/components/ChatInterface";
 import { RecommendationsList } from "@/components/RecommendationsList";
 import { MenuCocktailGenerator } from "@/components/MenuCocktailGenerator";
+import { ProfilePictureUpload } from "@/components/ProfilePictureUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +21,7 @@ interface ChefAssistantProps {
 
 export default function ChefAssistant({ restaurantId }: ChefAssistantProps) {
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const { data: restaurant } = useQuery<Restaurant>({
     queryKey: [`/api/restaurants/${restaurantId}`],
@@ -205,13 +206,11 @@ export default function ChefAssistant({ restaurantId }: ChefAssistantProps) {
               Logout
             </Button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center overflow-hidden border border-slate-200">
-                <img 
-                  src={depotLogoPath} 
-                  alt="Depot Logo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <ProfilePictureUpload 
+                currentPicture={user?.profilePicture}
+                userName={user?.username || "User"}
+                className="scale-75"
+              />
               <span className="text-sm font-medium text-slate-700">{restaurant.name}</span>
             </div>
           </div>
