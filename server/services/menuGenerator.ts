@@ -621,30 +621,32 @@ Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, n
     const uniqueId = Math.floor(Math.random() * 100000);
     const currentMenuText = request.currentMenu?.map(item => `${item.name} (${item.category})`).join(', ') || 'No current menu provided';
     
-    // Creative yet concise cocktail generation
-    const enhancedUserPrompt = `Create 4 signature cocktails for ${request.context.name}, a ${request.context.theme} restaurant.
+    // Short, punchy cocktail generation
+    const enhancedUserPrompt = `Create 4 cocktails for ${request.context.name}.
 
-Requirements:
-- Use different base spirits: bourbon, gin, vodka, rum
-- Creative names that reflect ${request.context.theme} theme  
-- Descriptions: 8-12 words, appetizing and memorable
-- Include unique flavor combinations
+STRICT RULES:
+- Bourbon, gin, vodka, rum (one each)
+- Names: 2-3 words max
+- Descriptions: 3-5 words ONLY
+- Use simple flavor words
 
-JSON format:
+Example description: "Sweet bourbon fizz"
+
+JSON:
 {
   "cocktails": [
     {
-      "name": "Creative Name",
-      "description": "Enticing 8-12 word description with flavor notes",
-      "category": "signature",
-      "ingredients": [{"ingredient": "base spirit", "amount": "2 oz", "cost": 3}],
-      "instructions": ["brief step"],
-      "garnish": "garnish",
-      "glassware": "glassware",
-      "estimatedCost": 4.5,
-      "suggestedPrice": 15,
+      "name": "Short Name",
+      "description": "Brief flavor combo",
+      "category": "signature", 
+      "ingredients": [{"ingredient": "spirit", "amount": "2 oz", "cost": 3}],
+      "instructions": ["shake and serve"],
+      "garnish": "citrus",
+      "glassware": "rocks",
+      "estimatedCost": 4,
+      "suggestedPrice": 14,
       "profitMargin": 70,
-      "preparationTime": 4
+      "preparationTime": 3
     }
   ]
 }`;
@@ -653,14 +655,14 @@ JSON format:
       const response = await openai.chat.completions.create({
         model: "grok-2-1212",
         messages: [
-          { role: "system", content: "You are a creative mixologist. Create appetizing cocktail descriptions that make people want to order them. Use colorful flavor words. Always respond with valid JSON only." },
+          { role: "system", content: "Create very short cocktail descriptions. Use 3-5 words only. Examples: 'Sweet bourbon fizz', 'Crisp gin blend', 'Smooth vodka mix'. Always respond with valid JSON only." },
           { role: "user", content: enhancedUserPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.7, // Higher for creativity
-        max_tokens: 1200, // Slightly more for creative descriptions
-        frequency_penalty: 0.4,
-        presence_penalty: 0.5
+        temperature: 0.4, // Lower for more controlled output
+        max_tokens: 600, // Very small to force brevity
+        frequency_penalty: 0.6,
+        presence_penalty: 0.6
       });
 
       const content = response.choices[0].message.content || '{"cocktails": []}';
@@ -943,11 +945,11 @@ JSON format:
         const cleanCocktail = {
           name: this.cleanField(cocktail.name) || "Creative House Cocktail",
           description: (() => {
-            let desc = this.cleanField(cocktail.description) || "A unique craft cocktail with premium spirits and fresh ingredients";
-            // Truncate description to max 20 words for better creativity
+            let desc = this.cleanField(cocktail.description) || "Premium craft cocktail";
+            // Truncate description to max 5 words for brevity
             const words = desc.split(' ');
-            if (words.length > 20) {
-              desc = words.slice(0, 20).join(' ') + '...';
+            if (words.length > 5) {
+              desc = words.slice(0, 5).join(' ');
             }
             return desc;
           })(),
@@ -1077,7 +1079,7 @@ JSON format:
       
       return {
         name: `${baseName} #${uniqueId.toString().slice(-3)}`,
-        description: `Smooth ${spirit.toLowerCase()} meets ${modifier.toLowerCase()} with a ${context.theme?.toLowerCase() || 'signature'} twist.`,
+        description: `${spirit.split(' ')[0]} with ${modifier.split(' ')[0].toLowerCase()}`,
         category: "signature" as const,
         ingredients: [
           { ingredient: spirit, amount: "2 oz", cost: 2.50 + (index * 0.30) },
@@ -1144,7 +1146,7 @@ JSON format:
       
       return {
         name: uniqueName,
-        description: `Bold ${template.spirit.toLowerCase()} enhanced with ${template.modifier.toLowerCase()} and ${context.theme?.toLowerCase() || 'signature'} flair.`,
+        description: `${template.spirit.split(' ')[0]} with ${template.modifier.split(' ')[0].toLowerCase()}`,
         category: "signature" as const,
         ingredients: [
           { ingredient: template.spirit, amount: "2 oz", cost: 2.80 + (index * 0.30) + (dynamicId % 50 / 100) },
