@@ -515,10 +515,39 @@ export class MenuGeneratorService {
         console.log(`After filtering: ${result.items.length} valid items remaining`);
       }
       
-      // Ensure we have exactly 4 items
-      if (!result.items || !Array.isArray(result.items) || result.items.length !== 4) {
-        console.log(`AI returned ${result.items?.length || 0} valid items instead of 4, using fallback`);
-        result = this.getFallbackMenuItems();
+      // Ensure we have 3-4 items (more flexible)
+      if (!result.items || !Array.isArray(result.items) || result.items.length < 3) {
+        console.log(`AI returned ${result.items?.length || 0} valid items (need at least 3), attempting regeneration with different parameters`);
+        
+        // Try once more with modified parameters for better generation
+        const retryResponse = await openai.chat.completions.create({
+          model: "grok-2-1212",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt + ". CRITICAL: Generate exactly 4 unique, creative menu items. Ensure each item has a completely different name, concept, and preparation method. Focus on maximum creativity and uniqueness." }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.95, // Higher temperature for more creativity
+          top_p: 0.98,
+          frequency_penalty: 0.6, // Higher penalty to avoid repetition
+          presence_penalty: 0.4,
+          max_tokens: 8000,
+        });
+
+        const retryContent = retryResponse.choices[0].message.content || '{"items": []}';
+        try {
+          const retryResult = JSON.parse(retryContent);
+          if (retryResult.items && Array.isArray(retryResult.items) && retryResult.items.length >= 3) {
+            console.log(`Retry successful: Generated ${retryResult.items.length} items`);
+            result = retryResult;
+          } else {
+            console.log('Retry also failed, using fallback');
+            result = this.getFallbackMenuItems();
+          }
+        } catch (retryError) {
+          console.log('Retry parsing failed, using fallback');
+          result = this.getFallbackMenuItems();
+        }
       }
       
       // Debug logging to see the actual AI response structure
@@ -1104,11 +1133,15 @@ CREATIVITY REQUIREMENTS:
   }
 
   private buildMenuUserPrompt(request: MenuGenerationRequest): string {
-    let prompt = "";
+    // Add timestamp and randomness for unique generation each time
+    const timestamp = Date.now();
+    const randomSeed = Math.floor(Math.random() * 10000);
+    
+    let prompt = `GENERATION ID: ${timestamp}-${randomSeed} | MANDATE: Create completely original, never-before-seen menu items that would revolutionize modern dining.`;
     
     // Category-specific generation with expert guidance
     if (request.focusCategory) {
-      prompt = `Create 3-4 exceptional ${request.focusCategory.toLowerCase()} items that will elevate this category and drive customer excitement`;
+      prompt += ` Focus on creating 4 groundbreaking ${request.focusCategory.toLowerCase()} items that will redefine this category and become signature dishes that customers travel to experience`;
       
       // Add category-specific guidance
       const categoryGuidance = this.getCategorySpecificGuidance(request.focusCategory);
@@ -1116,7 +1149,7 @@ CREATIVITY REQUIREMENTS:
         prompt += `. ${categoryGuidance}`;
       }
     } else {
-      prompt = `Create 3-4 innovative menu items across different categories that showcase culinary excellence`;
+      prompt += ` Create 4 revolutionary menu items across different categories that showcase molecular gastronomy, cultural fusion, and artistic presentation - dishes that would be featured in culinary magazines`;
     }
     
     // Existing menu analysis for strategic positioning
@@ -1154,19 +1187,38 @@ CREATIVITY REQUIREMENTS:
       prompt += `. Highlight ${request.seasonalFocus} seasonal ingredients with innovative flavor combinations that create memorable dining experiences`;
     }
     
+    // Add creativity boosters and uniqueness mandates
+    const creativityBoosters = [
+      "Incorporate unexpected texture contrasts and temperature variations that surprise diners",
+      "Use molecular gastronomy techniques to transform familiar flavors into artistic presentations", 
+      "Create dishes with interactive or theatrical presentation elements that engage all senses",
+      "Design items worthy of culinary competition shows and food magazine features",
+      "Think elevated street food meets fine dining sophistication and creativity",
+      "Combine ancient culinary techniques with cutting-edge ingredient innovations",
+      "Create dishes that tell the restaurant's unique cultural story through innovative fusion",
+      "Design Instagram-worthy presentations with sculptural plating and artistic garnishes",
+      "Use fermentation, smoking, or aging techniques to develop complex umami flavors",
+      "Incorporate locally foraged or artisanal ingredients in unexpected applications"
+    ];
+    
+    const selectedBooster = creativityBoosters[randomSeed % creativityBoosters.length];
+    
     prompt += `. Each item should demonstrate culinary mastery, tell a story, and position this restaurant as a destination for exceptional food.
 
-CRITICAL CREATIVITY REQUIREMENTS:
-- Generate completely original dishes with unique names that have never been seen before
-- Use unexpected ingredient combinations that surprise and delight
-- Avoid any standard restaurant items (burgers, steaks, pasta unless reimagined dramatically)
+CREATIVITY MANDATE FOR THIS GENERATION: ${selectedBooster}
+
+CRITICAL ORIGINALITY REQUIREMENTS:
+- Generate completely original dishes with unique names that have NEVER been created before
+- Use unexpected ingredient combinations that surprise and delight sophisticated palates
+- Avoid any standard restaurant items (burgers, steaks, pasta unless completely reimagined)
 - Incorporate innovative cooking techniques, unusual presentations, or artistic elements
-- Create dishes that would go viral on social media due to their uniqueness
-- Draw inspiration from global cuisines, molecular gastronomy, or artistic plating
-- Make each dish a conversation starter and Instagram moment
-- Think beyond traditional boundaries - be experimental and revolutionary
-- Design dishes that would be featured in culinary magazines and food competitions
-- Create signature items that establish the restaurant's reputation in the culinary community`;
+- Create dishes that would go viral on social media due to their stunning uniqueness
+- Draw inspiration from global cuisines, molecular gastronomy, or architectural plating
+- Make each dish a conversation starter and unforgettable Instagram moment
+- Think beyond traditional boundaries - be experimental and revolutionary in approach
+- Design dishes that would be featured in Michelin guide publications and food competitions
+- Create signature items that establish the restaurant's reputation as a culinary innovator
+- ENSURE each item is completely different from any previous generation - no similarities in concept, name, or technique`;
     
     return prompt;
   }
@@ -1209,33 +1261,51 @@ CRITICAL CREATIVITY REQUIREMENTS:
   }
 
   private buildCocktailUserPrompt(request: CocktailGenerationRequest): string {
-    let prompt = `Create exactly 3 unique, complete cocktails with ALL required fields`;
+    // Add timestamp and randomness for unique generation each time
+    const timestamp = Date.now();
+    const randomSeed = Math.floor(Math.random() * 10000);
+    
+    let prompt = `GENERATION ID: ${timestamp}-${randomSeed} | Create exactly 4 revolutionary cocktails that have never existed before with ALL required fields`;
     
     if (request.theme) {
-      prompt += ` with ${request.theme} theme`;
+      prompt += ` with innovative ${request.theme} theme interpretation`;
     }
     
     if (request.baseSpirits?.length) {
-      prompt += ` featuring: ${request.baseSpirits.join(', ')}`;
+      prompt += ` featuring creative applications of: ${request.baseSpirits.join(', ')}`;
     }
     
     if (request.complexity) {
-      prompt += `. Keep complexity ${request.complexity}`;
+      prompt += `. Keep complexity ${request.complexity} while maximizing innovation`;
     }
     
     if (request.batchable) {
-      prompt += `. Include batch preparation methods`;
+      prompt += `. Include artisanal batch preparation methods for consistent quality`;
     }
     
     if (request.seasonality) {
-      prompt += `. Focus on ${request.seasonality} seasonal flavors`;
+      prompt += `. Showcase ${request.seasonality} seasonal ingredients in unexpected applications`;
     }
     
     if (request.existingCocktails?.length) {
-      prompt += `. Avoid similarity to: ${request.existingCocktails.join(', ')}`;
+      prompt += `. Create completely different concepts from: ${request.existingCocktails.join(', ')}`;
     }
     
-    prompt += `. Make cocktails creative, unique, Instagram-worthy. Use innovative techniques and surprising ingredients. Provide complete JSON only - no partial data.`;
+    // Add creativity boosters for cocktails
+    const cocktailCreativityBoosters = [
+      "Incorporate molecular mixology techniques like spherification, clarification, or foam",
+      "Use unexpected savory ingredients and umami flavors in cocktail applications",
+      "Create temperature-contrast cocktails with hot and cold elements",
+      "Design interactive cocktails with tableside preparation or changing colors",
+      "Use fat-washing, barrel-aging, or fermentation for complex flavor development",
+      "Incorporate smoking, charring, or aromatic garnish techniques",
+      "Create layered cocktails with visual drama and Instagram appeal",
+      "Use unusual glassware and artistic garnish presentations"
+    ];
+    
+    const selectedCocktailBooster = cocktailCreativityBoosters[randomSeed % cocktailCreativityBoosters.length];
+    
+    prompt += `. CREATIVITY MANDATE: ${selectedCocktailBooster}. Make cocktails revolutionary, Instagram-worthy, and conversation-starting. Use innovative techniques, house-made elements, and surprising ingredient combinations. Each cocktail must be completely original and never created before. Provide complete JSON only - no partial data.`;
     
     return prompt;
   }
