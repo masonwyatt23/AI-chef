@@ -970,58 +970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Pass complete restaurant profile for AI context
-      const context = {
-        name: restaurant.name,
-        theme: restaurant.theme,
-        categories: restaurant.categories,
-        kitchenCapability: restaurant.kitchenCapability,
-        staffSize: restaurant.staffSize,
-        additionalContext: restaurant.additionalContext || undefined,
-        
-        // Business Context
-        establishmentType: restaurant.establishmentType,
-        serviceStyle: restaurant.serviceStyle,
-        targetDemographic: restaurant.targetDemographic,
-        averageTicketPrice: restaurant.averageTicketPrice,
-        diningCapacity: restaurant.diningCapacity,
-        operatingHours: restaurant.operatingHours,
-        
-        // Location & Market
-        location: restaurant.location,
-        marketType: restaurant.marketType,
-        localIngredients: restaurant.localIngredients,
-        culturalInfluences: restaurant.culturalInfluences,
-        
-        // Kitchen & Operations
-        kitchenSize: restaurant.kitchenSize,
-        kitchenEquipment: restaurant.kitchenEquipment,
-        prepSpace: restaurant.prepSpace,
-        storageCapacity: restaurant.storageCapacity,
-        deliveryCapability: restaurant.deliveryCapability,
-        
-        // Staff & Skills
-        chefExperience: restaurant.chefExperience,
-        staffSkillLevel: restaurant.staffSkillLevel,
-        specializedRoles: restaurant.specializedRoles,
-        laborBudget: restaurant.laborBudget,
-        
-        // Menu & Business Goals
-        currentMenuSize: restaurant.currentMenuSize,
-        menuChangeFrequency: restaurant.menuChangeFrequency,
-        profitMarginGoals: restaurant.profitMarginGoals,
-        foodCostGoals: restaurant.foodCostGoals,
-        specialDietaryNeeds: restaurant.specialDietaryNeeds,
-        
-        // Competition & Positioning
-        primaryCompetitors: restaurant.primaryCompetitors,
-        uniqueSellingPoints: restaurant.uniqueSellingPoints,
-        pricePosition: restaurant.pricePosition,
-        
-        // Challenges & Priorities
-        currentChallenges: restaurant.currentChallenges,
-        businessPriorities: restaurant.businessPriorities,
-        seasonalConsiderations: restaurant.seasonalConsiderations
-      };
+      const context = buildRestaurantContext(restaurant);
 
       const cocktails = await menuGenerator.generateCocktails({
         context,
@@ -1049,14 +998,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Restaurant not found" });
       }
 
-      const context = {
-        name: restaurant.name,
-        theme: restaurant.theme,
-        categories: restaurant.categories,
-        kitchenCapability: restaurant.kitchenCapability,
-        staffSize: restaurant.staffSize,
-        additionalContext: restaurant.additionalContext || undefined
-      };
+      const context = buildRestaurantContext(restaurant);
 
       const pairings = await menuGenerator.generatePairedMenuCocktails(menuItems, context);
 
