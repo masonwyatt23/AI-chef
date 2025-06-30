@@ -525,48 +525,193 @@ export class MenuGeneratorService {
         max_tokens: 8000, // Increased for comprehensive creative outputs
       });
 
-      const rawContent = response.choices[0].message.content || '{"cocktails": []}';
-      console.log('Raw AI Response Length:', rawContent.length);
-      console.log('Raw AI Response (first 500 chars):', rawContent.substring(0, 500));
-      console.log('Raw AI Response (last 200 chars):', rawContent.substring(Math.max(0, rawContent.length - 200)));
+      const content = response.choices[0].message.content || '{"cocktails": []}';
+      console.log('Raw Cocktail AI Response Length:', content.length);
+      console.log('Raw Cocktail AI Response Preview:', content.substring(0, 500));
       
       let result;
       try {
-        result = JSON.parse(rawContent);
+        result = JSON.parse(content);
       } catch (jsonError) {
-        console.error('JSON Parse Error:', jsonError);
-        console.log('Attempting to fix malformed JSON...');
+        console.log('Initial JSON parse failed, attempting to fix malformed cocktail JSON...');
+        console.log('Raw cocktail content length:', content.length);
+        console.log('Cocktail content preview:', content.substring(0, 500));
         
-        // Try to fix common JSON issues
-        let fixedContent = rawContent;
+        // Comprehensive JSON cleanup and repair (same as menu system)
+        let fixedContent = content
+          .replace(/```json\s*/g, '')  // Remove markdown code blocks
+          .replace(/```\s*$/g, '')     // Remove closing code blocks
+          .replace(/\*\*/g, '')        // Remove bold markdown
+          .replace(/\*/g, '')          // Remove asterisks
+          .replace(/\n\s*\n/g, '\n')   // Remove excessive newlines
+          .replace(/\$/g, '"')         // Fix character corruption: $ -> "
+          .replace(/\u0024/g, '"')     // Fix Unicode corruption
+          .replace(/\\u0024/g, '"')    // Fix escaped Unicode corruption
+          .replace(/\u201C/g, '"')     // Fix smart quote corruption
+          .replace(/\u201D/g, '"')     // Fix smart quote corruption
+          .replace(/\u2018/g, "'")     // Fix smart apostrophe
+          .replace(/\u2019/g, "'")     // Fix smart apostrophe
+          .trim();
         
-        // If the JSON is cut off, try to close it properly
-        if (!fixedContent.trim().endsWith('}')) {
-          // Count open braces and brackets to try to close properly
-          const openBraces = (fixedContent.match(/{/g) || []).length;
-          const closeBraces = (fixedContent.match(/}/g) || []).length;
-          const openBrackets = (fixedContent.match(/\[/g) || []).length;
-          const closeBrackets = (fixedContent.match(/]/g) || []).length;
+        // More aggressive JSON repair
+        console.log('Attempting comprehensive cocktail JSON repair...');
+        
+        // Find the start of the JSON structure
+        const startIndex = fixedContent.indexOf('{');
+        if (startIndex > 0) {
+          fixedContent = fixedContent.substring(startIndex);
+        }
+        
+        // Try to find the end of a complete JSON structure
+        let bracketCount = 0;
+        let inString = false;
+        let escape = false;
+        let validEndIndex = -1;
+        
+        for (let i = 0; i < fixedContent.length; i++) {
+          const char = fixedContent[i];
           
-          const missingCloseBrackets = openBrackets - closeBrackets;
-          const missingCloseBraces = openBraces - closeBraces;
-          
-          console.log(`Missing brackets: ${missingCloseBrackets}, Missing braces: ${missingCloseBraces}`);
-          
-          for (let i = 0; i < missingCloseBrackets; i++) {
-            fixedContent += ']';
+          if (escape) {
+            escape = false;
+            continue;
           }
-          for (let i = 0; i < missingCloseBraces; i++) {
-            fixedContent += '}';
+          
+          if (char === '\\') {
+            escape = true;
+            continue;
+          }
+          
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          
+          if (!inString) {
+            if (char === '{') {
+              bracketCount++;
+            } else if (char === '}') {
+              bracketCount--;
+              if (bracketCount === 0) {
+                validEndIndex = i + 1;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (validEndIndex > 0) {
+          fixedContent = fixedContent.substring(0, validEndIndex);
+          console.log('Found valid cocktail JSON endpoint at index:', validEndIndex);
+        }
+        
+        // If we still have unterminated strings, try more aggressive repair
+        if (fixedContent.includes('"')) {
+          const quotes = (fixedContent.match(/"/g) || []).length;
+          if (quotes % 2 !== 0) {
+            console.log('Attempting to fix unterminated cocktail strings...');
+            
+            // Find the last complete JSON property and truncate there
+            const lastCompleteProperty = fixedContent.lastIndexOf('",');
+            if (lastCompleteProperty > 0) {
+              fixedContent = fixedContent.substring(0, lastCompleteProperty + 1);
+              
+              // Add missing closing brackets/braces
+              const openBraces = (fixedContent.match(/{/g) || []).length;
+              const closeBraces = (fixedContent.match(/}/g) || []).length;
+              const openBrackets = (fixedContent.match(/\[/g) || []).length;
+              const closeBrackets = (fixedContent.match(/]/g) || []).length;
+              
+              for (let i = 0; i < (openBrackets - closeBrackets); i++) {
+                fixedContent += ']';
+              }
+              for (let i = 0; i < (openBraces - closeBraces); i++) {
+                fixedContent += '}';
+              }
+            }
           }
         }
         
         try {
           result = JSON.parse(fixedContent);
-          console.log('Successfully fixed malformed JSON');
+          console.log('Successfully repaired malformed cocktail JSON');
         } catch (secondError) {
-          console.error('Could not fix JSON, using fallback:', secondError);
-          result = { cocktails: [] };
+          console.error('Could not repair cocktail JSON, attempting fragment reconstruction:', secondError);
+          
+          // Try to extract cocktail items from corrupted text by finding patterns
+          const cocktailFragments = [];
+          const nameMatches = content.match(/"name":\s*"([^"]+)"/g) || [];
+          const descMatches = content.match(/"description":\s*"([^"]+)"/g) || [];
+          const ingredientMatches = content.match(/"ingredients":\s*\[([^\]]+)\]/g) || [];
+          
+          console.log(`Found ${nameMatches.length} cocktail names, ${descMatches.length} descriptions`);
+          
+          // If we found some valid fragments, try to reconstruct cocktails
+          if (nameMatches.length > 0) {
+            for (let i = 0; i < Math.min(4, nameMatches.length); i++) {
+              const name = nameMatches[i]?.match(/"name":\s*"([^"]+)"/)?.[1] || `Creative Cocktail ${i + 1}`;
+              const description = descMatches[i]?.match(/"description":\s*"([^"]+)"/)?.[1] || 
+                "An innovative cocktail creation featuring premium spirits and artisanal techniques.";
+              
+              let ingredients = [
+                { ingredient: "Premium base spirit", amount: "2 oz", cost: 3.0 },
+                { ingredient: "Artisanal mixer", amount: "1 oz", cost: 0.5 }
+              ];
+              
+              if (ingredientMatches[i]) {
+                try {
+                  const ingMatch = ingredientMatches[i].match(/\[([^\]]+)\]/)?.[1];
+                  if (ingMatch) {
+                    // Try to parse ingredients array
+                    const basicIngredients = ingMatch.split(',').map(ing => 
+                      ing.replace(/["']/g, '').trim()
+                    ).filter(Boolean);
+                    if (basicIngredients.length > 0) {
+                      ingredients = basicIngredients.map((ing, idx) => ({
+                        ingredient: ing,
+                        amount: idx === 0 ? "2 oz" : "0.5 oz",
+                        cost: idx === 0 ? 3.0 : 0.5
+                      }));
+                    }
+                  }
+                } catch (ingError) {
+                  console.log('Could not parse cocktail ingredients for item', i);
+                }
+              }
+              
+              cocktailFragments.push({
+                name,
+                description,
+                category: "signature",
+                ingredients,
+                instructions: [
+                  "Combine ingredients in a mixing glass with ice",
+                  "Stir or shake according to cocktail style",
+                  "Strain into appropriate glassware",
+                  "Garnish as specified and serve immediately"
+                ],
+                garnish: "Premium garnish",
+                glassware: "Appropriate cocktail glass",
+                estimatedCost: 4.0 + (i * 0.5),
+                suggestedPrice: 14 + (i * 2),
+                profitMargin: 70 - (i * 2),
+                preparationTime: 8 + (i * 2),
+                batchInstructions: ["Prepare mixers in advance", "Batch garnishes"],
+                variations: [],
+                foodPairings: ["Complementary appetizers"]
+              });
+            }
+            
+            if (cocktailFragments.length === 4) {
+              console.log('Successfully reconstructed 4 cocktails from fragments');
+              result = { cocktails: cocktailFragments };
+            } else {
+              console.log('Cocktail fragment reconstruction failed, using comprehensive fallback');
+              result = this.generateFallbackCocktails(request.context);
+            }
+          } else {
+            console.log('No valid cocktail fragments found, using comprehensive fallback');
+            result = this.generateFallbackCocktails(request.context);
+          }
         }
       }
       
@@ -632,9 +777,9 @@ export class MenuGeneratorService {
       
       console.log(`Processed cocktails: ${processedCocktails.length} out of ${(result.cocktails || []).length} total`);
       
-      // If we still don't have valid cocktails, generate fallback creative ones
-      if (processedCocktails.length === 0) {
-        console.log('No valid cocktails generated, creating fallback cocktails');
+      // Ensure we have exactly 4 cocktails
+      if (processedCocktails.length !== 4) {
+        console.log(`AI returned ${processedCocktails.length} cocktails instead of 4, using fallback`);
         return this.generateFallbackCocktails(request.context);
       }
       
@@ -716,6 +861,29 @@ export class MenuGeneratorService {
         suggestedPrice: 16.00,
         profitMargin: 75,
         preparationTime: 4
+      },
+      {
+        name: `Railway Station Punch`,
+        description: "A large-format cocktail perfect for sharing, featuring aged rum, seasonal fruit, and sparkling wine with traditional spices.",
+        category: "signature" as const,
+        ingredients: [
+          { ingredient: "Aged dark rum", amount: "1.5 oz", cost: 2.50 },
+          { ingredient: "Fresh seasonal fruit juice", amount: "1 oz", cost: 0.35 },
+          { ingredient: "Spiced syrup", amount: "0.5 oz", cost: 0.30 },
+          { ingredient: "Sparkling wine", amount: "2 oz", cost: 1.20 }
+        ],
+        instructions: [
+          "Muddle fresh fruit in shaker bottom",
+          "Add rum, fruit juice, and spiced syrup with ice",
+          "Shake vigorously and strain into punch cup",
+          "Top with sparkling wine and stir gently"
+        ],
+        garnish: "Fresh seasonal fruit and mint sprig",
+        glassware: "Punch cup",
+        estimatedCost: 4.35,
+        suggestedPrice: 17.00,
+        profitMargin: 74,
+        preparationTime: 5
       }
     ];
   }
