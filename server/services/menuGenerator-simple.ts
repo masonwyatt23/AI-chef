@@ -70,7 +70,10 @@ export interface GeneratedCocktail {
   ingredients: Array<{
     ingredient: string;
     amount: string;
+    unit: string;
     cost: number;
+    batchAmount?: string;
+    batchUnit?: string;
   }>;
   instructions: string[];
   garnish: string;
@@ -79,6 +82,8 @@ export interface GeneratedCocktail {
   suggestedPrice: number;
   profitMargin: number;
   preparationTime: number;
+  batchInstructions?: string[];
+  batchYield?: number;
 }
 
 export class SimpleMenuGenerator {
@@ -267,7 +272,17 @@ JSON format:
       "name": "Creative Restaurant-Themed Name",
       "description": "Compelling description highlighting unique aspects",
       "category": "entrees",
-      "ingredients": ["specific ingredient1", "local ingredient2"],
+      "ingredients": [
+        {
+          "ingredient": "specific ingredient1",
+          "amount": "2",
+          "unit": "cups", 
+          "cost": 1.50,
+          "notes": "preparation notes",
+          "batchAmount": "5",
+          "batchUnit": "lbs"
+        }
+      ],
       "preparationTime": 25,
       "difficulty": "medium",
       "estimatedCost": 12,
@@ -489,9 +504,9 @@ Make each item distinctly different and specifically tailored to this restaurant
         description: `A sophisticated bourbon cocktail that captures the warmth and character of ${context.name || 'our establishment'}, featuring premium bourbon perfectly balanced with subtle sweetness and bright citrus notes that complement our ${theme.toLowerCase()} dining atmosphere.`,
         category: "signature",
         ingredients: [
-          { ingredient: "Bourbon", amount: "2 oz", cost: 3 },
-          { ingredient: "Simple syrup", amount: "0.5 oz", cost: 0.2 },
-          { ingredient: "Lemon juice", amount: "0.5 oz", cost: 0.1 }
+          { ingredient: "Bourbon", amount: "2", unit: "oz", cost: 3 },
+          { ingredient: "Simple syrup", amount: "0.5", unit: "oz", cost: 0.2 },
+          { ingredient: "Lemon juice", amount: "0.5", unit: "oz", cost: 0.1 }
         ],
         instructions: ["Shake with ice", "Strain into glass"],
         garnish: "lemon twist",
@@ -506,9 +521,9 @@ Make each item distinctly different and specifically tailored to this restaurant
         description: `A refreshing gin-based cocktail that embodies the crisp, botanical essence perfect for ${context.name || 'our restaurant'}, combining premium gin with effervescent tonic and fresh citrus to create a drink that pairs beautifully with our ${theme.toLowerCase()} cuisine.`,
         category: "signature", 
         ingredients: [
-          { ingredient: "Gin", amount: "2 oz", cost: 2.5 },
-          { ingredient: "Tonic water", amount: "4 oz", cost: 0.3 },
-          { ingredient: "Lime juice", amount: "0.25 oz", cost: 0.1 }
+          { ingredient: "Gin", amount: "2", unit: "oz", cost: 2.5 },
+          { ingredient: "Tonic water", amount: "4", unit: "oz", cost: 0.3 },
+          { ingredient: "Lime juice", amount: "0.25", unit: "oz", cost: 0.1 }
         ],
         instructions: ["Build in glass", "Stir gently"],
         garnish: "lime wheel",
@@ -523,9 +538,9 @@ Make each item distinctly different and specifically tailored to this restaurant
         description: `A vibrant vodka cocktail designed to reflect the clean, modern aesthetic of ${context.name || 'our establishment'}, blending premium vodka with fresh cranberry and lime to create a beautifully balanced drink that's both visually stunning and perfectly suited to our ${theme.toLowerCase()} atmosphere.`,
         category: "signature",
         ingredients: [
-          { ingredient: "Vodka", amount: "2 oz", cost: 2 },
-          { ingredient: "Cranberry juice", amount: "1 oz", cost: 0.2 },
-          { ingredient: "Lime juice", amount: "0.5 oz", cost: 0.1 }
+          { ingredient: "Vodka", amount: "2", unit: "oz", cost: 2 },
+          { ingredient: "Cranberry juice", amount: "1", unit: "oz", cost: 0.2 },
+          { ingredient: "Lime juice", amount: "0.5", unit: "oz", cost: 0.1 }
         ],
         instructions: ["Shake with ice", "Strain over fresh ice"],
         garnish: "lime wedge",
@@ -540,9 +555,9 @@ Make each item distinctly different and specifically tailored to this restaurant
         description: `An inviting rum cocktail that brings tropical warmth to ${context.name || 'our dining experience'}, featuring smooth white rum combined with sweet pineapple and sparkling soda to create a refreshing drink that perfectly complements our ${theme.toLowerCase()} hospitality and cuisine.`,
         category: "signature",
         ingredients: [
-          { ingredient: "White rum", amount: "2 oz", cost: 2.2 },
-          { ingredient: "Pineapple juice", amount: "1 oz", cost: 0.3 },
-          { ingredient: "Club soda", amount: "2 oz", cost: 0.1 }
+          { ingredient: "White rum", amount: "2", unit: "oz", cost: 2.2 },
+          { ingredient: "Pineapple juice", amount: "1", unit: "oz", cost: 0.3 },
+          { ingredient: "Club soda", amount: "2", unit: "oz", cost: 0.1 }
         ],
         instructions: ["Shake juice and rum", "Top with soda"],
         garnish: "pineapple wedge",
