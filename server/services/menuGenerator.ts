@@ -621,35 +621,30 @@ Generate exactly 4 completely unique items. Each must be DIFFERENT in concept, n
     const uniqueId = Math.floor(Math.random() * 100000);
     const currentMenuText = request.currentMenu?.map(item => `${item.name} (${item.category})`).join(', ') || 'No current menu provided';
     
-    // Ultra-concise prompt for brief, quality output
-    const enhancedUserPrompt = `Generate 4 signature cocktails for ${request.context.name}.
+    // Simple, direct prompt for clean cocktail generation
+    const enhancedUserPrompt = `Create 4 cocktails for ${request.context.name}. 
 
-CRITICAL: Keep descriptions under 15 words. Be brief and direct.
+RULES:
+- Bourbon, gin, vodka, rum (one each)
+- Names: 2-3 words max
+- Descriptions: under 10 words
+- ${request.context.theme} theme
 
-Requirements:
-- Different spirits: bourbon, gin, vodka, rum
-- Short names with "${request.context.theme}" theme
-- Brief descriptions (10-15 words max)
-- ID: ${uniqueId}
-
-JSON format:
+JSON only:
 {
   "cocktails": [
     {
-      "name": "Short Name",
-      "description": "Brief 10-15 word description only",
+      "name": "Simple Name",
+      "description": "Short cocktail.",
       "category": "signature",
-      "ingredients": [{"ingredient": "name", "amount": "2 oz", "cost": 3.0}],
-      "instructions": ["step 1", "step 2"],
-      "garnish": "garnish",
-      "glassware": "glass",
-      "estimatedCost": 4.5,
-      "suggestedPrice": 15,
-      "profitMargin": 67,
-      "preparationTime": 5,
-      "batchInstructions": ["note"],
-      "variations": [{"name": "variation", "changes": ["change"]}],
-      "foodPairings": ["pairing"]
+      "ingredients": [{"ingredient": "bourbon", "amount": "2 oz", "cost": 3}],
+      "instructions": ["shake", "strain", "serve"],
+      "garnish": "lemon",
+      "glassware": "rocks",
+      "estimatedCost": 4,
+      "suggestedPrice": 14,
+      "profitMargin": 70,
+      "preparationTime": 3
     }
   ]
 }`;
@@ -658,15 +653,14 @@ JSON format:
       const response = await openai.chat.completions.create({
         model: "grok-2-1212",
         messages: [
-          { role: "system", content: systemPrompt + "\n\nIMPORTANT: Respond with clean, valid JSON only. No markdown formatting or extra text." },
+          { role: "system", content: "You are a bartender. Create simple cocktail names and very short descriptions. Always respond with valid JSON only." },
           { role: "user", content: enhancedUserPrompt }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.85, // Slightly reduced for better structure consistency
-        top_p: 0.9,
-        frequency_penalty: 0.5, // Higher to prevent repetition
-        presence_penalty: 0.4,
-        max_tokens: 7000, // Optimized for 4 complete cocktails
+        temperature: 0.3, // Lower for more predictable output
+        max_tokens: 800, // Much smaller to force brevity
+        frequency_penalty: 0.6,
+        presence_penalty: 0.6
       });
 
       const content = response.choices[0].message.content || '{"cocktails": []}';
@@ -1083,7 +1077,7 @@ JSON format:
       
       return {
         name: `${baseName} #${uniqueId.toString().slice(-3)}`,
-        description: `${context.theme || 'Signature'} cocktail with ${spirit.split(' ')[0].toLowerCase()} and ${modifier.toLowerCase().split(' ')[0]}.`,
+        description: `${spirit} with ${modifier.split(' ')[0].toLowerCase()}.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: spirit, amount: "2 oz", cost: 2.50 + (index * 0.30) },
@@ -1150,7 +1144,7 @@ JSON format:
       
       return {
         name: uniqueName,
-        description: `${context.theme || 'Signature'} cocktail with ${template.spirit.split(' ')[0].toLowerCase()} and ${template.modifier.toLowerCase().split(' ')[0]}.`,
+        description: `${template.spirit} with ${template.modifier.split(' ')[0].toLowerCase()}.`,
         category: "signature" as const,
         ingredients: [
           { ingredient: template.spirit, amount: "2 oz", cost: 2.80 + (index * 0.30) + (dynamicId % 50 / 100) },
