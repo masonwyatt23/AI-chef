@@ -2,20 +2,33 @@ import { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import ChefAssistant from "@/pages/chef-assistant";
 import LoginPage from "@/pages/login";
-import Dashboard from "@/pages/dashboard";
+
+interface Restaurant {
+  id: number;
+  name: string;
+  theme: string;
+  userId: number;
+}
 
 function Router() {
-  const { user, isLoading } = useAuth();
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null);
+  const { user, isLoading: authLoading } = useAuth();
+  
+  // Fetch user's restaurants when authenticated
+  const { data: restaurants, isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
+    queryKey: ["/api/restaurants"],
+    enabled: !!user,
+    retry: false,
+  });
 
-  // Show loading state while checking authentication
-  if (isLoading) {
+  // Show loading state while checking authentication or fetching restaurants
+  if (authLoading || (user && restaurantsLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
@@ -35,36 +48,29 @@ function Router() {
     );
   }
 
-  // Auto-redirect depot_owner to restaurant 70 (The Depot Grille)
-  if (user.username === 'depot_owner' && !selectedRestaurantId) {
-    setSelectedRestaurantId(70);
+  // Get the user's first restaurant (or create default if none exist)
+  const userRestaurant = restaurants && restaurants.length > 0 ? restaurants[0] : null;
+  
+  if (!userRestaurant) {
+    // If no restaurants found, show error or redirect to create one
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">No Restaurant Found</h2>
+          <p className="text-muted-foreground">Unable to access restaurant data. Please contact support.</p>
+        </div>
       </div>
     );
   }
 
-  // If authenticated but no restaurant selected, show dashboard
-  if (!selectedRestaurantId) {
-    return (
-      <Dashboard 
-        onRestaurantSelect={setSelectedRestaurantId}
-        onLogout={() => {
-          setSelectedRestaurantId(null);
-          queryClient.clear();
-        }}
-      />
-    );
-  }
-
-  // If restaurant selected, show chef assistant
+  // All authenticated users go directly to their first restaurant
+  // This eliminates the multi-restaurant dashboard and provides single-restaurant access
   return (
     <Switch>
       <Route path="/">
         {() => (
           <ChefAssistant 
-            restaurantId={selectedRestaurantId}
+            restaurantId={userRestaurant.id}
           />
         )}
       </Route>
