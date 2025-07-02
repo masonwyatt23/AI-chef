@@ -352,6 +352,20 @@ Make each item distinctly different and specifically tailored to this restaurant
         return 'The Depot Grille';
       }
       
+      // For themes, look for cuisine/style keywords
+      if (value.toLowerCase().includes('steak') && value.toLowerCase().includes('seafood')) {
+        return 'Steakhouse';
+      }
+      if (value.toLowerCase().includes('american') || value.toLowerCase().includes('casual')) {
+        return 'American';
+      }
+      if (value.toLowerCase().includes('italian')) {
+        return 'Italian';
+      }
+      if (value.toLowerCase().includes('mexican')) {
+        return 'Mexican';
+      }
+      
       // Look for common restaurant name patterns
       const nameMatch = value.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
       if (nameMatch) {
@@ -371,7 +385,7 @@ Make each item distinctly different and specifically tailored to this restaurant
   }
 
   private getFallbackItems(context: RestaurantContext): GeneratedMenuItem[] {
-    const theme = context.theme || 'American';
+    const theme = this.sanitizeContextValue(context.theme) || 'American';
     const uniqueId = this.generateUniqueId();
     const location = this.sanitizeContextValue(context.location) || 'Local';
     const priceRange = context.averageTicketPrice || 25;
