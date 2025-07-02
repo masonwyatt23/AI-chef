@@ -247,7 +247,9 @@ Make each cocktail unique and specifically tailored to this restaurant's charact
         messages: [
           { 
             role: "system", 
-            content: `You are an expert chef consultant specializing in menu development. Create innovative, restaurant-specific menu items that perfectly align with the establishment's theme, capabilities, and market positioning. Use the restaurant's complete profile to ensure every dish reflects their unique identity.` 
+            content: `You are an expert chef consultant specializing in menu development. Create innovative, restaurant-specific menu items that perfectly align with the establishment's theme, capabilities, and market positioning. Use the restaurant's complete profile to ensure every dish reflects their unique identity.
+
+CRITICAL: You MUST respond with valid JSON only. Do not include any text outside the JSON structure. Ensure the JSON is properly formatted and complete.` 
           },
           { 
             role: "user", 
@@ -324,17 +326,18 @@ Make each item distinctly different and specifically tailored to this restaurant
         if (result.items && Array.isArray(result.items) && result.items.length > 0) {
           console.log(`Generated ${result.items.length} menu items successfully`);
           return result.items.slice(0, 4);
+        } else {
+          throw new Error('AI generated empty or invalid menu items array');
         }
       } catch (parseError) {
-        console.log('Parse failed, using fallback');
+        console.error('Failed to parse AI response:', parseError);
+        console.error('AI Response content:', content);
+        throw new Error(`AI failed to generate valid menu items. Parse error: ${parseError}`);
       }
-      
-      // Simple fallback
-      return this.getFallbackItems(request.context);
       
     } catch (error) {
       console.error('Menu generation failed:', error);
-      return this.getFallbackItems(request.context);
+      throw new Error(`Menu generation failed: ${error}`);
     }
   }
 
@@ -384,161 +387,7 @@ Make each item distinctly different and specifically tailored to this restaurant
       .trim();
   }
 
-  private getFallbackItems(context: RestaurantContext): GeneratedMenuItem[] {
-    const theme = this.sanitizeContextValue(context.theme) || 'American';
-    const uniqueId = this.generateUniqueId();
-    const location = this.sanitizeContextValue(context.location) || 'Local';
-    const priceRange = context.averageTicketPrice || 25;
-    
-    // Restaurant-specific naming based on actual profile - sanitize long text
-    const namePrefix = this.sanitizeContextValue(context.name)?.split(' ')[0] || theme;
-    const demographic = this.sanitizeContextValue(context.targetDemographic) || 'all guests';
-    const establishment = this.sanitizeContextValue(context.establishmentType) || 'restaurant';
-    
-    return [
-      {
-        name: `${namePrefix}'s Signature ${theme} Platter`,
-        description: `Our masterfully prepared ${theme.toLowerCase()} specialty featuring premium locally-sourced ingredients, expertly seasoned and presented with chef's signature touches that showcase the finest flavors of our region`,
-        category: "entrees",
-        ingredients: [
-          {
-            ingredient: "Premium protein",
-            amount: "6",
-            unit: "oz",
-            cost: Math.floor(priceRange * 0.15),
-            notes: "Premium grade, locally sourced"
-          },
-          {
-            ingredient: "Seasonal vegetables",
-            amount: "4",
-            unit: "oz",
-            cost: Math.floor(priceRange * 0.08),
-            notes: "Fresh, seasonal selection"
-          },
-          {
-            ingredient: "House-made sauce",
-            amount: "2",
-            unit: "oz",
-            cost: Math.floor(priceRange * 0.05),
-            notes: "Signature recipe"
-          },
-          {
-            ingredient: "Special seasoning blend",
-            amount: "1",
-            unit: "tsp",
-            cost: 0.25,
-            notes: "Proprietary blend of herbs and spices"
-          }
-        ],
-        preparationTime: Math.floor(priceRange * 0.8),
-        difficulty: context.staffSkillLevel?.includes('experienced') ? "medium" : "easy",
-        estimatedCost: Math.floor(priceRange * 0.4),
-        suggestedPrice: priceRange,
-        profitMargin: Math.floor(((priceRange - (priceRange * 0.4)) / priceRange) * 100),
-        recipe: {
-          serves: 1,
-          prepInstructions: [
-            "Source premium fresh ingredients according to seasonal availability",
-            "Prepare signature marinade using house recipe", 
-            "Set up mise en place for professional service standards"
-          ],
-          cookingInstructions: [
-            "Execute cooking technique with precision timing",
-            "Monitor temperatures to achieve optimal results",
-            "Apply final finishing touches"
-          ],
-          platingInstructions: [
-            "Present using professional plating standards",
-            "Garnish with seasonal elements",
-            "Add signature presentation touches"
-          ],
-          techniques: ["Professional cooking methods", "Local ingredient preparation", "Signature techniques"]
-        },
-        allergens: context.specialDietaryNeeds || ["Please check with kitchen staff"],
-        nutritionalHighlights: ["Fresh cuisine benefits", "Quality ingredients"],
-        winePairings: ["Curated wine selection", "Local vineyard recommendations"],
-        upsellOpportunities: ["Appetizer pairing", "Beverage selection"]
-      },
-      {
-        name: `${namePrefix} ${theme} Signature Appetizer`,
-        description: `Artfully crafted starter featuring locally-sourced ingredients with our signature ${theme.toLowerCase()} flair, designed to awaken your palate and perfectly complement our wine selection`,
-        category: "appetizers",
-        ingredients: [
-          { ingredient: "Fresh herbs", amount: "2", unit: "tbsp", cost: 1.50, notes: "Mixed seasonal herbs" },
-          { ingredient: "Local ingredients", amount: "3", unit: "oz", cost: 2.25, notes: "Market fresh" },
-          { ingredient: "Artisan garnish", amount: "1", unit: "piece", cost: 0.75, notes: "House-made accent" }
-        ],
-        preparationTime: 20,
-        difficulty: "easy",
-        estimatedCost: 8,
-        suggestedPrice: 18,
-        profitMargin: 56,
-        recipe: {
-          serves: 1,
-          prepInstructions: ["Prepare garnish", "Mix ingredients"],
-          cookingInstructions: ["Light cooking", "Final assembly"],
-          platingInstructions: ["Elegant presentation", "Garnish placement"],
-          techniques: ["Fresh preparation", "Presentation"]
-        },
-        allergens: ["None specified"],
-        nutritionalHighlights: ["Fresh ingredients"],
-        winePairings: ["Light white"],
-        upsellOpportunities: ["Appetizer combo"]
-      },
-      {
-        name: `${namePrefix} ${theme} Signature Dessert`,
-        description: `Indulgent house-made dessert crafted with seasonal ingredients and artisanal techniques, creating the perfect sweet finale to your ${theme.toLowerCase()} dining experience`,
-        category: "desserts",
-        ingredients: [
-          { ingredient: "Seasonal fruits", amount: "4", unit: "oz", cost: 2.00, notes: "Peak season selection" },
-          { ingredient: "Premium dairy", amount: "2", unit: "oz", cost: 1.25, notes: "Local dairy source" },
-          { ingredient: "House-made elements", amount: "1", unit: "portion", cost: 1.50, notes: "Signature preparation" }
-        ],
-        preparationTime: 30,
-        difficulty: "medium",
-        estimatedCost: 6,
-        suggestedPrice: 16,
-        profitMargin: 62,
-        recipe: {
-          serves: 1,
-          prepInstructions: ["Prepare components", "Make sauce"],
-          cookingInstructions: ["Bake elements", "Prepare garnish"],
-          platingInstructions: ["Artistic plating", "Final touches"],
-          techniques: ["Baking", "Sauce making"]
-        },
-        allergens: ["Dairy"],
-        nutritionalHighlights: ["Natural sweetness"],
-        winePairings: ["Dessert wine"],
-        upsellOpportunities: ["Coffee pairing"]
-      },
-      {
-        name: `${namePrefix} ${theme} Garden Selection`,
-        description: `Vibrant plant-based creation showcasing the finest seasonal vegetables and ancient grains, thoughtfully prepared to deliver bold flavors and satisfying textures that celebrate garden-fresh ingredients`,
-        category: "vegetarian",
-        ingredients: [
-          { ingredient: "Seasonal vegetables", amount: "6", unit: "oz", cost: 2.50, notes: "Farm-fresh selection" },
-          { ingredient: "Grains", amount: "3", unit: "oz", cost: 1.00, notes: "Ancient grain blend" },
-          { ingredient: "Fresh herbs", amount: "1", unit: "tbsp", cost: 0.75, notes: "Garden fresh" }
-        ],
-        preparationTime: 28,
-        difficulty: "easy",
-        estimatedCost: 9,
-        suggestedPrice: 22,
-        profitMargin: 59,
-        recipe: {
-          serves: 1,
-          prepInstructions: ["Wash vegetables", "Prepare grains"],
-          cookingInstructions: ["Cook grains", "Prepare vegetables"],
-          platingInstructions: ["Layer components", "Herb garnish"],
-          techniques: ["Grain cooking", "Vegetable preparation"]
-        },
-        allergens: ["None"],
-        nutritionalHighlights: ["High fiber", "Plant protein"],
-        winePairings: ["Crisp white"],
-        upsellOpportunities: ["Soup pairing"]
-      }
-    ];
-  }
+
 
   private getFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
     const theme = context.theme || 'Classic';
