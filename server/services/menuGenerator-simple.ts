@@ -347,6 +347,17 @@ Make each item distinctly different and specifically tailored to this restaurant
     
     // If the value is longer than 50 characters, it's likely descriptive text rather than a simple value
     if (value.length > 50) {
+      // For restaurant names, try to extract the actual name from descriptive text
+      if (value.toLowerCase().includes('depot') && value.toLowerCase().includes('grille')) {
+        return 'The Depot Grille';
+      }
+      
+      // Look for common restaurant name patterns
+      const nameMatch = value.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+      if (nameMatch) {
+        return nameMatch[1];
+      }
+      
       // Try to extract the first meaningful word/phrase
       const words = value.split(/[,.\s]+/).filter(word => word.length > 2);
       return words[0] || 'Local';
@@ -366,7 +377,7 @@ Make each item distinctly different and specifically tailored to this restaurant
     const priceRange = context.averageTicketPrice || 25;
     
     // Restaurant-specific naming based on actual profile - sanitize long text
-    const namePrefix = context.name?.split(' ')[0] || theme;
+    const namePrefix = this.sanitizeContextValue(context.name)?.split(' ')[0] || theme;
     const demographic = this.sanitizeContextValue(context.targetDemographic) || 'all guests';
     const establishment = this.sanitizeContextValue(context.establishmentType) || 'restaurant';
     
