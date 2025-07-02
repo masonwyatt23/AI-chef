@@ -90,7 +90,10 @@ interface GeneratedCocktail {
   ingredients: Array<{
     ingredient: string;
     amount: string;
+    unit?: string;
     cost: number;
+    batchAmount?: string;
+    batchUnit?: string;
   }>;
   instructions: string[];
   garnish: string;
@@ -100,6 +103,7 @@ interface GeneratedCocktail {
   profitMargin: number;
   preparationTime: number;
   batchInstructions?: string[];
+  batchYield?: number;
   variations?: Array<{
     name: string;
     changes: string[];
