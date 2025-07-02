@@ -1519,12 +1519,8 @@ Ribeye Steak - 12oz premium cut $32
                           <div className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="flex items-start justify-between flex-wrap gap-2">
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-slate-900 break-words line-clamp-2">
-                                  {item.name && item.name.length > 60 ? `${item.name.substring(0, 60)}...` : item.name}
-                                </h4>
-                                <p className="text-sm text-slate-600 mt-1 break-words line-clamp-3">
-                                  {item.description && item.description.length > 120 ? `${item.description.substring(0, 120)}...` : item.description}
-                                </p>
+                                <h4 className="font-semibold text-slate-900 break-words">{item.name}</h4>
+                                <p className="text-sm text-slate-600 mt-1 break-words">{item.description}</p>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
                                 <Badge variant="outline" className="bg-purple-50 text-purple-700">
@@ -2149,12 +2145,8 @@ Cabernet - Napa Valley $12/42
                           <div className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="flex items-start justify-between flex-wrap gap-2">
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-slate-900 break-words line-clamp-2">
-                                  {cocktail.name && cocktail.name.length > 60 ? `${cocktail.name.substring(0, 60)}...` : cocktail.name}
-                                </h4>
-                                <p className="text-sm text-slate-600 mt-1 break-words line-clamp-3">
-                                  {cocktail.description && cocktail.description.length > 120 ? `${cocktail.description.substring(0, 120)}...` : cocktail.description}
-                                </p>
+                                <h4 className="font-semibold text-slate-900 break-words">{cocktail.name}</h4>
+                                <p className="text-sm text-slate-600 mt-1 break-words">{cocktail.description}</p>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
                                 <Badge variant="outline" className="bg-purple-50 text-purple-700">

@@ -181,19 +181,17 @@ ${request.seasonality ? `Seasonal focus: ${request.seasonality}` : ''}
 ${request.batchable ? `BATCH PRODUCTION: Include batch preparation instructions for 10-cocktail batches with scaled ingredient amounts.` : ''}
 
 Each cocktail should have:
-- A creative name that reflects the restaurant's identity (MAX 50 characters)
-- A compelling 1-2 sentence description that captures the drink's unique flavors, inspiration, and connection to the restaurant (MAX 100 characters)
+- A creative name that reflects the restaurant's identity
+- A compelling 1-2 sentence description that captures the drink's unique flavors, inspiration, and connection to the restaurant
 - Ingredients that complement the restaurant's food style
 - Pricing that matches their market position
-
-IMPORTANT: Keep cocktail names under 50 characters and descriptions under 100 characters.
 
 JSON format:
 {
   "cocktails": [
     {
-      "name": "Restaurant-Themed Name (under 50 chars)",
-      "description": "Brief description under 100 characters capturing essence.",
+      "name": "Restaurant-Themed Name",
+      "description": "A thoughtful sentence or two describing the cocktail's flavor profile, inspiration, and connection to the restaurant's identity and atmosphere.",
       "category": "signature",
       "ingredients": [{"ingredient": "specific spirit", "amount": "2", "unit": "oz", "cost": 3, "batchAmount": "20", "batchUnit": "oz"}],
       "instructions": ["detailed preparation"],
@@ -223,7 +221,7 @@ Make each cocktail unique and specifically tailored to this restaurant's charact
         const result = JSON.parse(content);
         if (result.cocktails && Array.isArray(result.cocktails) && result.cocktails.length > 0) {
           console.log(`Generated ${result.cocktails.length} cocktails successfully`);
-          return result.cocktails.slice(0, 4).map(cocktail => this.sanitizeCocktail(cocktail));
+          return result.cocktails.slice(0, 4);
         }
       } catch (parseError) {
         console.log('Parse failed, using fallback');
@@ -271,14 +269,12 @@ ${request.dietaryRestrictions?.length ? `Dietary considerations: ${request.dieta
 ${request.focusCategory ? `Focus on: ${request.focusCategory} category` : ''}
 ${request.batchProduction ? `BATCH PRODUCTION: Include detailed batch preparation instructions for ${request.batchSize || 10} servings, with scaled ingredient amounts and specific batch cooking techniques.` : ''}
 
-IMPORTANT: Keep item names under 50 characters and descriptions under 100 characters.
-
 JSON format:
 {
   "items": [
     {
-      "name": "Creative Restaurant-Themed Name (under 50 chars)",
-      "description": "Brief description under 100 characters",
+      "name": "Creative Restaurant-Themed Name",
+      "description": "Compelling description highlighting unique aspects",
       "category": "entrees",
       "ingredients": [
         {
@@ -327,7 +323,7 @@ Make each item distinctly different and specifically tailored to this restaurant
         const result = JSON.parse(content);
         if (result.items && Array.isArray(result.items) && result.items.length > 0) {
           console.log(`Generated ${result.items.length} menu items successfully`);
-          return result.items.slice(0, 4).map(item => this.sanitizeMenuItem(item));
+          return result.items.slice(0, 4);
         }
       } catch (parseError) {
         console.log('Parse failed, using fallback');
@@ -346,27 +342,6 @@ Make each item distinctly different and specifically tailored to this restaurant
     return `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   }
 
-  private sanitizeTextLength(text: string, maxLength: number): string {
-    if (!text) return '';
-    return text.length > maxLength ? `${text.substring(0, maxLength - 3)}...` : text;
-  }
-
-  private sanitizeMenuItem(item: any): GeneratedMenuItem {
-    return {
-      ...item,
-      name: this.sanitizeTextLength(item.name, 50),
-      description: this.sanitizeTextLength(item.description, 100)
-    };
-  }
-
-  private sanitizeCocktail(cocktail: any): GeneratedCocktail {
-    return {
-      ...cocktail,
-      name: this.sanitizeTextLength(cocktail.name, 50),
-      description: this.sanitizeTextLength(cocktail.description, 100)
-    };
-  }
-
   private getFallbackItems(context: RestaurantContext): GeneratedMenuItem[] {
     const theme = context.theme || 'American';
     const uniqueId = this.generateUniqueId();
@@ -380,8 +355,8 @@ Make each item distinctly different and specifically tailored to this restaurant
     
     return [
       {
-        name: this.sanitizeTextLength(`${namePrefix}'s Signature ${theme} Platter`, 50),
-        description: this.sanitizeTextLength(`Locally-sourced ${theme.toLowerCase()} dish crafted for ${demographic} with ${location} ingredients`, 100),
+        name: `${namePrefix}'s Signature ${theme} Platter`,
+        description: `Locally-sourced ${theme.toLowerCase()} dish crafted for ${demographic} with ${location} ingredients and our unique preparation style`,
         category: "entrees",
         ingredients: [
           {
@@ -443,8 +418,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         upsellOpportunities: [`${theme} appetizer pairing`, `${location} beverage selection`]
       },
       {
-        name: this.sanitizeTextLength(`${namePrefix} ${theme} Signature Appetizer`, 50),
-        description: this.sanitizeTextLength("Chef's signature creation", 100),
+        name: `${namePrefix} ${theme} Signature Appetizer`,
+        description: "Chef's signature creation",
         category: "appetizers",
         ingredients: [
           { ingredient: "Fresh herbs", amount: "2", unit: "tbsp", cost: 1.50, notes: "Mixed seasonal herbs" },
@@ -469,8 +444,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         upsellOpportunities: ["Appetizer combo"]
       },
       {
-        name: this.sanitizeTextLength(`${namePrefix} ${theme} Signature Dessert`, 50),
-        description: this.sanitizeTextLength("Satisfying comfort creation", 100),
+        name: `${namePrefix} ${theme} Signature Dessert`,
+        description: "Satisfying comfort creation",
         category: "desserts",
         ingredients: [
           { ingredient: "Seasonal fruits", amount: "4", unit: "oz", cost: 2.00, notes: "Peak season selection" },
@@ -531,8 +506,8 @@ Make each item distinctly different and specifically tailored to this restaurant
     
     return [
       {
-        name: this.sanitizeTextLength(`${namePrefix} ${theme} Bourbon Signature`, 50),
-        description: this.sanitizeTextLength(`Sophisticated bourbon cocktail with citrus notes perfect for ${theme.toLowerCase()} dining`, 100),
+        name: `${namePrefix} ${theme} Bourbon Signature`,
+        description: `A sophisticated bourbon cocktail that captures the warmth and character of ${context.name || 'our establishment'}, featuring premium bourbon perfectly balanced with subtle sweetness and bright citrus notes that complement our ${theme.toLowerCase()} dining atmosphere.`,
         category: "signature",
         ingredients: [
           { ingredient: "Bourbon", amount: "2", unit: "oz", cost: 3 },
@@ -548,8 +523,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         preparationTime: 3
       },
       {
-        name: this.sanitizeTextLength(`${namePrefix} ${theme} Gin Garden`, 50),
-        description: this.sanitizeTextLength(`Refreshing gin cocktail with botanical essence and crisp citrus notes`, 100),
+        name: `${namePrefix} ${theme} Gin Garden`,
+        description: `A refreshing gin-based cocktail that embodies the crisp, botanical essence perfect for ${context.name || 'our restaurant'}, combining premium gin with effervescent tonic and fresh citrus to create a drink that pairs beautifully with our ${theme.toLowerCase()} cuisine.`,
         category: "signature", 
         ingredients: [
           { ingredient: "Gin", amount: "2", unit: "oz", cost: 2.5 },
