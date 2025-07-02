@@ -134,6 +134,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({ username, password: hashedPassword });
 
+      // Create a default restaurant for the new user
+      const defaultRestaurant = await storage.createRestaurant({
+        userId: user.id,
+        name: `${username}'s Restaurant`,
+        theme: "Family-friendly casual dining",
+        categories: ["Appetizers", "Entrees", "Desserts", "Beverages"],
+        kitchenCapability: "Full service kitchen with standard equipment",
+        staffSize: 5,
+        additionalContext: "A new restaurant ready for customization",
+        
+        // Basic business context
+        establishmentType: "Casual dining restaurant",
+        serviceStyle: "Table service",
+        targetDemographic: "Families and casual diners",
+        averageTicketPrice: 25,
+        diningCapacity: 50,
+        operatingHours: "11 AM - 10 PM",
+        
+        // Location & Market
+        location: "Local community",
+        marketType: "Suburban",
+        localIngredients: ["Seasonal vegetables", "Local dairy", "Regional specialties"],
+        culturalInfluences: ["American", "International"],
+        
+        // Kitchen & Operations
+        kitchenSize: "Medium",
+        kitchenEquipment: ["Grills", "Fryers", "Ovens", "Prep stations"],
+        prepSpace: "Adequate prep area",
+        storageCapacity: "Standard refrigeration and dry storage",
+        deliveryCapability: false,
+        
+        // Staff & Skills
+        chefExperience: "Experienced professional chef",
+        staffSkillLevel: "Mixed skill levels",
+        specializedRoles: ["Chef", "Cooks", "Servers"],
+        laborBudget: "Moderate",
+        
+        // Menu & Business Goals
+        currentMenuSize: 30,
+        menuChangeFrequency: "Seasonal updates",
+        profitMarginGoals: 65,
+        foodCostGoals: 30,
+        specialDietaryNeeds: ["Vegetarian options"],
+        
+        // Competition & Positioning
+        primaryCompetitors: ["Local family restaurants"],
+        uniqueSellingPoints: ["Fresh ingredients", "Friendly service"],
+        pricePosition: "Mid-range",
+        
+        // Challenges & Priorities
+        currentChallenges: ["Menu optimization", "Cost control"],
+        businessPriorities: ["Quality food", "Customer satisfaction"],
+        seasonalConsiderations: "Adapt menu to seasonal ingredients"
+      });
+
       // Set session
       req.session.userId = user.id;
       req.session.username = user.username;
