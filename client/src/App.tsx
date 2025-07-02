@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -52,12 +52,33 @@ function Router() {
   const userRestaurant = restaurants && restaurants.length > 0 ? restaurants[0] : null;
   
   if (!userRestaurant) {
-    // If no restaurants found, show error or redirect to create one
+    // If no restaurants found, create one automatically
+    const createDefaultRestaurant = async () => {
+      try {
+        const response = await fetch("/api/restaurants/create-default", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (response.ok) {
+          // Refresh the restaurants data
+          queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+        }
+      } catch (error) {
+        console.error("Failed to create default restaurant:", error);
+      }
+    };
+
+    // Automatically create restaurant on component mount
+    React.useEffect(() => {
+      createDefaultRestaurant();
+    }, []);
+
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">No Restaurant Found</h2>
-          <p className="text-muted-foreground">Unable to access restaurant data. Please contact support.</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold mb-2">Setting up your restaurant...</h2>
+          <p className="text-muted-foreground">Creating your personalized AI Chef Assistant.</p>
         </div>
       </div>
     );
