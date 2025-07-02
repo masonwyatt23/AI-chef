@@ -271,22 +271,22 @@ ${request.dietaryRestrictions?.length ? `Dietary considerations: ${request.dieta
 ${request.focusCategory ? `Focus on: ${request.focusCategory} category` : ''}
 ${request.batchProduction ? `BATCH PRODUCTION: Include detailed batch preparation instructions for ${request.batchSize || 10} servings, with scaled ingredient amounts and specific batch cooking techniques.` : ''}
 
+IMPORTANT: Return ONLY valid JSON. No additional text or explanations.
+
 JSON format:
 {
   "items": [
     {
-      "name": "Creative Restaurant-Themed Name",
-      "description": "Compelling description highlighting unique aspects",
+      "name": "Creative Restaurant Name",
+      "description": "Compelling description",
       "category": "entrees",
       "ingredients": [
         {
-          "ingredient": "specific ingredient1",
+          "ingredient": "ingredient name",
           "amount": "2",
-          "unit": "cups", 
+          "unit": "oz", 
           "cost": 1.50,
-          "notes": "preparation notes",
-          "batchAmount": "5",
-          "batchUnit": "lbs"
+          "notes": "preparation notes"
         }
       ],
       "preparationTime": 25,
@@ -296,17 +296,15 @@ JSON format:
       "profitMargin": 57,
       "recipe": {
         "serves": 1,
-        "prepInstructions": ["detailed step1"],
-        "cookingInstructions": ["specific technique step1"],
-        "platingInstructions": ["presentation step1"],
-        "techniques": ["relevant technique1"],
-        "batchInstructions": ["batch preparation step1", "batch cooking step1"],
-        "batchServes": 10
+        "prepInstructions": ["step 1"],
+        "cookingInstructions": ["step 1"],
+        "platingInstructions": ["step 1"],
+        "techniques": ["technique 1"]
       },
-      "allergens": ["specific allergen1"],
-      "nutritionalHighlights": ["relevant highlight1"],
-      "winePairings": ["appropriate wine1"],
-      "upsellOpportunities": ["relevant upsell1"]
+      "allergens": ["allergen"],
+      "nutritionalHighlights": ["highlight"],
+      "winePairings": ["wine"],
+      "upsellOpportunities": ["upsell"]
     }
   ]
 }
@@ -315,11 +313,22 @@ Make each item distinctly different and specifically tailored to this restaurant
           }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 2500,
+        temperature: 0.5,
+        max_tokens: 3000,
       });
 
-      const content = response.choices[0].message.content || '{"items": []}';
+      let content = response.choices[0].message.content || '{"items": []}';
+      
+      // Clean the content to ensure it's valid JSON
+      content = content.trim();
+      
+      // Remove any potential markdown formatting
+      if (content.startsWith('```json')) {
+        content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      }
+      if (content.startsWith('```')) {
+        content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
       
       try {
         const result = JSON.parse(content);
@@ -327,12 +336,14 @@ Make each item distinctly different and specifically tailored to this restaurant
           console.log(`Generated ${result.items.length} menu items successfully`);
           return result.items.slice(0, 4);
         } else {
+          console.error('AI generated invalid structure:', result);
           throw new Error('AI generated empty or invalid menu items array');
         }
       } catch (parseError) {
         console.error('Failed to parse AI response:', parseError);
-        console.error('AI Response content:', content);
-        throw new Error(`AI failed to generate valid menu items. Parse error: ${parseError}`);
+        console.error('Raw AI Response (first 500 chars):', content.substring(0, 500));
+        console.error('Raw AI Response (last 500 chars):', content.substring(Math.max(0, content.length - 500)));
+        throw new Error(`AI failed to generate valid menu items. JSON parsing failed - this indicates the AI output was malformed.`);
       }
       
     } catch (error) {
