@@ -342,46 +342,63 @@ Make each item distinctly different and specifically tailored to this restaurant
     return `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   }
 
+  private sanitizeContextValue(value: string | undefined): string | undefined {
+    if (!value) return value;
+    
+    // If the value is longer than 50 characters, it's likely descriptive text rather than a simple value
+    if (value.length > 50) {
+      // Try to extract the first meaningful word/phrase
+      const words = value.split(/[,.\s]+/).filter(word => word.length > 2);
+      return words[0] || 'Local';
+    }
+    
+    // Clean up common descriptive patterns
+    return value
+      .replace(/^(Our|The|A|An)\s+/i, '') // Remove articles
+      .replace(/\s+(restaurant|establishment|venue|location)$/i, '') // Remove common suffixes
+      .trim();
+  }
+
   private getFallbackItems(context: RestaurantContext): GeneratedMenuItem[] {
     const theme = context.theme || 'American';
     const uniqueId = this.generateUniqueId();
-    const location = context.location || 'Local';
+    const location = this.sanitizeContextValue(context.location) || 'Local';
     const priceRange = context.averageTicketPrice || 25;
     
-    // Restaurant-specific naming based on actual profile
+    // Restaurant-specific naming based on actual profile - sanitize long text
     const namePrefix = context.name?.split(' ')[0] || theme;
-    const demographic = context.targetDemographic || 'all guests';
-    const establishment = context.establishmentType || 'restaurant';
+    const demographic = this.sanitizeContextValue(context.targetDemographic) || 'all guests';
+    const establishment = this.sanitizeContextValue(context.establishmentType) || 'restaurant';
     
     return [
       {
         name: `${namePrefix}'s Signature ${theme} Platter`,
-        description: `Locally-sourced ${theme.toLowerCase()} dish crafted for ${demographic} with ${location} ingredients and our unique preparation style`,
+        description: `Locally-sourced ${theme.toLowerCase()} dish with fresh ingredients and signature preparation`,
         category: "entrees",
         ingredients: [
           {
-            ingredient: `${location} sourced protein`,
+            ingredient: "Premium protein",
             amount: "6",
             unit: "oz",
             cost: Math.floor(priceRange * 0.15),
-            notes: `Premium grade, locally sourced from ${location} suppliers`
+            notes: "Premium grade, locally sourced"
           },
           {
-            ingredient: `Seasonal ${location.toLowerCase()} vegetables`,
+            ingredient: "Seasonal vegetables",
             amount: "4",
             unit: "oz",
             cost: Math.floor(priceRange * 0.08),
             notes: "Fresh, seasonal selection"
           },
           {
-            ingredient: `House-made ${theme.toLowerCase()} sauce`,
+            ingredient: "House-made sauce",
             amount: "2",
             unit: "oz",
             cost: Math.floor(priceRange * 0.05),
-            notes: `Signature ${namePrefix} recipe`
+            notes: "Signature recipe"
           },
           {
-            ingredient: `${namePrefix} special seasoning blend`,
+            ingredient: "Special seasoning blend",
             amount: "1",
             unit: "tsp",
             cost: 0.25,
@@ -396,26 +413,26 @@ Make each item distinctly different and specifically tailored to this restaurant
         recipe: {
           serves: 1,
           prepInstructions: [
-            `Source premium ${location.toLowerCase()} ingredients according to seasonal availability`,
-            `Prepare signature ${theme.toLowerCase()} marinade using house recipe`,
-            `Set up mise en place for ${establishment} service standards`
+            "Source premium fresh ingredients according to seasonal availability",
+            "Prepare signature marinade using house recipe", 
+            "Set up mise en place for professional service standards"
           ],
           cookingInstructions: [
-            `Execute ${theme.toLowerCase()} cooking technique with precision timing`,
-            `Monitor temperatures to achieve perfect ${demographic} preference`,
-            `Apply final ${namePrefix} finishing touches`
+            "Execute cooking technique with precision timing",
+            "Monitor temperatures to achieve optimal results",
+            "Apply final finishing touches"
           ],
           platingInstructions: [
-            `Present using ${establishment} plating standards`,
-            `Garnish with ${location} seasonal elements`,
-            `Add signature ${namePrefix} presentation touches`
+            "Present using professional plating standards",
+            "Garnish with seasonal elements",
+            "Add signature presentation touches"
           ],
-          techniques: [`${theme} cooking methods`, "Local ingredient preparation", `${namePrefix} signature techniques`]
+          techniques: ["Professional cooking methods", "Local ingredient preparation", "Signature techniques"]
         },
         allergens: context.specialDietaryNeeds || ["Please check with kitchen staff"],
-        nutritionalHighlights: [`${theme} cuisine benefits`, `${location} fresh ingredients`],
-        winePairings: [`${theme} wine selection`, `${location} vineyard recommendations`],
-        upsellOpportunities: [`${theme} appetizer pairing`, `${location} beverage selection`]
+        nutritionalHighlights: ["Fresh cuisine benefits", "Quality ingredients"],
+        winePairings: ["Curated wine selection", "Local vineyard recommendations"],
+        upsellOpportunities: ["Appetizer pairing", "Beverage selection"]
       },
       {
         name: `${namePrefix} ${theme} Signature Appetizer`,
