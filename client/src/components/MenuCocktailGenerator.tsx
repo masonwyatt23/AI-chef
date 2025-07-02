@@ -54,7 +54,15 @@ interface GeneratedMenuItem {
   name: string;
   description: string;
   category: string;
-  ingredients: string[];
+  ingredients: Array<{
+    ingredient: string;
+    amount: string;
+    unit?: string;
+    cost: number;
+    notes?: string;
+    batchAmount?: string;
+    batchUnit?: string;
+  }>;
   preparationTime: number;
   difficulty: string;
   estimatedCost: number;
@@ -66,6 +74,8 @@ interface GeneratedMenuItem {
     cookingInstructions: string[];
     platingInstructions: string[];
     techniques: string[];
+    batchInstructions?: string[];
+    batchServes?: number;
   };
   allergens: string[];
   nutritionalHighlights?: string[];

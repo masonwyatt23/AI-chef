@@ -177,6 +177,7 @@ Establishment Type: ${cleanEstablishmentType}
 Target Demographic: ${cleanTargetDemo}
 Location: ${cleanLocation}
 Average Check: $${request.context.averageTicketPrice || '25'}
+${request.batchable ? `Batch Production: Required for ${request.context.diningCapacity || 50} seat capacity` : ''}
 
 Requirements:
 - Create cocktails that reflect the restaurant's ${cleanTheme} theme
@@ -184,6 +185,7 @@ Requirements:
 - Keep descriptions brief and appetizing (1-2 sentences max)
 - Use premium spirits and fresh ingredients
 - Price appropriately for the target market
+${request.batchable ? '- Include batch production instructions for high-volume service' : ''}
 
 IMPORTANT: Return ONLY valid JSON. No additional text or explanations.
 
@@ -199,7 +201,7 @@ JSON format:
           "ingredient": "spirit name",
           "amount": "2",
           "unit": "oz",
-          "cost": 3.00
+          "cost": 3.00${request.batchable ? ',\n          "batchAmount": "1",\n          "batchUnit": "liter"' : ''}
         }
       ],
       "instructions": ["step 1", "step 2"],
@@ -208,7 +210,7 @@ JSON format:
       "estimatedCost": 5.50,
       "suggestedPrice": 16.00,
       "profitMargin": 65,
-      "preparationTime": 3
+      "preparationTime": 3${request.batchable ? ',\n      "batchInstructions": ["Batch step 1", "Batch step 2"],\n      "batchYield": 25' : ''}
     }
   ]
 }
@@ -307,7 +309,7 @@ JSON format:
           "amount": "2",
           "unit": "oz", 
           "cost": 1.50,
-          "notes": "preparation notes"
+          "notes": "preparation notes"${request.batchProduction ? ',\n          "batchAmount": "20",\n          "batchUnit": "oz"' : ''}
         }
       ],
       "preparationTime": 25,
@@ -320,7 +322,7 @@ JSON format:
         "prepInstructions": ["step 1"],
         "cookingInstructions": ["step 1"],
         "platingInstructions": ["step 1"],
-        "techniques": ["technique 1"]
+        "techniques": ["technique 1"]${request.batchProduction ? ',\n        "batchServes": ' + (request.batchSize || 10) + ',\n        "batchInstructions": ["batch step 1", "batch step 2"]' : ''}
       },
       "allergens": ["allergen"],
       "nutritionalHighlights": ["highlight"],
