@@ -181,17 +181,19 @@ ${request.seasonality ? `Seasonal focus: ${request.seasonality}` : ''}
 ${request.batchable ? `BATCH PRODUCTION: Include batch preparation instructions for 10-cocktail batches with scaled ingredient amounts.` : ''}
 
 Each cocktail should have:
-- A creative name that reflects the restaurant's identity
-- A compelling 1-2 sentence description that captures the drink's unique flavors, inspiration, and connection to the restaurant
+- A creative name that reflects the restaurant's identity (MAX 50 characters)
+- A compelling 1-2 sentence description that captures the drink's unique flavors, inspiration, and connection to the restaurant (MAX 100 characters)
 - Ingredients that complement the restaurant's food style
 - Pricing that matches their market position
+
+IMPORTANT: Keep cocktail names under 50 characters and descriptions under 100 characters.
 
 JSON format:
 {
   "cocktails": [
     {
-      "name": "Restaurant-Themed Name",
-      "description": "A thoughtful sentence or two describing the cocktail's flavor profile, inspiration, and connection to the restaurant's identity and atmosphere.",
+      "name": "Restaurant-Themed Name (under 50 chars)",
+      "description": "Brief description under 100 characters capturing essence.",
       "category": "signature",
       "ingredients": [{"ingredient": "specific spirit", "amount": "2", "unit": "oz", "cost": 3, "batchAmount": "20", "batchUnit": "oz"}],
       "instructions": ["detailed preparation"],
@@ -269,12 +271,14 @@ ${request.dietaryRestrictions?.length ? `Dietary considerations: ${request.dieta
 ${request.focusCategory ? `Focus on: ${request.focusCategory} category` : ''}
 ${request.batchProduction ? `BATCH PRODUCTION: Include detailed batch preparation instructions for ${request.batchSize || 10} servings, with scaled ingredient amounts and specific batch cooking techniques.` : ''}
 
+IMPORTANT: Keep item names under 50 characters and descriptions under 100 characters.
+
 JSON format:
 {
   "items": [
     {
-      "name": "Creative Restaurant-Themed Name",
-      "description": "Compelling description highlighting unique aspects",
+      "name": "Creative Restaurant-Themed Name (under 50 chars)",
+      "description": "Brief description under 100 characters",
       "category": "entrees",
       "ingredients": [
         {
@@ -340,6 +344,27 @@ Make each item distinctly different and specifically tailored to this restaurant
 
   private generateUniqueId(): string {
     return `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  }
+
+  private sanitizeTextLength(text: string, maxLength: number): string {
+    if (!text) return '';
+    return text.length > maxLength ? `${text.substring(0, maxLength - 3)}...` : text;
+  }
+
+  private sanitizeMenuItem(item: any): GeneratedMenuItem {
+    return {
+      ...item,
+      name: this.sanitizeTextLength(item.name, 50),
+      description: this.sanitizeTextLength(item.description, 100)
+    };
+  }
+
+  private sanitizeCocktail(cocktail: any): GeneratedCocktail {
+    return {
+      ...cocktail,
+      name: this.sanitizeTextLength(cocktail.name, 50),
+      description: this.sanitizeTextLength(cocktail.description, 100)
+    };
   }
 
   private getFallbackItems(context: RestaurantContext): GeneratedMenuItem[] {
