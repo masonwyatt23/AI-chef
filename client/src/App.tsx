@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -69,7 +69,7 @@ function Router() {
     };
 
     // Automatically create restaurant on component mount
-    React.useEffect(() => {
+    useEffect(() => {
       createDefaultRestaurant();
     }, []);
 
