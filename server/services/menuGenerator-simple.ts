@@ -223,7 +223,7 @@ Make each cocktail unique and specifically tailored to this restaurant's charact
         const result = JSON.parse(content);
         if (result.cocktails && Array.isArray(result.cocktails) && result.cocktails.length > 0) {
           console.log(`Generated ${result.cocktails.length} cocktails successfully`);
-          return result.cocktails.slice(0, 4);
+          return result.cocktails.slice(0, 4).map(cocktail => this.sanitizeCocktail(cocktail));
         }
       } catch (parseError) {
         console.log('Parse failed, using fallback');
@@ -327,7 +327,7 @@ Make each item distinctly different and specifically tailored to this restaurant
         const result = JSON.parse(content);
         if (result.items && Array.isArray(result.items) && result.items.length > 0) {
           console.log(`Generated ${result.items.length} menu items successfully`);
-          return result.items.slice(0, 4);
+          return result.items.slice(0, 4).map(item => this.sanitizeMenuItem(item));
         }
       } catch (parseError) {
         console.log('Parse failed, using fallback');
@@ -380,8 +380,8 @@ Make each item distinctly different and specifically tailored to this restaurant
     
     return [
       {
-        name: `${namePrefix}'s Signature ${theme} Platter`,
-        description: `Locally-sourced ${theme.toLowerCase()} dish crafted for ${demographic} with ${location} ingredients and our unique preparation style`,
+        name: this.sanitizeTextLength(`${namePrefix}'s Signature ${theme} Platter`, 50),
+        description: this.sanitizeTextLength(`Locally-sourced ${theme.toLowerCase()} dish crafted for ${demographic} with ${location} ingredients`, 100),
         category: "entrees",
         ingredients: [
           {
@@ -443,8 +443,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         upsellOpportunities: [`${theme} appetizer pairing`, `${location} beverage selection`]
       },
       {
-        name: `${namePrefix} ${theme} Signature Appetizer`,
-        description: "Chef's signature creation",
+        name: this.sanitizeTextLength(`${namePrefix} ${theme} Signature Appetizer`, 50),
+        description: this.sanitizeTextLength("Chef's signature creation", 100),
         category: "appetizers",
         ingredients: [
           { ingredient: "Fresh herbs", amount: "2", unit: "tbsp", cost: 1.50, notes: "Mixed seasonal herbs" },
@@ -469,8 +469,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         upsellOpportunities: ["Appetizer combo"]
       },
       {
-        name: `${namePrefix} ${theme} Signature Dessert`,
-        description: "Satisfying comfort creation",
+        name: this.sanitizeTextLength(`${namePrefix} ${theme} Signature Dessert`, 50),
+        description: this.sanitizeTextLength("Satisfying comfort creation", 100),
         category: "desserts",
         ingredients: [
           { ingredient: "Seasonal fruits", amount: "4", unit: "oz", cost: 2.00, notes: "Peak season selection" },
@@ -531,8 +531,8 @@ Make each item distinctly different and specifically tailored to this restaurant
     
     return [
       {
-        name: `${namePrefix} ${theme} Bourbon Signature`,
-        description: `A sophisticated bourbon cocktail that captures the warmth and character of ${context.name || 'our establishment'}, featuring premium bourbon perfectly balanced with subtle sweetness and bright citrus notes that complement our ${theme.toLowerCase()} dining atmosphere.`,
+        name: this.sanitizeTextLength(`${namePrefix} ${theme} Bourbon Signature`, 50),
+        description: this.sanitizeTextLength(`Sophisticated bourbon cocktail with citrus notes perfect for ${theme.toLowerCase()} dining`, 100),
         category: "signature",
         ingredients: [
           { ingredient: "Bourbon", amount: "2", unit: "oz", cost: 3 },
@@ -548,8 +548,8 @@ Make each item distinctly different and specifically tailored to this restaurant
         preparationTime: 3
       },
       {
-        name: `${namePrefix} ${theme} Gin Garden`,
-        description: `A refreshing gin-based cocktail that embodies the crisp, botanical essence perfect for ${context.name || 'our restaurant'}, combining premium gin with effervescent tonic and fresh citrus to create a drink that pairs beautifully with our ${theme.toLowerCase()} cuisine.`,
+        name: this.sanitizeTextLength(`${namePrefix} ${theme} Gin Garden`, 50),
+        description: this.sanitizeTextLength(`Refreshing gin cocktail with botanical essence and crisp citrus notes`, 100),
         category: "signature", 
         ingredients: [
           { ingredient: "Gin", amount: "2", unit: "oz", cost: 2.5 },
