@@ -398,7 +398,7 @@ Make each item distinctly different and specifically tailored to this restaurant
     return [
       {
         name: `${namePrefix}'s Signature ${theme} Platter`,
-        description: `Locally-sourced ${theme.toLowerCase()} dish with fresh ingredients and signature preparation`,
+        description: `Our masterfully prepared ${theme.toLowerCase()} specialty featuring premium locally-sourced ingredients, expertly seasoned and presented with chef's signature touches that showcase the finest flavors of our region`,
         category: "entrees",
         ingredients: [
           {
@@ -461,7 +461,7 @@ Make each item distinctly different and specifically tailored to this restaurant
       },
       {
         name: `${namePrefix} ${theme} Signature Appetizer`,
-        description: "Chef's signature creation",
+        description: `Artfully crafted starter featuring locally-sourced ingredients with our signature ${theme.toLowerCase()} flair, designed to awaken your palate and perfectly complement our wine selection`,
         category: "appetizers",
         ingredients: [
           { ingredient: "Fresh herbs", amount: "2", unit: "tbsp", cost: 1.50, notes: "Mixed seasonal herbs" },
@@ -487,7 +487,7 @@ Make each item distinctly different and specifically tailored to this restaurant
       },
       {
         name: `${namePrefix} ${theme} Signature Dessert`,
-        description: "Satisfying comfort creation",
+        description: `Indulgent house-made dessert crafted with seasonal ingredients and artisanal techniques, creating the perfect sweet finale to your ${theme.toLowerCase()} dining experience`,
         category: "desserts",
         ingredients: [
           { ingredient: "Seasonal fruits", amount: "4", unit: "oz", cost: 2.00, notes: "Peak season selection" },
@@ -513,7 +513,7 @@ Make each item distinctly different and specifically tailored to this restaurant
       },
       {
         name: `${namePrefix} ${theme} Garden Selection`,
-        description: "Fresh vegetarian option",
+        description: `Vibrant plant-based creation showcasing the finest seasonal vegetables and ancient grains, thoughtfully prepared to deliver bold flavors and satisfying textures that celebrate garden-fresh ingredients`,
         category: "vegetarian",
         ingredients: [
           { ingredient: "Seasonal vegetables", amount: "6", unit: "oz", cost: 2.50, notes: "Farm-fresh selection" },
