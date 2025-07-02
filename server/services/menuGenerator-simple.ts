@@ -150,8 +150,12 @@ export class SimpleMenuGenerator {
   async generateCocktails(request: CocktailGenerationRequest): Promise<GeneratedCocktail[]> {
     console.log('Starting personalized cocktail generation for:', request.context.name);
     
-    // Build comprehensive restaurant context for cocktails
-    const restaurantInfo = this.buildDetailedContext(request.context);
+    // Use sanitized context values to prevent business description contamination
+    const cleanName = this.sanitizeContextValue(request.context.name) || 'The Restaurant';
+    const cleanTheme = this.sanitizeContextValue(request.context.theme) || 'Modern';
+    const cleanEstablishmentType = this.sanitizeContextValue(request.context.establishmentType) || 'restaurant';
+    const cleanTargetDemo = this.sanitizeContextValue(request.context.targetDemographic) || 'general dining';
+    const cleanLocation = this.sanitizeContextValue(request.context.location) || 'local area';
     
     try {
       const response = await openai.chat.completions.create({
@@ -159,50 +163,52 @@ export class SimpleMenuGenerator {
         messages: [
           { 
             role: "system", 
-            content: "You are an expert mixologist and beverage consultant. Create signature cocktails that perfectly complement the restaurant's theme, atmosphere, and clientele. Write compelling 1-2 sentence descriptions that capture the drink's essence, flavor profile, and connection to the restaurant's identity." 
+            content: `You are an expert mixologist and beverage consultant specializing in signature cocktail development. Create unique, restaurant-specific cocktails that perfectly align with the establishment's theme and atmosphere.
+
+CRITICAL: You MUST respond with valid JSON only. No additional text or explanations. Ensure the JSON is properly formatted and complete.` 
           },
           { 
             role: "user", 
-            content: `Create 4 signature cocktails for "${request.context.name}" based on this restaurant profile:
+            content: `Create 4 signature cocktails for "${cleanName}" based on this restaurant profile:
 
-${restaurantInfo}
+Restaurant Name: ${cleanName}
+Theme: ${cleanTheme}
+Establishment Type: ${cleanEstablishmentType}
+Target Demographic: ${cleanTargetDemo}
+Location: ${cleanLocation}
+Average Check: $${request.context.averageTicketPrice || '25'}
 
 Requirements:
-- Reflect the ${request.context.theme} theme in both names and ingredients
-- Match the ${request.context.establishmentType} atmosphere
-- Appeal to ${request.context.targetDemographic} customers
-- Use spirits and ingredients that fit the restaurant's style
-- Consider local flavors from ${request.context.location || 'the region'}
-- Price appropriately for $${request.context.averageTicketPrice || '25'} average check
+- Create cocktails that reflect the restaurant's ${cleanTheme} theme
+- Each cocktail should have a creative, themed name (2-4 words max)
+- Keep descriptions brief and appetizing (1-2 sentences max)
+- Use premium spirits and fresh ingredients
+- Price appropriately for the target market
 
-${request.theme ? `Additional theme: ${request.theme}` : ''}
-${request.baseSpirits?.length ? `Preferred spirits: ${request.baseSpirits.join(', ')}` : ''}
-${request.seasonality ? `Seasonal focus: ${request.seasonality}` : ''}
-${request.batchable ? `BATCH PRODUCTION: Include batch preparation instructions for 10-cocktail batches with scaled ingredient amounts.` : ''}
-
-Each cocktail should have:
-- A creative name that reflects the restaurant's identity
-- A compelling 1-2 sentence description that captures the drink's unique flavors, inspiration, and connection to the restaurant
-- Ingredients that complement the restaurant's food style
-- Pricing that matches their market position
+IMPORTANT: Return ONLY valid JSON. No additional text or explanations.
 
 JSON format:
 {
   "cocktails": [
     {
-      "name": "Restaurant-Themed Name",
-      "description": "A thoughtful sentence or two describing the cocktail's flavor profile, inspiration, and connection to the restaurant's identity and atmosphere.",
+      "name": "Creative Themed Name",
+      "description": "Brief, appetizing description",
       "category": "signature",
-      "ingredients": [{"ingredient": "specific spirit", "amount": "2", "unit": "oz", "cost": 3, "batchAmount": "20", "batchUnit": "oz"}],
-      "instructions": ["detailed preparation"],
-      "garnish": "themed garnish",
-      "glassware": "appropriate glass",
-      "estimatedCost": 4,
-      "suggestedPrice": 14,
-      "profitMargin": 70,
-      "preparationTime": 3,
-      "batchInstructions": ["batch preparation step1"],
-      "batchYield": 10
+      "ingredients": [
+        {
+          "ingredient": "spirit name",
+          "amount": "2",
+          "unit": "oz",
+          "cost": 3.00
+        }
+      ],
+      "instructions": ["step 1", "step 2"],
+      "garnish": "garnish type",
+      "glassware": "glass type",
+      "estimatedCost": 5.50,
+      "suggestedPrice": 16.00,
+      "profitMargin": 65,
+      "preparationTime": 3
     }
   ]
 }
@@ -211,27 +217,42 @@ Make each cocktail unique and specifically tailored to this restaurant's charact
           }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.6,
-        max_tokens: 1200,
+        temperature: 0.5,
+        max_tokens: 2000,
       });
 
-      const content = response.choices[0].message.content || '{"cocktails": []}';
+      let content = response.choices[0].message.content || '{"cocktails": []}';
+      
+      // Clean the content to ensure it's valid JSON
+      content = content.trim();
+      
+      // Remove any potential markdown formatting
+      if (content.startsWith('```json')) {
+        content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      }
+      if (content.startsWith('```')) {
+        content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
       
       try {
         const result = JSON.parse(content);
         if (result.cocktails && Array.isArray(result.cocktails) && result.cocktails.length > 0) {
           console.log(`Generated ${result.cocktails.length} cocktails successfully`);
           return result.cocktails.slice(0, 4);
+        } else {
+          console.error('AI generated invalid cocktail structure:', result);
+          throw new Error('AI generated empty or invalid cocktails array');
         }
       } catch (parseError) {
-        console.log('Parse failed, using fallback');
+        console.error('Failed to parse cocktail AI response:', parseError);
+        console.error('Raw AI Response (first 500 chars):', content.substring(0, 500));
+        console.error('Raw AI Response (last 500 chars):', content.substring(Math.max(0, content.length - 500)));
+        throw new Error(`AI failed to generate valid cocktails. JSON parsing failed - this indicates the AI output was malformed.`);
       }
       
-      return this.getFallbackCocktails(request.context);
-      
     } catch (error) {
-      console.error('Cocktail generation failed:', error);
-      return this.getFallbackCocktails(request.context);
+      console.error('Cocktail generation error:', error);
+      throw new Error(`Cocktail generation failed: ${error}`);
     }
   }
 
@@ -398,92 +419,12 @@ Make each item distinctly different and specifically tailored to this restaurant
       .trim();
   }
 
-
-
-  private getFallbackCocktails(context: RestaurantContext): GeneratedCocktail[] {
-    const theme = context.theme || 'Classic';
-    const uniqueId = this.generateUniqueId();
-    const location = context.location || 'locally';
-    const namePrefix = context.name?.split(' ')[0] || theme;
-    
-    return [
-      {
-        name: `${namePrefix} ${theme} Bourbon Signature`,
-        description: `A sophisticated bourbon cocktail that captures the warmth and character of ${context.name || 'our establishment'}, featuring premium bourbon perfectly balanced with subtle sweetness and bright citrus notes that complement our ${theme.toLowerCase()} dining atmosphere.`,
-        category: "signature",
-        ingredients: [
-          { ingredient: "Bourbon", amount: "2", unit: "oz", cost: 3 },
-          { ingredient: "Simple syrup", amount: "0.5", unit: "oz", cost: 0.2 },
-          { ingredient: "Lemon juice", amount: "0.5", unit: "oz", cost: 0.1 }
-        ],
-        instructions: ["Shake with ice", "Strain into glass"],
-        garnish: "lemon twist",
-        glassware: "rocks glass",
-        estimatedCost: 3.3,
-        suggestedPrice: 14,
-        profitMargin: 76,
-        preparationTime: 3
-      },
-      {
-        name: `${namePrefix} ${theme} Gin Garden`,
-        description: `A refreshing gin-based cocktail that embodies the crisp, botanical essence perfect for ${context.name || 'our restaurant'}, combining premium gin with effervescent tonic and fresh citrus to create a drink that pairs beautifully with our ${theme.toLowerCase()} cuisine.`,
-        category: "signature", 
-        ingredients: [
-          { ingredient: "Gin", amount: "2", unit: "oz", cost: 2.5 },
-          { ingredient: "Tonic water", amount: "4", unit: "oz", cost: 0.3 },
-          { ingredient: "Lime juice", amount: "0.25", unit: "oz", cost: 0.1 }
-        ],
-        instructions: ["Build in glass", "Stir gently"],
-        garnish: "lime wheel",
-        glassware: "highball glass",
-        estimatedCost: 2.9,
-        suggestedPrice: 12,
-        profitMargin: 76,
-        preparationTime: 2
-      },
-      {
-        name: `${namePrefix} ${theme} Vodka Splash`,
-        description: `A vibrant vodka cocktail designed to reflect the clean, modern aesthetic of ${context.name || 'our establishment'}, blending premium vodka with fresh cranberry and lime to create a beautifully balanced drink that's both visually stunning and perfectly suited to our ${theme.toLowerCase()} atmosphere.`,
-        category: "signature",
-        ingredients: [
-          { ingredient: "Vodka", amount: "2", unit: "oz", cost: 2 },
-          { ingredient: "Cranberry juice", amount: "1", unit: "oz", cost: 0.2 },
-          { ingredient: "Lime juice", amount: "0.5", unit: "oz", cost: 0.1 }
-        ],
-        instructions: ["Shake with ice", "Strain over fresh ice"],
-        garnish: "lime wedge",
-        glassware: "rocks glass",
-        estimatedCost: 2.3,
-        suggestedPrice: 11,
-        profitMargin: 79,
-        preparationTime: 3
-      },
-      {
-        name: `${namePrefix} ${theme} Rum Paradise`,
-        description: `An inviting rum cocktail that brings tropical warmth to ${context.name || 'our dining experience'}, featuring smooth white rum combined with sweet pineapple and sparkling soda to create a refreshing drink that perfectly complements our ${theme.toLowerCase()} hospitality and cuisine.`,
-        category: "signature",
-        ingredients: [
-          { ingredient: "White rum", amount: "2", unit: "oz", cost: 2.2 },
-          { ingredient: "Pineapple juice", amount: "1", unit: "oz", cost: 0.3 },
-          { ingredient: "Club soda", amount: "2", unit: "oz", cost: 0.1 }
-        ],
-        instructions: ["Shake juice and rum", "Top with soda"],
-        garnish: "pineapple wedge",
-        glassware: "highball glass",
-        estimatedCost: 2.6,
-        suggestedPrice: 13,
-        profitMargin: 80,
-        preparationTime: 3
-      }
-    ];
-  }
-
   async generatePairedMenuCocktails(menuItems: any[], context: RestaurantContext): Promise<any> {
-    // Simple pairing fallback
+    // Simple pairing - return empty since we don't use fallbacks anymore
     return {
       pairings: menuItems.map((item, index) => ({
         menuItem: item,
-        cocktail: this.getFallbackCocktails(context)[index % 4]
+        cocktail: null // No fallback cocktails
       }))
     };
   }
