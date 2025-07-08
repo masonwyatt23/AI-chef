@@ -196,6 +196,7 @@ ${userSeasonality ? `- Seasonal Focus: ${userSeasonality}` : ''}
 Requirements:
 - ${userTheme ? `MUST create cocktails that directly reflect the "${userTheme}" theme in names and flavors` : `Create cocktails that reflect the restaurant's ${cleanTheme} theme`}
 - ${userBaseSpirits ? `MUST use the specified base spirits: ${userBaseSpirits.join(', ')}` : 'Use premium spirits appropriate for the restaurant'}
+- ${userComplexity ? `MUST follow complexity level: ${userComplexity === 'simple' ? '3-4 ingredients maximum' : userComplexity === 'moderate' ? '5-6 ingredients' : userComplexity === 'advanced' ? '7+ ingredients with complex preparation techniques' : ''}` : ''}
 - Each cocktail should have a creative, themed name (2-4 words max)
 - Keep descriptions brief and appetizing (1-2 sentences max)
 - Use premium spirits and fresh ingredients
@@ -229,6 +230,8 @@ JSON format:
     }
   ]
 }
+
+${userComplexity ? `COMPLEXITY REQUIREMENTS: ${userComplexity === 'simple' ? 'Keep ingredient count to 3-4 items maximum with straightforward preparation' : userComplexity === 'moderate' ? 'Use 5-6 ingredients with moderate preparation techniques' : userComplexity === 'advanced' ? 'Use 7+ ingredients with complex techniques like fat-washing, clarification, house-made syrups, or molecular gastronomy' : ''}` : ''}
 
 Make each cocktail unique and specifically tailored to ${userTheme ? `the "${userTheme}" theme` : 'this restaurant\'s character and brand'}.` 
           }

@@ -106,13 +106,14 @@ The application uses the following main entities:
 - **Integrated Frontend Controls**: Batch production toggle and size selection (10, 20, 50, 100 servings) in generation interface
 - **TypeScript Interface Updates**: Added batchServes, batchInstructions, batchYield, and batchAmount fields to all generation types
 
-### Cocktail Generation User Input Integration Fix (July 3, 2025)
+### Cocktail Generation User Input Integration Fix (July 8, 2025)
 - **Fixed Theme Integration**: Cocktail generator now properly uses user-provided theme/concept to create themed cocktails
 - **Base Spirit Preferences**: AI now honors user-selected base spirits (whiskey, gin, vodka, rum, etc.) in cocktail creation
-- **Complexity Level Support**: Cocktail complexity selection now affects AI generation output appropriately
+- **Complexity Level Support**: Fixed complexity level implementation - Simple (3-4 ingredients), Moderate (5-6 ingredients), Advanced (7+ ingredients with complex techniques)
 - **Seasonality Integration**: Seasonal preferences are now incorporated into cocktail flavor profiles and ingredients
 - **Enhanced AI Prompts**: Updated AI instructions to prioritize user preferences over default restaurant context
 - **Debugging Improvements**: Added logging to track user input usage in cocktail generation process
+- **Complexity Enforcement**: Added specific complexity requirements to AI prompts with detailed ingredient count and technique guidelines for each complexity level
 
 ### Account Registration System Fix (July 2, 2025)
 - **Automatic Restaurant Creation**: New user accounts now automatically receive a default restaurant profile during registration
