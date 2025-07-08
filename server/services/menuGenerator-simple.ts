@@ -157,6 +157,14 @@ export class SimpleMenuGenerator {
     const cleanTargetDemo = this.sanitizeContextValue(request.context.targetDemographic) || 'general dining';
     const cleanLocation = this.sanitizeContextValue(request.context.location) || 'local area';
     
+    // Use user-provided theme and base spirits if available
+    const userTheme = request.theme && request.theme.trim() ? request.theme.trim() : null;
+    const userBaseSpirits = request.baseSpirits && request.baseSpirits.length > 0 ? request.baseSpirits : null;
+    const userComplexity = request.complexity && request.complexity.trim() ? request.complexity.trim() : null;
+    const userSeasonality = request.seasonality && request.seasonality.trim() ? request.seasonality.trim() : null;
+    
+    console.log('Using user inputs:', { userTheme, userBaseSpirits, userComplexity, userSeasonality });
+    
     try {
       const response = await openai.chat.completions.create({
         model: "grok-2-1212",
@@ -172,15 +180,22 @@ CRITICAL: You MUST respond with valid JSON only. No additional text or explanati
             content: `Create 4 signature cocktails for "${cleanName}" based on this restaurant profile:
 
 Restaurant Name: ${cleanName}
-Theme: ${cleanTheme}
+Restaurant Theme: ${cleanTheme}
 Establishment Type: ${cleanEstablishmentType}
 Target Demographic: ${cleanTargetDemo}
 Location: ${cleanLocation}
 Average Check: $${request.context.averageTicketPrice || '25'}
 ${request.batchable ? `Batch Production: Required for ${request.context.diningCapacity || 50} seat capacity` : ''}
 
+USER PREFERENCES (PRIORITY - Use these to guide cocktail creation):
+${userTheme ? `- Desired Theme/Concept: "${userTheme}" (MUST incorporate this theme into cocktail names and flavors)` : ''}
+${userBaseSpirits ? `- Preferred Base Spirits: ${userBaseSpirits.join(', ')} (MUST use these spirits as primary ingredients)` : ''}
+${userComplexity ? `- Complexity Level: ${userComplexity}` : ''}
+${userSeasonality ? `- Seasonal Focus: ${userSeasonality}` : ''}
+
 Requirements:
-- Create cocktails that reflect the restaurant's ${cleanTheme} theme
+- ${userTheme ? `MUST create cocktails that directly reflect the "${userTheme}" theme in names and flavors` : `Create cocktails that reflect the restaurant's ${cleanTheme} theme`}
+- ${userBaseSpirits ? `MUST use the specified base spirits: ${userBaseSpirits.join(', ')}` : 'Use premium spirits appropriate for the restaurant'}
 - Each cocktail should have a creative, themed name (2-4 words max)
 - Keep descriptions brief and appetizing (1-2 sentences max)
 - Use premium spirits and fresh ingredients
@@ -215,7 +230,7 @@ JSON format:
   ]
 }
 
-Make each cocktail unique and specifically tailored to this restaurant's character and brand.` 
+Make each cocktail unique and specifically tailored to ${userTheme ? `the "${userTheme}" theme` : 'this restaurant\'s character and brand'}.` 
           }
         ],
         response_format: { type: "json_object" },
